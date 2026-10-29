@@ -1,0 +1,29 @@
+# robots.txt for GadgetsGrid.ng
+# This file tells search engines what they can and cannot crawl
+
+# Allow all search engines to crawl everything
+User-agent: *
+Allow: /
+
+# Disallow crawling of admin and authentication pages
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /unauth-page
+
+# Disallow crawling of checkout and payment pages (private user data)
+Disallow: /shop/checkout
+Disallow: /shop/paystack-return
+Disallow: /shop/payment-success
+Disallow: /shop/account
+
+# Allow crawling of product pages and public shop pages
+Allow: /shop/home
+Allow: /shop/listing
+Allow: /shop/search
+Allow: /shop/about
+
+# Sitemap location
+Sitemap: https://gadgetsgrid.ng/sitemap.xml
+
+# Crawl delay (optional - helps prevent server overload)
+Crawl-delay: 1
