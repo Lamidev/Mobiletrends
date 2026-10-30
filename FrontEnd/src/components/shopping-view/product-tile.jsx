@@ -49,7 +49,7 @@ function ShoppingProductTile({
           : product?.condition || "VERIFIED GEAR");
 
   const handleCardClick = () => {
-    if (product?._id && handleGetProductDetails && !String(product._id).startsWith("swot-stock-")) {
+    if (product?._id && handleGetProductDetails) {
       handleGetProductDetails(product._id);
     }
   };
@@ -60,9 +60,7 @@ function ShoppingProductTile({
       <div
         onClick={handleCardClick}
         className={`swot-product-image ${mediaClass} ${
-          product?._id && !String(product._id).startsWith("swot-stock-")
-            ? "cursor-pointer"
-            : "cursor-default"
+          product?._id ? "cursor-pointer" : "cursor-default"
         }`}
       >
         <img
@@ -78,9 +76,8 @@ function ShoppingProductTile({
           </div>
         )}
 
-        {/* Quick Add-to-Cart button in top-right (only when real inventory item is in stock) */}
+        {/* Quick Add-to-Cart button in top-right (when inventory item is in stock) */}
         {product?._id &&
-          !String(product._id).startsWith("swot-stock-") &&
           product?.totalStock > 0 &&
           handleAddToCart && (
             <button
@@ -90,7 +87,7 @@ function ShoppingProductTile({
                 handleAddToCart(product._id, product.totalStock);
               }}
               aria-label="Add to cart"
-              className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-[#202020df] backdrop-blur-[5px] text-white flex items-center justify-center transition-all duration-200 hover:bg-[#DF5E00] md:opacity-0 md:group-hover:opacity-100"
+              className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-[#202020df] backdrop-blur-[5px] text-white flex items-center justify-center transition-all duration-200 hover:bg-[#DF5E00] md:opacity-0 md:group-hover:opacity-100 cursor-pointer"
             >
               <ShoppingCart className="h-3.5 w-3.5" />
             </button>

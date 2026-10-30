@@ -374,53 +374,40 @@ function ShoppingHome() {
     );
   }, [dispatch]);
 
-  const rawTopProducts =
-    productList.length > 4
-      ? [...productList, ...productList].slice(featuredIndex, featuredIndex + 4)
-      : productList.slice(0, 4);
+  // Top 4 curated arrivals directly from live database productList
+  const displayedProducts =
+    productList && productList.length > 0
+      ? (productList.length > 4
+          ? [...productList, ...productList].slice(featuredIndex, featuredIndex + 4)
+          : productList.slice(0, 4))
+      : [];
 
-  const displayedProducts = SWOT_STOCK_PRODUCTS.slice(0, 4).map(
-    (stockItem, idx) => {
-      const liveItem = rawTopProducts[idx];
-      if (!liveItem) return stockItem;
-      return {
-        ...liveItem,
-        image: stockItem.image,
-        media: stockItem.media,
-        swotLabel: stockItem.swotLabel,
-      };
-    }
-  );
-
-  const displayedFeaturedProducts = SWOT_STOCK_PRODUCTS.slice(4, 12).map(
-    (stockItem, idx) => {
-      const liveItem = featuredProducts[idx];
-      if (!liveItem) return stockItem;
-      return {
-        ...liveItem,
-        image: stockItem.image,
-        media: stockItem.media,
-        swotLabel: stockItem.swotLabel,
-      };
-    }
-  );
-
+  // Filtered products for the homepage mini-filter tabs directly from live database productList
   const currentFeaturedList = (() => {
+    if (!productList || productList.length === 0) return [];
+
     if (featuredTab === "all") {
-      return displayedFeaturedProducts;
+      return productList.slice(0, 8);
     }
     if (featuredTab === "laptops") {
-      return SWOT_STOCK_PRODUCTS.filter((p) => p.category === "laptops");
+      return productList.filter((p) => {
+        const cat = String(p.category || "").toLowerCase();
+        return cat === "laptops" || cat === "laptop";
+      });
     }
     if (featuredTab === "phones") {
-      return SWOT_STOCK_PRODUCTS.filter(
-        (p) => p.category === "smartphones" || p.category === "phones"
-      );
+      return productList.filter((p) => {
+        const cat = String(p.category || "").toLowerCase();
+        return cat === "smartphones" || cat === "phones" || cat === "phone";
+      });
     }
     if (featuredTab === "gaming") {
-      return SWOT_STOCK_PRODUCTS.filter((p) => p.category === "gaming");
+      return productList.filter((p) => {
+        const cat = String(p.category || "").toLowerCase();
+        return cat === "gaming" || cat === "games";
+      });
     }
-    return displayedFeaturedProducts;
+    return productList.slice(0, 8);
   })();
 
   return (
@@ -519,7 +506,7 @@ function ShoppingHome() {
             <button
               type="button"
               onClick={() => setFeaturedTab("all")}
-              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-3.5 sm:px-4 py-2 rounded-[8px] text-[13px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 featuredTab === "all"
                   ? "border border-[#DF5E00] bg-[#DF5E00]/[0.06] text-[#DF5E00] shadow-sm"
                   : "text-[#62665d] hover:text-[#20231e] hover:bg-black/[0.03]"
@@ -530,7 +517,7 @@ function ShoppingHome() {
             <button
               type="button"
               onClick={() => setFeaturedTab("laptops")}
-              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-3.5 sm:px-4 py-2 rounded-[8px] text-[13px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 featuredTab === "laptops"
                   ? "border border-[#DF5E00] bg-[#DF5E00]/[0.06] text-[#DF5E00] shadow-sm"
                   : "text-[#62665d] hover:text-[#20231e] hover:bg-black/[0.03]"
@@ -541,7 +528,7 @@ function ShoppingHome() {
             <button
               type="button"
               onClick={() => setFeaturedTab("phones")}
-              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-3.5 sm:px-4 py-2 rounded-[8px] text-[13px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 featuredTab === "phones"
                   ? "border border-[#DF5E00] bg-[#DF5E00]/[0.06] text-[#DF5E00] shadow-sm"
                   : "text-[#62665d] hover:text-[#20231e] hover:bg-black/[0.03]"
@@ -552,7 +539,7 @@ function ShoppingHome() {
             <button
               type="button"
               onClick={() => setFeaturedTab("gaming")}
-              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-3.5 sm:px-4 py-2 rounded-[8px] text-[13px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 featuredTab === "gaming"
                   ? "border border-[#DF5E00] bg-[#DF5E00]/[0.06] text-[#DF5E00] shadow-sm"
                   : "text-[#62665d] hover:text-[#20231e] hover:bg-black/[0.03]"
@@ -563,7 +550,7 @@ function ShoppingHome() {
             <button
               type="button"
               onClick={() => navigate('/shop/listing')}
-              className="px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-semibold text-[#62665d] hover:text-[#DF5E00] hover:bg-black/[0.03] transition-all cursor-pointer whitespace-nowrap"
+              className="px-3.5 sm:px-4 py-2 rounded-[8px] text-[13px] sm:text-[14.5px] font-semibold text-[#62665d] hover:text-[#DF5E00] hover:bg-black/[0.03] transition-all cursor-pointer whitespace-nowrap shrink-0"
             >
               More tech
             </button>

@@ -184,26 +184,26 @@ Product link: ${shareUrl}`;
 
   return (
     <div className="font-body text-[#20231e]">
-      {/* Breadcrumbs */}
-      <nav className="flex items-center gap-1.5 text-[11px] sm:text-[12px] font-medium text-[#62665d] mb-4 sm:mb-6 overflow-x-auto whitespace-nowrap">
-        <a href="/" className="hover:text-[#DF5E00] transition-colors">
+      {/* Breadcrumbs (with padding on right to clear dialog close button on mobile) */}
+      <nav className="flex items-center gap-1.5 text-[11px] sm:text-[12px] font-medium text-[#62665d] mb-4 sm:mb-6 overflow-x-auto whitespace-nowrap [scrollbar-width:none] pr-8 sm:pr-0">
+        <a href="/" className="hover:text-[#DF5E00] transition-colors shrink-0">
           Home
         </a>
         <ChevronRight size={12} className="text-[#9ca3af] shrink-0" />
         <a
           href="/shop/listing"
-          className="hover:text-[#DF5E00] transition-colors capitalize"
+          className="hover:text-[#DF5E00] transition-colors capitalize shrink-0"
         >
           {product?.category || 'Products'}
         </a>
         {product?.brand && (
           <>
             <ChevronRight size={12} className="text-[#9ca3af] shrink-0" />
-            <span className="text-[#62665d] uppercase">{product.brand}</span>
+            <span className="text-[#62665d] uppercase shrink-0">{product.brand}</span>
           </>
         )}
         <ChevronRight size={12} className="text-[#9ca3af] shrink-0" />
-        <span className="text-[#111344] font-semibold truncate max-w-[200px] sm:max-w-[320px]">
+        <span className="text-[#111344] font-semibold truncate max-w-[150px] sm:max-w-[320px] shrink-0">
           {product?.title}
         </span>
       </nav>
@@ -294,7 +294,7 @@ Product link: ${shareUrl}`;
                 {selectedCondition}
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {[
                 {
                   id: 'Brand New',
@@ -313,23 +313,23 @@ Product link: ${shareUrl}`;
                     key={opt.id}
                     type="button"
                     onClick={() => setSelectedCondition(opt.id)}
-                    className={`p-3 sm:p-3.5 rounded-xl border text-left transition-all cursor-pointer relative ${
+                    className={`p-2.5 sm:p-3.5 rounded-xl border text-left transition-all cursor-pointer relative ${
                       isSelected
                         ? 'border-[#DF5E00] bg-[#DF5E00]/[0.04] shadow-sm'
                         : 'border-[#e5e7eb] bg-white hover:border-[#111344]/30'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-manrope text-[13px] sm:text-[14px] font-bold text-[#111344]">
+                    <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+                      <span className="font-manrope text-[12px] sm:text-[14px] font-bold text-[#111344] leading-tight">
                         {opt.label}
                       </span>
                       {isSelected && (
-                        <span className="w-4 h-4 rounded-full bg-[#DF5E00] text-white flex items-center justify-center">
-                          <Check size={10} strokeWidth={3} />
+                        <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#DF5E00] text-white flex items-center justify-center shrink-0 ml-1">
+                          <Check size={9} strokeWidth={3} />
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] sm:text-[11px] text-[#62665d] font-medium m-0">
+                    <p className="text-[9.5px] sm:text-[11px] text-[#62665d] font-medium m-0 leading-tight">
                       {opt.desc}
                     </p>
                   </button>
@@ -348,7 +348,7 @@ Product link: ${shareUrl}`;
                 Capacity: {selectedStorage}
               </span>
             </div>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
               {STORAGE_OPTIONS.map((size) => {
                 const isSelected = selectedStorage === size;
                 return (
@@ -356,7 +356,7 @@ Product link: ${shareUrl}`;
                     key={size}
                     type="button"
                     onClick={() => setSelectedStorage(size)}
-                    className={`py-2.5 px-2 rounded-xl text-center font-manrope text-[13px] font-bold transition-all cursor-pointer ${
+                    className={`py-2 sm:py-2.5 px-1 sm:px-2 rounded-xl text-center font-manrope text-[12px] sm:text-[13px] font-bold transition-all cursor-pointer ${
                       isSelected
                         ? 'border-2 border-[#DF5E00] bg-[#DF5E00]/[0.05] text-[#DF5E00]'
                         : 'border border-[#e5e7eb] bg-white text-[#20231e] hover:border-[#111344]/30'
@@ -379,7 +379,7 @@ Product link: ${shareUrl}`;
                 {selectedColor}
               </span>
             </div>
-            <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
               {COLOR_OPTIONS.map((col) => {
                 const isSelected = selectedColor === col.name;
                 return (
@@ -387,14 +387,14 @@ Product link: ${shareUrl}`;
                     key={col.name}
                     type="button"
                     onClick={() => setSelectedColor(col.name)}
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[12px] font-semibold border transition-all cursor-pointer ${
+                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-[12px] font-semibold border transition-all cursor-pointer ${
                       isSelected
                         ? 'border-[#DF5E00] bg-[#DF5E00]/[0.05] text-[#DF5E00]'
                         : 'border-[#e5e7eb] bg-white text-[#20231e] hover:border-[#111344]/30'
                     }`}
                   >
                     <span
-                      className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0"
+                      className="w-3 sm:w-3.5 h-3 sm:h-3.5 rounded-full border border-black/10 shrink-0"
                       style={{ backgroundColor: col.hex }}
                     />
                     <span>{col.name}</span>
@@ -407,21 +407,21 @@ Product link: ${shareUrl}`;
           <Separator className="bg-[#e5e7eb]" />
 
           {/* Quantity Selector & CTAs */}
-          <div className="space-y-3 pt-1">
-            <div className="flex items-center gap-3">
+          <div className="space-y-2.5 sm:space-y-3 pt-1">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* Stepper */}
-              <div className="flex items-center border border-[#e5e7eb] rounded-xl bg-[#fafaf8] p-1 shrink-0 h-12">
+              <div className="flex items-center border border-[#e5e7eb] rounded-xl bg-[#fafaf8] p-0.5 sm:p-1 shrink-0 h-11 sm:h-12">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => handleQuantityChange('decrement')}
                   disabled={quantity <= 1 || isOutOfStock}
-                  className="h-9 w-9 rounded-lg hover:bg-white transition-all text-[#20231e]"
+                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg hover:bg-white transition-all text-[#20231e]"
                 >
-                  <Minus size={14} />
+                  <Minus size={13} />
                 </Button>
-                <span className="w-10 text-center font-manrope font-bold text-[15px] text-[#111344]">
+                <span className="w-8 sm:w-10 text-center font-manrope font-bold text-[14px] sm:text-[15px] text-[#111344]">
                   {quantity}
                 </span>
                 <Button
@@ -430,9 +430,9 @@ Product link: ${shareUrl}`;
                   size="icon"
                   onClick={() => handleQuantityChange('increment')}
                   disabled={quantity >= (product?.totalStock || 1) || isOutOfStock}
-                  className="h-9 w-9 rounded-lg hover:bg-white transition-all text-[#20231e]"
+                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg hover:bg-white transition-all text-[#20231e]"
                 >
-                  <Plus size={14} />
+                  <Plus size={13} />
                 </Button>
               </div>
 
@@ -441,23 +441,29 @@ Product link: ${shareUrl}`;
                 type="button"
                 onClick={handleAddToCartClick}
                 disabled={isOutOfStock}
-                className="flex-1 h-12 rounded-xl bg-[#111344] hover:bg-[#0C1172] text-white font-manrope text-[14px] sm:text-[15px] font-bold shadow-md hover:shadow-lg transition-all"
+                className="flex-1 h-11 sm:h-12 rounded-xl bg-[#111344] hover:bg-[#0C1172] text-white font-manrope text-[12px] sm:text-[14px] md:text-[15px] font-bold shadow-md hover:shadow-lg transition-all px-2 sm:px-4"
               >
-                {isOutOfStock
-                  ? 'OUT OF STOCK'
-                  : `ADD TO CART • ₦${totalPrice.toLocaleString('en-NG')}`}
+                {isOutOfStock ? (
+                  'OUT OF STOCK'
+                ) : (
+                  <span className="flex items-center justify-center gap-1.5 truncate">
+                    <span>ADD TO CART</span>
+                    <span className="text-white/60">•</span>
+                    <span>₦{totalPrice.toLocaleString('en-NG')}</span>
+                  </span>
+                )}
               </Button>
             </div>
 
             {/* Secondary Actions: WhatsApp Order & Share */}
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleWhatsAppOrder}
-                className="h-11 rounded-xl border-[#25D366]/40 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] font-manrope font-bold text-[12px] sm:text-[13px] gap-2 transition-all cursor-pointer"
+                className="h-10 sm:h-11 rounded-xl border-[#25D366]/40 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] font-manrope font-bold text-[11px] sm:text-[13px] gap-1.5 sm:gap-2 transition-all cursor-pointer px-2 sm:px-3"
               >
-                <FaWhatsapp className="text-[17px] text-[#25D366] shrink-0" />
+                <FaWhatsapp className="text-[15px] sm:text-[17px] text-[#25D366] shrink-0" />
                 <span className="truncate">Order on WhatsApp</span>
               </Button>
 
@@ -465,9 +471,9 @@ Product link: ${shareUrl}`;
                 type="button"
                 variant="outline"
                 onClick={handleShareProduct}
-                className="h-11 rounded-xl border-[#e5e7eb] bg-white hover:bg-[#fafaf8] text-[#111344] font-manrope font-bold text-[12px] sm:text-[13px] gap-2 transition-all cursor-pointer"
+                className="h-10 sm:h-11 rounded-xl border-[#e5e7eb] bg-white hover:bg-[#fafaf8] text-[#111344] font-manrope font-bold text-[11px] sm:text-[13px] gap-1.5 sm:gap-2 transition-all cursor-pointer px-2 sm:px-3"
               >
-                <Share2 size={15} className="shrink-0" />
+                <Share2 size={14} className="shrink-0" />
                 <span className="truncate">Share Product</span>
               </Button>
             </div>
