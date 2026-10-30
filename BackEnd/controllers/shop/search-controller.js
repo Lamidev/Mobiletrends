@@ -3,15 +3,18 @@ const Product = require("../../models/products");
 const searchProducts = async (req, res) => {
   try {
     const { keyword } = req.params;
-    
-    if (!keyword || typeof keyword !== "string") {
+
+    if (!keyword || typeof keyword !== "string" || !keyword.trim()) {
       return res.status(400).json({
-        succes: false,
+        success: false,
         message: "Keyword is required and must be in string format",
       });
     }
 
-    const regEx = new RegExp(keyword, "i");
+    const escapedKeyword = keyword
+      .trim()
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regEx = new RegExp(escapedKeyword, "i");
 
     const createSearchQuery = {
       $or: [
@@ -29,10 +32,10 @@ const searchProducts = async (req, res) => {
       data: searchResults,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Search error:", error);
     res.status(500).json({
       success: false,
-      message: "Error",
+      message: "Error searching products",
     });
   }
 };

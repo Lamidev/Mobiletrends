@@ -356,13 +356,11 @@ function MobileSheetContent({ closeSheet }) {
       <div className="flex-1 overflow-y-auto p-6 pb-4">
         <div className="flex flex-col gap-8">
           <div className="flex items-center gap-2.5">
-            <div className="rounded-xl border border-[#daddd4] bg-white p-0.5 shadow-sm">
-              <img
-                src="/logo.jpg"
-                alt="Mobiletrends Logo"
-                className="h-9 w-9 object-contain rounded-lg"
-              />
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="Mobiletrends Logo"
+              className="h-9 w-9 object-contain mix-blend-multiply shrink-0"
+            />
             <div className="flex flex-col">
               <span className="font-manrope text-[16px] font-extrabold text-[#20231e] tracking-[-0.5px] uppercase leading-tight">
                 Mobile<span className="text-[#0C1172]">trends</span>
@@ -468,29 +466,27 @@ function ShoppingHeader() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-[#e6e8e1] bg-[#fafaf8]/95 backdrop-blur supports-[backdrop-filter]:bg-[#fafaf8]/90 font-body">
       <div className="flex h-16 items-center justify-between px-3.5 sm:px-6 max-w-7xl mx-auto">
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="lg:hidden h-9 w-9 sm:h-10 sm:w-10 rounded-full border-0 bg-[#F2F3F7] text-[#141619]"
+              <button
+                type="button"
+                aria-label="Open menu"
+                className="lg:hidden flex items-center justify-center p-1 -ml-1 text-[#141619] hover:text-[#0C1172] transition-colors focus:outline-none cursor-pointer"
               >
-                <Menu className="h-[18px] w-[18px]" />
-              </Button>
+                <Menu className="h-[22px] w-[22px]" strokeWidth={2} />
+              </button>
             </SheetTrigger>
 
             <MobileSheetContent closeSheet={() => setIsSheetOpen(false)} />
           </Sheet>
 
           <Link to="/shop/home" className="flex items-center gap-2 group">
-            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-1 group-hover:border-[#0C1172] transition-colors shadow-sm">
-              <img
-                src="/logo.jpg"
-                alt="Mobiletrends Logo"
-                className="h-8 w-8 sm:h-10 sm:w-10 object-contain rounded-lg transform group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="Mobiletrends Logo"
+              className="h-8 w-8 sm:h-9 sm:w-9 object-contain mix-blend-multiply transform group-hover:scale-105 transition-transform duration-300 shrink-0"
+            />
             <div className="flex flex-col">
               <span className="font-manrope text-[15px] sm:text-[18px] leading-tight font-extrabold text-[#141619] tracking-[-0.5px] uppercase">
                 Mobile<span className="text-[#0C1172]">trends</span>

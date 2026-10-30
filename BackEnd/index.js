@@ -36,7 +36,6 @@ mongoose
       "http://localhost:5173",
       "https://mobiletrends.ng",
       "https://www.mobiletrends.ng",
-      "https://gadgetgrid-3hz0.onrender.com",
     ].filter(Boolean);
 
     app.use(

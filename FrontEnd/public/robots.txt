@@ -1,7 +1,7 @@
-# robots.txt for GadgetsGrid.ng
+# robots.txt for Mobiletrends.ng
 # This file tells search engines what they can and cannot crawl
 
-# Allow all search engines to crawl everything
+# Allow all search engines to crawl public pages
 User-agent: *
 Allow: /
 
@@ -23,7 +23,7 @@ Allow: /shop/search
 Allow: /shop/about
 
 # Sitemap location
-Sitemap: https://gadgetsgrid.ng/sitemap.xml
+Sitemap: https://mobiletrends.ng/sitemap.xml
 
-# Crawl delay (optional - helps prevent server overload)
+# Crawl delay
 Crawl-delay: 1

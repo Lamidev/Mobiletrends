@@ -225,18 +225,18 @@ export default function BrandMarquee({ onSelectBrand }: BrandMarqueeProps) {
 
   return (
     <div className="w-full">
-      {/* 1. Trust Strip (Single straight horizontal line on both mobile & desktop) */}
+      {/* 1. Trust Strip (2 in a row stacked on mobile, 4 across on desktop) */}
       <div className="border-y border-[#daddd4] bg-[#eef0e9]">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-14 py-3.5 sm:py-5 flex flex-nowrap items-center justify-between gap-5 sm:gap-6 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="max-w-[1280px] mx-auto px-3.5 sm:px-14 py-3.5 sm:py-5 grid grid-cols-2 lg:flex lg:flex-wrap lg:items-center lg:justify-between gap-x-3 gap-y-2.5 sm:gap-x-6 sm:gap-y-3">
           {TRUST_ITEMS.map((item, idx) => {
             const Icon = item.icon;
             return (
               <span
                 key={idx}
-                className="inline-flex items-center gap-[7px] sm:gap-[9px] text-[10.5px] sm:text-[11px] font-medium text-[#62665d] shrink-0"
+                className="inline-flex items-center gap-[6px] sm:gap-[9px] text-[10.5px] sm:text-[11.5px] font-medium text-[#62665d] leading-snug min-w-0"
               >
-                <Icon className="w-[14px] h-[14px] sm:w-[15px] sm:h-[15px] text-[#DF5E00] stroke-[1.7] shrink-0" />
-                <span>{item.text}</span>
+                <Icon className="w-[13.5px] h-[13.5px] sm:w-[15px] sm:h-[15px] text-[#DF5E00] stroke-[1.7] shrink-0" />
+                <span className="truncate sm:whitespace-normal">{item.text}</span>
               </span>
             );
           })}

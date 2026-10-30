@@ -11,14 +11,12 @@ function AuthLayout({ children }) {
     <div className="min-h-[100dvh] w-full max-w-[100vw] overflow-x-hidden bg-white flex flex-col justify-between font-body text-[#0f172a]">
       {/* Minimal Top Bar: Brand Logo Left, Circular Close Button Right */}
       <header className="w-full px-5 sm:px-12 pt-5 sm:pt-6 pb-2 flex items-center justify-between shrink-0">
-        <Link to="/shop/home" className="flex items-center gap-2.5 group min-w-0">
-          <div className="relative overflow-hidden rounded-xl border border-gray-200 p-1 group-hover:border-[#0C1172] transition-colors shadow-sm bg-white shrink-0">
-            <img
-              src="/logo.jpg"
-              alt="Mobiletrends Logo"
-              className="h-8 w-8 sm:h-9 sm:w-9 object-contain rounded-lg"
-            />
-          </div>
+        <Link to="/shop/home" className="flex items-center gap-2 group min-w-0">
+          <img
+            src="/logo.jpg"
+            alt="Mobiletrends Logo"
+            className="h-8 w-8 sm:h-9 sm:w-9 object-contain mix-blend-multiply shrink-0"
+          />
           <div className="flex flex-col min-w-0">
             <span className="font-manrope text-[16px] sm:text-[18px] leading-tight font-extrabold text-[#0f172a] tracking-[-0.5px] uppercase truncate">
               Mobile<span className="text-[#DF5E00]">trends</span>

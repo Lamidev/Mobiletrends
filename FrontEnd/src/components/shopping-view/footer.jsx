@@ -45,14 +45,12 @@ const Footer = () => {
             <span className="block text-[9px] tracking-[2.2px] font-semibold uppercase text-[#62665d] mb-5">
               PHYSICAL STORES IN AKURE
             </span>
-            <Link to="/shop/home" className="inline-flex items-center gap-3 mb-3 group">
-              <div className="rounded-lg border border-[#daddd4] p-1 bg-white shadow-sm shrink-0">
-                <img
-                  src="/logo.jpg"
-                  alt="Mobiletrends Systems Limited"
-                  className="h-8 w-8 object-contain rounded"
-                />
-              </div>
+            <Link to="/shop/home" className="inline-flex items-center gap-2.5 mb-3 group">
+              <img
+                src="/logo.jpg"
+                alt="Mobiletrends Systems Limited"
+                className="h-8 w-8 object-contain mix-blend-multiply shrink-0"
+              />
               <h3 className="font-manrope text-[17px] font-semibold text-[#20231e] group-hover:text-[#0C1172] transition-colors m-0">
                 Mobiletrends Systems Limited
               </h3>

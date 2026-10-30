@@ -407,9 +407,9 @@ export default function ReelmarkHero({
           transition={{ duration: 0.6, delay: 0.22 }}
           className="font-body mt-5 max-w-[620px] text-[#62665d] text-[13.5px] sm:text-[15.5px] leading-[1.75] font-normal"
         >
-          Whether you&apos;re building projects, creating 4K content, gaming, or
-          elevating your daily carry—get factory-sealed brand-new and clean
-          UK-used devices with verified battery health and real warranty.
+          Whether you are building projects, creating 4K content, gaming, or
+          elevating your daily workflow, get factory sealed brand new and clean
+          UK used devices with verified battery health and real warranty.
         </motion.p>
       </div>
 

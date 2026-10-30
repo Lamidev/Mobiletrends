@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState } from "react";
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -8,68 +9,283 @@ import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import { fetchProductDetails } from "@/store/shop/products-slice";
-import { getSearchResults, resetSearchResults } from "@/store/shop/search-slice";
+import {
+  getSearchResults,
+  resetSearchResults,
+} from "@/store/shop/search-slice";
 import { motion } from "framer-motion";
-import debounce from "lodash.debounce";
 import { getOrCreateSessionId } from "@/components/utils/session";
-import { ChevronLeft, ChevronRight, Loader2, Search, XCircle, Package } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Search,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+const SHOWCASE_PRODUCTS = [
+  {
+    _id: "swot-stock-1",
+    title: "iPhone 18 Pro",
+    category: "smartphones",
+    brand: "apple",
+    description: "Apple Factory Unlocked flagship smartphone",
+    image: "/products/iphone-18-pro.png",
+    price: 1950000,
+    salePrice: 1850000,
+    totalStock: 10,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-2",
+    title: "MacBook Pro M4",
+    category: "laptops",
+    brand: "apple",
+    description: "Apple M-Series Silicon pro laptop",
+    image: "/products/macbook-pro.png",
+    price: 2650000,
+    salePrice: 2480000,
+    totalStock: 8,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-3",
+    title: "PlayStation 5 Pro",
+    category: "gaming",
+    brand: "sony",
+    description: "Sony PlayStation 4K 120FPS gaming console",
+    image: "/products/ps5-pro.jpg",
+    price: 1250000,
+    salePrice: 1180000,
+    totalStock: 12,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-4",
+    title: "Samsung Galaxy S26 Ultra",
+    category: "smartphones",
+    brand: "samsung",
+    description: "Samsung Snapdragon flagship smartphone",
+    image: "/products/galaxy-s26-ultra.jpg",
+    price: 1890000,
+    salePrice: 1760000,
+    totalStock: 10,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-5",
+    title: "iPhone Duo",
+    category: "smartphones",
+    brand: "apple",
+    description: "Apple foldable flagship smartphone",
+    image: "/products/iphone-duo.jpg",
+    price: 2850000,
+    salePrice: 0,
+    totalStock: 5,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-6",
+    title: "Samsung Galaxy Z Fold8",
+    category: "smartphones",
+    brand: "samsung",
+    description: "Samsung foldable Galaxy flagship",
+    image: "/products/galaxy-z-fold8.jpg",
+    price: 2450000,
+    salePrice: 2290000,
+    totalStock: 6,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-7",
+    title: "Sony WH-1000XM6",
+    category: "accessories",
+    brand: "sony",
+    description: "Sony active noise cancelling wireless headphones",
+    image: "/products/sony-wh1000xm6.png",
+    price: 620000,
+    salePrice: 580000,
+    totalStock: 15,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-8",
+    title: "ROG Zephyrus G16",
+    category: "laptops",
+    brand: "asus",
+    description: "ASUS ROG high-FPS gaming and 3D creator laptop",
+    image: "/products/rog-zephyrus-g16.png",
+    price: 2950000,
+    salePrice: 2790000,
+    totalStock: 5,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-9",
+    title: "Apple Studio Display",
+    category: "accessories",
+    brand: "apple",
+    description: "Apple 5K Retina studio monitor display",
+    image: "/products/studio-display.jpg",
+    price: 2350000,
+    salePrice: 0,
+    totalStock: 4,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-10",
+    title: "Samsung Portable SSD T9",
+    category: "accessories",
+    brand: "samsung",
+    description: "Samsung 2,000MB/s high-speed portable SSD storage",
+    image: "/products/t9-product.png",
+    price: 340000,
+    salePrice: 310000,
+    totalStock: 20,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-11",
+    title: "AirPods 5",
+    category: "accessories",
+    brand: "apple",
+    description: "Apple AirPods with active noise cancellation",
+    image: "/products/airpods-5.jpg",
+    price: 385000,
+    salePrice: 350000,
+    totalStock: 18,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-12",
+    title: "Nintendo Switch 2",
+    category: "gaming",
+    brand: "nintendo",
+    description: "Nintendo home and handheld gaming console",
+    image: "/products/switch-2.png",
+    price: 780000,
+    salePrice: 720000,
+    totalStock: 10,
+    condition: "Brand New",
+  },
+];
+
 function SearchProducts() {
-  const [keyword, setKeyword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const initialUrlKeyword = searchParams.get("keyword") || "";
+  const [keyword, setKeyword] = useState(initialUrlKeyword);
+  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+
   const dispatch = useDispatch();
-  const { searchResults } = useSelector((state) => state.shopSearch);
+  const { searchResults, isLoading } = useSelector((state) => state.shopSearch);
   const { productDetails } = useSelector((state) => state.shopProducts);
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
   const { toast } = useToast();
 
+  const debounceTimerRef = useRef(null);
+  const inputRef = useRef(null);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
 
-  const totalItems = searchResults?.length || 0;
+  // Sync when URL ?keyword= changes externally (e.g., from the Header search bar)
+  const urlKeyword = searchParams.get("keyword") || "";
+  useEffect(() => {
+    if (urlKeyword !== keyword) {
+      setKeyword(urlKeyword);
+    }
+    if (urlKeyword.trim()) {
+      dispatch(getSearchResults(urlKeyword.trim()));
+    } else {
+      dispatch(resetSearchResults());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlKeyword, dispatch]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Combine backend DB search results with matching showcase products (deduplicated by title)
+  const combinedResults = useMemo(() => {
+    const trimmed = keyword.trim().toLowerCase();
+    if (!trimmed) return [];
+
+    const dbList = Array.isArray(searchResults) ? searchResults : [];
+    const seenTitles = new Set(
+      dbList.map((p) => (p.title || "").toLowerCase().trim())
+    );
+
+    const matchingShowcase = SHOWCASE_PRODUCTS.filter((item) => {
+      if (seenTitles.has(item.title.toLowerCase().trim())) return false;
+      return (
+        item.title.toLowerCase().includes(trimmed) ||
+        item.category.toLowerCase().includes(trimmed) ||
+        item.brand.toLowerCase().includes(trimmed) ||
+        item.description.toLowerCase().includes(trimmed)
+      );
+    });
+
+    return [...dbList, ...matchingShowcase];
+  }, [searchResults, keyword]);
+
+  const totalItems = combinedResults.length;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentResults = searchResults?.slice(indexOfFirstItem, indexOfLastItem);
+  const currentResults = combinedResults.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Debounced search to reduce unnecessary dispatches
-  const debouncedSearch = debounce((value) => {
-    if (value.trim().length >= 1) {
-      setSearchParams(new URLSearchParams(`?keyword=${value}`));
-      setIsLoading(true);
-      setCurrentPage(1);
-      dispatch(getSearchResults(value)).finally(() => setIsLoading(false));
-    } else {
-      setSearchParams(new URLSearchParams());
-      dispatch(resetSearchResults());
-    }
-  }, 300);
-
-  // Handle search input changes
   const handleSearchInputChange = (event) => {
     const value = event.target.value;
     setKeyword(value);
-    debouncedSearch(value);
+    setCurrentPage(1);
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+      setSearchParams({});
+      dispatch(resetSearchResults());
+      return;
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      setSearchParams({ keyword: trimmed });
+      dispatch(getSearchResults(trimmed));
+    }, 250);
   };
 
-  // Handle clear search
+  // Immediately clear search input, URL params, pending timers, and results
   const handleClearSearch = () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
     setKeyword("");
-    setSearchParams(new URLSearchParams());
+    setCurrentPage(1);
+    setSearchParams({});
     dispatch(resetSearchResults());
+    inputRef.current?.focus();
   };
 
-  // Handle add to cart
   async function handleAddToCart(getCurrentProductId, getTotalStock) {
     try {
       const userId = user?.id;
@@ -118,8 +334,8 @@ function SearchProducts() {
     }
   }
 
-  // Handle product details fetching
   function handleGetProductDetails(getCurrentProductId) {
+    if (String(getCurrentProductId).startsWith("swot-stock-")) return;
     dispatch(fetchProductDetails(getCurrentProductId));
   }
 
@@ -131,76 +347,89 @@ function SearchProducts() {
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
 
-  // Sync keyword with URL on load
-  useEffect(() => {
-    const urlKeyword = searchParams.get("keyword");
-    if (urlKeyword) {
-      setKeyword(urlKeyword);
-      dispatch(getSearchResults(urlKeyword));
-    }
-  }, []);
-
   return (
     <div className="font-body container mx-auto md:px-6 px-4 py-8 min-h-screen">
       {/* Search Header */}
       <div className="flex flex-col items-center mb-10 text-center">
-        <h1 className="font-manrope text-3xl md:text-4xl font-extrabold tracking-tight mb-4 text-primary">Explore Gadgets</h1>
-        <p className="text-muted-foreground max-w-lg mb-8">
-          Search for your favorite phones, laptops, and accessories across Mobiletrends.
+        <h1 className="font-manrope text-3xl md:text-4xl font-extrabold tracking-tight mb-3 text-[#111344]">
+          Explore Gadgets
+        </h1>
+        <p className="text-[#62665d] max-w-lg mb-7 text-sm sm:text-base">
+          Search for your favorite phones, laptops, consoles, and accessories across Mobiletrends.
         </p>
 
         <div className="w-full max-w-2xl relative group">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-peach-500 transition-colors">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#62665d] group-focus-within:text-[#111344] transition-colors pointer-events-none">
             <Search className="w-5 h-5" />
           </div>
           <Input
+            ref={inputRef}
             value={keyword}
             name="keyword"
             onChange={handleSearchInputChange}
-            className="py-7 pl-12 pr-12 text-lg rounded-2xl border-gray-200 focus:ring-4 focus:ring-peach-100 transition-all shadow-sm"
-            placeholder="Type at least 1 character to start searching..."
+            className="py-6 sm:py-7 pl-12 pr-24 text-[16px] sm:text-lg rounded-2xl border-[#daddd4] bg-white focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all shadow-sm"
+            placeholder="Search iPhone, Samsung, MacBook, PS5..."
           />
-          {keyword.length > 0 && (
-            <button
-              onClick={handleClearSearch}
-              className="absolute right-12 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
-              title="Clear search"
-            >
-              <XCircle className="w-5 h-5" />
-            </button>
-          )}
-          {isLoading && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2">
-              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-            </div>
-          )}
+          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            {isLoading && (
+              <Loader2 className="w-5 h-5 animate-spin text-[#111344]" />
+            )}
+            {keyword.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                aria-label="Clear search"
+                title="Clear search"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#f3f4f6] hover:bg-[#e5e7eb] text-[#1e293b] text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Clear</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Results Section */}
       <div className="space-y-6">
-        {searchResults.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between border-b pb-4 gap-4">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold">Search Results</h2>
-              <Badge variant="secondary" className="bg-peach-50 text-peach-600 border-peach-100">
+        {combinedResults.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between border-b border-[#daddd4] pb-4 gap-4">
+            <div className="flex items-center gap-3">
+              <h2 className="font-manrope text-xl font-bold text-[#20231e]">
+                Search Results
+              </h2>
+              <Badge
+                variant="secondary"
+                className="bg-[#111344]/10 text-[#111344] border-[#111344]/20"
+              >
                 {totalItems}
               </Badge>
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="text-xs font-semibold text-[#DF5E00] hover:text-[#111344] underline underline-offset-2 ml-2 cursor-pointer"
+              >
+                Clear results
+              </button>
             </div>
 
             <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-100">
-              <span className="text-[10px] font-black text-gray-400 px-2 uppercase tracking-widest">Per Page:</span>
+              <span className="text-[10px] font-black text-gray-400 px-2 uppercase tracking-widest">
+                Per Page:
+              </span>
               {[12, 24, 48].map((num) => (
                 <button
                   key={num}
+                  type="button"
                   onClick={() => {
                     setItemsPerPage(num);
                     setCurrentPage(1);
                   }}
-                  className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${itemsPerPage === num
-                      ? "bg-white text-peach-600 shadow-sm"
+                  className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
+                    itemsPerPage === num
+                      ? "bg-white text-[#111344] shadow-sm"
                       : "text-gray-400 hover:text-gray-600"
-                    }`}
+                  }`}
                 >
                   {num}
                 </button>
@@ -209,17 +438,24 @@ function SearchProducts() {
           </div>
         )}
 
-        {!searchResults.length && keyword.trim().length > 0 && !isLoading && (
+        {!combinedResults.length && keyword.trim().length > 0 && !isLoading && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center py-20 text-center"
           >
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-              <Search className="w-10 h-10 text-gray-300" />
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <Search className="w-10 h-10 text-gray-400" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-400">No results found for "{keyword}"</h3>
-            <p className="text-muted-foreground">Try adjusting your search or check for spelling errors.</p>
+            <h3 className="font-manrope text-2xl font-bold text-[#20231e]">
+              No results found for &ldquo;{keyword}&rdquo;
+            </h3>
+            <p className="text-[#62665d] mt-1 mb-5">
+              Try adjusting your search or clear the filter to start fresh.
+            </p>
+            <Button onClick={handleClearSearch} className="rounded-full px-6">
+              Clear Search
+            </Button>
           </motion.div>
         )}
 
@@ -230,7 +466,7 @@ function SearchProducts() {
           {currentResults.map((item) => (
             <motion.div
               layout
-              key={item.id}
+              key={item._id || item.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.2 }}
@@ -248,7 +484,16 @@ function SearchProducts() {
         {totalItems > itemsPerPage && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-8 bg-white border border-gray-100 rounded-3xl shadow-sm gap-6">
             <div className="text-sm text-muted-foreground font-medium order-2 sm:order-1">
-              Showing <span className="text-foreground font-bold">{indexOfFirstItem + 1}</span> to <span className="text-foreground font-bold">{Math.min(indexOfLastItem, totalItems)}</span> of <span className="text-foreground font-bold">{totalItems}</span> results
+              Showing{" "}
+              <span className="text-foreground font-bold">
+                {indexOfFirstItem + 1}
+              </span>{" "}
+              to{" "}
+              <span className="text-foreground font-bold">
+                {Math.min(indexOfLastItem, totalItems)}
+              </span>{" "}
+              of <span className="text-foreground font-bold">{totalItems}</span>{" "}
+              results
             </div>
 
             <div className="flex items-center gap-2 order-1 sm:order-2">
@@ -257,7 +502,7 @@ function SearchProducts() {
                 size="sm"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="h-9 px-3 border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 disabled:opacity-50 transition-all font-bold"
+                className="h-9 px-3 border-gray-200 disabled:opacity-50 transition-all font-bold"
               >
                 <ChevronLeft className="h-4 w-4" />
                 <span className="hidden sm:inline ml-1">Previous</span>
@@ -265,30 +510,35 @@ function SearchProducts() {
 
               <div className="flex gap-1">
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(page => {
+                  .filter((page) => {
                     if (totalPages <= 5) return true;
-                    return Math.abs(page - currentPage) <= 1 || page === 1 || page === totalPages;
+                    return (
+                      Math.abs(page - currentPage) <= 1 ||
+                      page === 1 ||
+                      page === totalPages
+                    );
                   })
                   .map((page, index, array) => {
-                    const showEllipsis = index > 0 && page - array[index - 1] > 1;
+                    const showEllipsis =
+                      index > 0 && page - array[index - 1] > 1;
                     return (
                       <div key={page} className="flex items-center gap-1">
-                        {showEllipsis && <span className="text-gray-400 px-1 font-bold">...</span>}
+                        {showEllipsis && (
+                          <span className="text-gray-400 px-1 font-bold">
+                            ...
+                          </span>
+                        )}
                         <Button
                           variant={currentPage === page ? "default" : "outline"}
                           size="sm"
                           onClick={() => handlePageChange(page)}
-                          className={`h-9 w-9 p-0 font-bold transition-all ${currentPage === page
-                              ? "bg-peach-500 hover:bg-peach-600 text-white border-peach-500 shadow-sm"
-                              : "border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200"
-                            }`}
+                          className="h-9 w-9 p-0 font-bold transition-all"
                         >
                           {page}
                         </Button>
                       </div>
                     );
-                  })
-                }
+                  })}
               </div>
 
               <Button
@@ -296,7 +546,7 @@ function SearchProducts() {
                 size="sm"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="h-9 px-3 border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 disabled:opacity-50 transition-all font-bold"
+                className="h-9 px-3 border-gray-200 disabled:opacity-50 transition-all font-bold"
               >
                 <span className="hidden sm:inline mr-1">Next</span>
                 <ChevronRight className="h-4 w-4" />

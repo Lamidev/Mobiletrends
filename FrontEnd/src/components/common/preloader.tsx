@@ -43,13 +43,11 @@ export function Preloader({ active = true, subtitle }: PreloaderProps) {
       <div className="flex flex-col items-center gap-5 px-6 text-center select-none">
         {/* Brand Logo + Wordmark */}
         <div className="flex items-center gap-2.5">
-          <div className="relative overflow-hidden rounded-xl border border-[#daddd4] bg-white p-1 shadow-sm">
-            <img
-              src="/logo.jpg"
-              alt="Mobiletrends Logo"
-              className="h-9 w-9 sm:h-10 sm:w-10 object-contain rounded-lg"
-            />
-          </div>
+          <img
+            src="/logo.jpg"
+            alt="Mobiletrends Logo"
+            className="h-9 w-9 sm:h-10 sm:w-10 object-contain mix-blend-multiply shrink-0"
+          />
           <div className="flex flex-col text-left">
             <span className="font-manrope text-[19px] sm:text-[21px] leading-tight font-extrabold text-[#141619] tracking-[-0.6px] uppercase">
               Mobile<span className="text-[#0C1172]">trends</span>

@@ -1,6 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8050/api";
+
 const initialState = {
   isLoading: false,
   searchResults: [],
@@ -9,9 +12,13 @@ const initialState = {
 export const getSearchResults = createAsyncThunk(
   "/order/getSearchResults",
   async (keyword) => {
-    
+    const cleanKeyword = String(keyword || "").trim();
+    if (!cleanKeyword) {
+      return { success: true, data: [] };
+    }
+
     const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8050/api"}/shop/search/${keyword}`
+      `${API_BASE}/shop/search/${encodeURIComponent(cleanKeyword)}`
     );
 
     return response.data;
@@ -23,6 +30,7 @@ const searchSlice = createSlice({
   initialState,
   reducers: {
     resetSearchResults: (state) => {
+      state.isLoading = false;
       state.searchResults = [];
     },
   },
@@ -33,7 +41,7 @@ const searchSlice = createSlice({
       })
       .addCase(getSearchResults.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.searchResults = action.payload.data;
+        state.searchResults = action.payload?.data || [];
       })
       .addCase(getSearchResults.rejected, (state) => {
         state.isLoading = false;
