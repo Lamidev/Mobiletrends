@@ -8,12 +8,12 @@ import { ArrowRight } from "lucide-react";
 
 const ShoppingLayout = ({ children }) => {
   return (
-    <div className="flex flex-col min-h-screen bg-[#fafaf8] font-body text-[#20231e] overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-[#fafaf8] font-body text-[#20231e] overflow-x-clip">
       {/* Common header */}
       <ShoppingHeader />
 
       {/* Main Content */}
-      <main className="flex-grow w-full">
+      <main className="flex-grow w-full pt-16">
         {children}
       </main>
 

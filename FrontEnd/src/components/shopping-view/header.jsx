@@ -442,7 +442,7 @@ function ShoppingHeader() {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#e6e8e1] bg-[#fafaf8]/95 backdrop-blur supports-[backdrop-filter]:bg-[#fafaf8]/85 font-body">
+    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-[#e6e8e1] bg-[#fafaf8]/95 backdrop-blur supports-[backdrop-filter]:bg-[#fafaf8]/90 font-body">
       <div className="flex h-16 items-center justify-between px-3.5 sm:px-6 max-w-7xl mx-auto">
         <div className="flex items-center gap-2.5 sm:gap-3">
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

@@ -225,17 +225,17 @@ export default function BrandMarquee({ onSelectBrand }: BrandMarqueeProps) {
 
   return (
     <div className="w-full">
-      {/* 1. Trust Strip (Exact SWOT structure & styling) */}
+      {/* 1. Trust Strip (Single straight horizontal line on both mobile & desktop) */}
       <div className="border-y border-[#daddd4] bg-[#eef0e9]">
-        <div className="max-w-[1280px] mx-auto px-6 sm:px-14 py-5 flex flex-wrap items-center justify-between gap-4 sm:gap-6">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-14 py-3.5 sm:py-5 flex flex-nowrap items-center justify-between gap-5 sm:gap-6 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {TRUST_ITEMS.map((item, idx) => {
             const Icon = item.icon;
             return (
               <span
                 key={idx}
-                className="flex items-center gap-[9px] text-[11px] font-medium text-[#62665d]"
+                className="inline-flex items-center gap-[7px] sm:gap-[9px] text-[10.5px] sm:text-[11px] font-medium text-[#62665d] shrink-0"
               >
-                <Icon className="w-[15px] h-[15px] text-[#DF5E00] stroke-[1.7] flex-shrink-0" />
+                <Icon className="w-[14px] h-[14px] sm:w-[15px] sm:h-[15px] text-[#DF5E00] stroke-[1.7] shrink-0" />
                 <span>{item.text}</span>
               </span>
             );
