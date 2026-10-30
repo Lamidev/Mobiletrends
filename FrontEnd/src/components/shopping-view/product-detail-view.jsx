@@ -7,9 +7,6 @@ import { Separator } from '../ui/separator';
 import {
   Plus,
   Minus,
-  Truck,
-  ShieldCheck,
-  Store,
   Share2,
   Check,
   ChevronRight,
@@ -151,7 +148,6 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
 • Color: ${selectedColor}
 • Quantity: ${quantity}
 • Total: ₦${totalPrice.toLocaleString('en-NG')}
-• Delivery Option: Same-Day Akure / Express Nationwide Waybill
 Product link: ${shareUrl}`;
 
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
@@ -514,55 +510,6 @@ Product link: ${shareUrl}`;
                 <Share2 size={14} className="shrink-0" />
                 <span className="truncate">Share Product</span>
               </Button>
-            </div>
-          </div>
-
-          {/* Delivery & Assurance Perks (Reebelo style trust box) */}
-          <div className="rounded-2xl bg-[#fafaf8] border border-[#e5e7eb] p-4 sm:p-5 space-y-3.5">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white border border-[#e5e7eb] flex items-center justify-center shrink-0 text-[#DF5E00]">
-                <Truck size={17} />
-              </div>
-              <div className="text-[12px]">
-                <p className="font-bold text-[#111344] uppercase tracking-wide">
-                  Fast & Safe Delivery
-                </p>
-                <p className="text-[#62665d] font-medium mt-0.5 leading-snug">
-                  Same-Day Delivery in Akure · 1-2 Days Express Nationwide Waybill
-                </p>
-              </div>
-            </div>
-
-            <Separator className="bg-[#e5e7eb]" />
-
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white border border-[#e5e7eb] flex items-center justify-center shrink-0 text-emerald-600">
-                <ShieldCheck size={17} />
-              </div>
-              <div className="text-[12px]">
-                <p className="font-bold text-[#111344] uppercase tracking-wide">
-                  100% Genuine Guaranteed
-                </p>
-                <p className="text-[#62665d] font-medium mt-0.5 leading-snug">
-                  Supplied with official Mobiletrends store warranty & invoice
-                </p>
-              </div>
-            </div>
-
-            <Separator className="bg-[#e5e7eb]" />
-
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white border border-[#e5e7eb] flex items-center justify-center shrink-0 text-[#111344]">
-                <Store size={17} />
-              </div>
-              <div className="text-[12px]">
-                <p className="font-bold text-[#111344] uppercase tracking-wide">
-                  Akure Store Pickup
-                </p>
-                <p className="text-[#62665d] font-medium mt-0.5 leading-snug">
-                  Inspect & pick up directly at Mobiletrends Systems Limited, Akure
-                </p>
-              </div>
             </div>
           </div>
 

@@ -6,13 +6,12 @@ import { SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import UserCartItemsContent from "./cart-items-content";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
-import { ShoppingBag, ArrowRight, ShoppingCart, Truck, Package } from "lucide-react";
-import { Badge } from "../ui/badge";
+import { ShoppingBag, ArrowRight, ShoppingCart, Truck, ShieldCheck } from "lucide-react";
 import { useSelector } from "react-redux";
 
 function UserCartWrapper({ cartItems, setOpenCartSheet }) {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   const totalCartAmount =
     cartItems && cartItems.length > 0
@@ -27,8 +26,6 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
       )
       : 0;
 
-  const totalItems = cartItems?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-
   const handleCheckout = () => {
     if (!isAuthenticated) {
       sessionStorage.setItem('redirectAfterLogin', '/shop/checkout');
@@ -40,30 +37,21 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
   };
 
   return (
-    <SheetContent className="sm:max-w-lg flex flex-col p-4 sm:p-6">
-      <SheetHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
-              {totalItems > 0 && (
-                <Badge className="absolute -top-2 -right-2 h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center p-0 text-xs bg-red-500">
-                  {totalItems}
-                </Badge>
-              )}
-            </div>
-            <SheetTitle className="text-lg sm:text-xl">Shopping Cart</SheetTitle>
+    <SheetContent className="sm:max-w-lg flex flex-col p-4 sm:p-6 bg-white">
+      <SheetHeader className="pb-4 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-[#111344]/5 flex items-center justify-center text-[#111344]">
+            <ShoppingCart className="h-5 w-5" />
           </div>
-          {cartItems && cartItems.length > 0 && (
-            <Badge variant="secondary" className="text-xs sm:text-sm">
-              {totalItems} {totalItems === 1 ? 'item' : 'items'}
-            </Badge>
-          )}
+          <div>
+            <SheetTitle className="text-lg font-bold text-[#111344] tracking-tight">Shopping Cart</SheetTitle>
+            <p className="text-xs text-gray-500 font-medium">Review your items before checkout</p>
+          </div>
         </div>
       </SheetHeader>
 
       <ScrollArea className="flex-1 pr-2 sm:pr-4">
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-3 sm:space-y-4 pt-3">
           {cartItems && cartItems.length > 0 ? (
             cartItems.map((item, index) => (
               <div key={`${item.productId}-${index}`}>
@@ -72,20 +60,22 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
               </div>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center py-8 sm:py-12 px-4 text-center">
-              <ShoppingBag className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mb-3 sm:mb-4" />
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+              <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-4 text-gray-300">
+                <ShoppingBag className="h-8 w-8" />
+              </div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
                 Your cart is empty
               </h3>
-              <p className="text-gray-500 mb-4 sm:mb-6 text-sm sm:text-base max-w-sm">
-                Looks like you haven't added any items to your cart yet. Start shopping to discover amazing products!
+              <p className="text-gray-500 mb-6 text-sm max-w-xs">
+                Explore our premium collection of smartphones, laptops, and flagship gadgets.
               </p>
               <Button
                 onClick={() => {
                   navigate("/shop/listing");
                   setOpenCartSheet(false);
                 }}
-                className="w-full max-w-xs gap-2 text-sm sm:text-base"
+                className="w-full max-w-xs gap-2 text-sm bg-[#111344] hover:bg-[#0C1172] text-white"
                 size="lg"
               >
                 Start Shopping
@@ -97,41 +87,30 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
       </ScrollArea>
 
       {cartItems && cartItems.length > 0 && (
-        <div className="border-t pt-4 space-y-4 bg-background">
-          <div className="space-y-2">
+        <div className="border-t border-gray-100 pt-4 space-y-4 bg-white">
+          <div className="space-y-2.5">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Subtotal</span>
-              <span className="font-medium text-orange-500">₦{totalCartAmount.toLocaleString("en-NG")}</span>
+              <span className="text-gray-500">Subtotal</span>
+              <span className="font-semibold text-gray-900">₦{totalCartAmount.toLocaleString("en-NG")}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600 flex items-center gap-1">
-                <Truck className="h-3 w-3" />
+              <span className="text-gray-500 flex items-center gap-1.5">
+                <Truck className="h-3.5 w-3.5 text-gray-400" />
                 Delivery
               </span>
               <span className="font-medium text-gray-500">Calculated at checkout</span>
             </div>
             <Separator />
             <div className="flex justify-between text-base sm:text-lg font-bold">
-              <span>Total</span>
-              <span className="text-orange-500">₦{totalCartAmount.toLocaleString("en-NG")}</span>
-            </div>
-          </div>
-
-          <div className="text-[11px] sm:text-xs text-gray-500 font-medium bg-gray-50/80 p-3 rounded-xl border border-gray-100 flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <Truck className="h-3.5 w-3.5 text-peach-500" />
-              <span>Lagos: <span className="text-gray-900 font-bold">Same Day Delivery</span></span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Package className="h-3.5 w-3.5 text-orange-400" />
-              <span>Outside Lagos: <span className="text-gray-900 font-bold">1-2 Business Days</span></span>
+              <span className="text-[#111344]">Total</span>
+              <span className="text-[#DF5E00]">₦{totalCartAmount.toLocaleString("en-NG")}</span>
             </div>
           </div>
 
           <div className="space-y-2">
             <Button
               onClick={handleCheckout}
-              className="w-full py-2 sm:py-3 text-sm sm:text-base font-semibold"
+              className="w-full py-3 text-sm sm:text-base font-semibold bg-[#111344] hover:bg-[#0C1172] text-white rounded-xl shadow-sm transition-all"
               size="lg"
             >
               {isAuthenticated ? "Proceed to Checkout" : "Login to Checkout"}
@@ -142,16 +121,16 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
                 setOpenCartSheet(false);
               }}
               variant="outline"
-              className="w-full text-sm sm:text-base"
+              className="w-full text-sm font-medium rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50"
             >
               Continue Shopping
             </Button>
           </div>
-          {!isAuthenticated && (
-            <div className="text-xs text-center text-blue-600 px-2">
-              Your cart will be saved and merged when you login
-            </div>
-          )}
+
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 pt-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>100% Genuine Devices · Nationwide Insured Waybill</span>
+          </div>
         </div>
       )}
     </SheetContent>

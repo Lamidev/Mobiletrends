@@ -48,19 +48,25 @@ function ShoppingProductTile({
           ? `${product.brand} · ${product.condition}`
           : product?.condition || "VERIFIED GEAR");
 
+  const targetId = product?._id || product?.id;
+
   const handleCardClick = () => {
-    if (product?._id && handleGetProductDetails) {
-      handleGetProductDetails(product._id);
+    if (targetId && handleGetProductDetails) {
+      handleGetProductDetails(targetId);
     }
   };
 
   return (
-    <article className="swot-product-card w-full group font-body">
+    <article
+      onClick={handleCardClick}
+      className={`swot-product-card w-full group font-body ${
+        targetId ? "cursor-pointer" : ""
+      }`}
+    >
       {/* SWOT Image Container */}
       <div
-        onClick={handleCardClick}
         className={`swot-product-image ${mediaClass} ${
-          product?._id ? "cursor-pointer" : "cursor-default"
+          targetId ? "cursor-pointer" : "cursor-default"
         }`}
       >
         <img
@@ -77,17 +83,17 @@ function ShoppingProductTile({
         )}
 
         {/* Quick Add-to-Cart button in top-right (when inventory item is in stock) */}
-        {product?._id &&
+        {targetId &&
           product?.totalStock > 0 &&
           handleAddToCart && (
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                handleAddToCart(product._id, product.totalStock);
+                handleAddToCart(targetId, product.totalStock);
               }}
               aria-label="Add to cart"
-              className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-[#202020df] backdrop-blur-[5px] text-white flex items-center justify-center transition-all duration-200 hover:bg-[#DF5E00] md:opacity-0 md:group-hover:opacity-100 cursor-pointer"
+              className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-[#202020df] backdrop-blur-[5px] text-white flex items-center justify-center transition-all duration-200 hover:bg-[#DF5E00] md:opacity-0 md:group-hover:opacity-100 cursor-pointer z-10"
             >
               <ShoppingCart className="h-3.5 w-3.5" />
             </button>
@@ -106,13 +112,12 @@ function ShoppingProductTile({
 
       {/* SWOT Product Title */}
       <h3
-        onClick={handleCardClick}
         className="font-manrope text-[13px] sm:text-[15px] font-semibold text-[#20231e] mt-[4px] mb-0 tracking-[-0.3px] line-clamp-1 group-hover:text-[#DF5E00] transition-colors"
       >
         {product?.title || product?.name}
       </h3>
 
-      {/* Price Display (No Check Availability Link) */}
+      {/* Price Display */}
       <div className="mt-1.5 flex items-baseline gap-2 flex-wrap">
         {product?.salePrice > 0 && hasValidDiscount ? (
           <>
