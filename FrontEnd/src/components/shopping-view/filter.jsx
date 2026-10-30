@@ -127,8 +127,8 @@ function ProductFilter({
                           className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group select-none"
                         >
                           <Checkbox
-                            id={optionItem.id}
-                            checked={filters[keyItem]?.includes(optionItem.id)}
+                            id={`filter-${keyItem}-${optionItem.id}`}
+                            checked={Boolean(filters?.[keyItem]?.includes(optionItem.id))}
                             onCheckedChange={(checked) =>
                               handleFilter(keyItem, optionItem.id, checked)
                             }

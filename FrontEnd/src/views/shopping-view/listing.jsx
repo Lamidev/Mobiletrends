@@ -59,6 +59,8 @@ function ShoppingListing() {
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(5000000);
   const [searchParams, setSearchParams] = useSearchParams();
+  const searchParamsString = searchParams.toString();
+  const productParam = searchParams.get("product");
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -250,11 +252,10 @@ function ShoppingListing() {
 
   // Deep linking: Check for product ID in URL on mount/update
   useEffect(() => {
-    const productId = searchParams.get("product");
-    if (productId && (!productDetails || productDetails._id !== productId)) {
-      dispatch(fetchProductDetails(productId));
+    if (productParam && (!productDetails || productDetails._id !== productParam)) {
+      dispatch(fetchProductDetails(productParam));
     }
-  }, [searchParams, dispatch, productDetails]);
+  }, [productParam, dispatch, productDetails]);
 
   // Handle Dialog State and URL Sync
   function handleDialogChange(isOpen) {
@@ -320,7 +321,7 @@ function ShoppingListing() {
         setMinimumLoaderTime(false);
       }, 350);
     });
-  }, [searchParams]);
+  }, [searchParamsString]);
 
   useEffect(() => {
     if (productDetails !== null) setOpenDetailsDialog(true);
