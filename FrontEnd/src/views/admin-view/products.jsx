@@ -47,6 +47,7 @@ function AdminProducts() {
   const [formData, setFormData] = useState(initialFormData);
   const [imageFile, setImageFile] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  const [uploadedImages, setUploadedImages] = useState([]);
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [currentEditedId, setCurrentEditedId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -67,6 +68,7 @@ function AdminProducts() {
       setFormData(initialFormData);
       setImageFile(null);
       setUploadedImageUrl("");
+      setUploadedImages([]);
       setCurrentEditedId(null);
     }
   }, [openCreateProductsDialog]);
@@ -82,7 +84,8 @@ function AdminProducts() {
 
     const submitData = {
       ...formData,
-      image: uploadedImageUrl || formData.image
+      image: (uploadedImages && uploadedImages[0]) || uploadedImageUrl || formData.image,
+      images: uploadedImages,
     };
 
     console.log("Submitting data:", submitData);
@@ -136,20 +139,25 @@ function AdminProducts() {
   function handleEditProduct(product) {
     setOpenCreateProductsDialog(true);
     setCurrentEditedId(product?._id);
-    console.log("Editing product data:", product);
+    const existingImages = Array.isArray(product.images) && product.images.length > 0
+      ? product.images
+      : (product.image ? [product.image] : []);
+
     setFormData({
       ...product,
-      image: product.image || ""
+      image: product.image || "",
+      images: existingImages,
     });
-    setUploadedImageUrl("");
+    setUploadedImages(existingImages);
+    setUploadedImageUrl(existingImages[0] || "");
     setImageFile(null);
   }
 
   function isFormValid() {
     // For mobile, ensure all required fields are properly filled
-    const hasValidImage = currentEditedId !== null
+    const hasValidImage = uploadedImages.length > 0 || (currentEditedId !== null
       ? (formData.image || uploadedImageUrl)
-      : uploadedImageUrl;
+      : uploadedImageUrl);
 
     const requiredFields = {
       title: formData.title?.trim(),
@@ -373,14 +381,13 @@ function AdminProducts() {
 
           <div className="space-y-6 pb-6">
             <ProductImageUpload
-              imageFile={imageFile}
-              setImageFile={setImageFile}
+              uploadedImages={uploadedImages}
+              setUploadedImages={setUploadedImages}
               uploadedImageUrl={uploadedImageUrl}
               setUploadedImageUrl={setUploadedImageUrl}
-              setImageLoadingState={setImageLoadingState}
               imageLoadingState={imageLoadingState}
+              setImageLoadingState={setImageLoadingState}
               isEditMode={currentEditedId !== null}
-              existingImageUrl={currentEditedId !== null ? formData.image : ""}
             />
 
             <CommonForm

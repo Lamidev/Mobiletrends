@@ -1,387 +1,200 @@
 'use client';
-// import { FileIcon, UploadCloudIcon, XIcon } from "lucide-react";
-// import { Input } from "../ui/input";
-// import { Label } from "../ui/label";
-// import { useRef, useEffect } from "react";
-// import { Button } from "../ui/button";
-// import axios from "axios";
-// import { Skeleton } from "../ui/skeleton";
 
-// function ProductImageUpload({
-//   imageFile,
-//   setImageFile,
-//   uploadedImageUrl,
-//   setUploadedImageUrl,
-//   setImageLoadingState,
-//   imageLoadingState,
-//   isEditMode,
-//   isCustomStyling = false,
+import React, { useRef, useState } from 'react';
+import { UploadCloudIcon, XIcon, Plus, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Label } from '../ui/label';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import axios from 'axios';
+import { useToast } from '../ui/use-toast';
 
-  
-// }) {
-//   const inputRef = useRef(null);
-
-//   function handleImageFileChange(event) {
-//     const selectedFile = event.target.files?.[0];
-//     console.log("Selected File:", selectedFile);
-//     if (selectedFile) {
-//       setImageFile(selectedFile); // Update state
-//       console.log("Image file state updated to:", selectedFile);
-//     } else {
-//       console.error("No file selected or issue with event.target.files");
-//     }
-//   }
-
-//   function handleDragOver(event) {
-//     event.preventDefault();
-//   }
-
-//   function handleDrop(event) {
-//     event.preventDefault();
-//     const droppedfile = event.dataTransfer.files?.[0];
-//     if (droppedfile) setImageFile(droppedfile);
-//   }
-
-//   function handleRemoveImage() {
-//     setImageFile(null);
-//     if (inputRef.current) {
-//       inputRef.current.value = "";
-//     }
-//   }
-
-//   // console.log(imageFile);
-
-//   async function uploadImageToCloudinary(){
-//     setImageLoadingState(true);
-//     const data = new FormData();
-//     data.append("my_file", imageFile);
-//     const response = await axios.post("http://localhost:8050/api/admin/products/upload-image", data)
-//   console.log(response, 'response');
-  
-//     if (response?.data?.success) 
-//       { 
-//         setUploadedImageUrl(response.data.result.url)
-//         setImageLoadingState(false);
-//       }
-//   }
-
-//   useEffect(() => {
-//     if (imageFile !== null) uploadImageToCloudinary();
-//   }, [imageFile]);
-
-//   return (
-//     <div 
-//     className={`w-full  mt-4 ${isCustomStyling ? "" : "max-w-md mx-auto"}`}
-//     >
-//       <Label className="text-lg font-semibold mb-2 block">Upload Image</Label>
-//       <div
-//         onDragOver={handleDragOver}
-//         onDrop={handleDrop}
-//         className={`${
-//           isEditMode ? "opacity-60" : ""
-//         } border-2 border-dashed rounded-lg p-4`}
-//       >
-//         <Input
-//           id="image-upload"
-//           type="file"
-//           className="hidden"
-//           ref={inputRef}
-//           onChange={handleImageFileChange}
-//           disabled={isEditMode}
-//         />
-//         {!imageFile ? (
-//           <label
-//             htmlFor="image-upload"
-//             className={`${
-//               isEditMode ? "cursor-not-allowed" : ""
-//             } flex flex-col items-center justify-center h-32 cursor-pointer`}
-//           >
-//             <UploadCloudIcon className="w-10 h-10 text-muted-foreground mb-2" />
-//             <span>Drag & drop or click to upload image</span>
-//           </label>
-//         ) : (
-//           imageLoadingState ?
-//           <Skeleton className="h-10 bg-gray-100" /> :
-//           <div className="flex items-center justify-between">
-//             <div className="flex items-center">
-//               <FileIcon className="w-8 text-primary mr-2 h-8" />
-//             </div>
-//             <p className="text-sm font-medium">{imageFile.name}</p>
-//             <Button
-//               variant="ghost"
-//               size="icon"
-//               className="text-muted-foreground hover:text-foreground"
-//               onClick={handleRemoveImage}
-//             >
-//               <XIcon className="w-4 h-4" />
-//               <span className="sr-only">Remove File</span>
-//             </Button>
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default ProductImageUpload;
-
-import { FileIcon, UploadCloudIcon, XIcon, EyeIcon } from "lucide-react";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { useRef, useEffect, useState } from "react";
-import { Button } from "../ui/button";
-import axios from "axios";
-import { Skeleton } from "../ui/skeleton";
-import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
-
-function ProductImageUpload({
-  imageFile,
-  setImageFile,
-  uploadedImageUrl,
+export default function ProductImageUpload({
+  uploadedImages = [],
+  setUploadedImages,
+  uploadedImageUrl = '',
   setUploadedImageUrl,
+  imageLoadingState = false,
   setImageLoadingState,
-  imageLoadingState,
-  isEditMode,
+  isEditMode = false,
   isCustomStyling = false,
-  existingImageUrl = "",
 }) {
   const inputRef = useRef(null);
-  const [localImageUrl, setLocalImageUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
 
-  function handleImageFileChange(event) {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setImageFile(selectedFile);
-      const objectUrl = URL.createObjectURL(selectedFile);
-      setLocalImageUrl(objectUrl);
+  // Normalize image list
+  const images = Array.isArray(uploadedImages) && uploadedImages.length > 0
+    ? uploadedImages
+    : (uploadedImageUrl ? [uploadedImageUrl] : []);
+
+  async function handleFileSelected(event) {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+
+    if (images.length + files.length > 3) {
+      toast({
+        title: 'Maximum 3 images',
+        description: 'You can upload a maximum of 3 images per product.',
+        variant: 'destructive',
+      });
     }
-  }
 
-  function handleDragOver(event) {
-    event.preventDefault();
-  }
+    const availableSlots = 3 - images.length;
+    const filesToUpload = files.slice(0, availableSlots);
 
-  function handleDrop(event) {
-    event.preventDefault();
-    const droppedFile = event.dataTransfer.files?.[0];
-    if (droppedFile) {
-      setImageFile(droppedFile);
-      const objectUrl = URL.createObjectURL(droppedFile);
-      setLocalImageUrl(objectUrl);
-    }
-  }
+    if (filesToUpload.length === 0) return;
 
-  function handleRemoveImage() {
-    setImageFile(null);
-    setLocalImageUrl("");
-    setUploadedImageUrl("");
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
-    if (localImageUrl) {
-      URL.revokeObjectURL(localImageUrl);
-    }
-  }
+    setUploading(true);
+    if (setImageLoadingState) setImageLoadingState(true);
 
-  function handleRemoveExistingImage() {
-    setUploadedImageUrl("");
-  }
+    const apiBase =
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8050/api';
 
-  async function uploadImageToCloudinary() {
-    if (!imageFile) return;
-
-    setImageLoadingState(true);
-    const data = new FormData();
-    data.append("my_file", imageFile);
+    const newUrls = [...images];
 
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8050/api"}/admin/products/upload-image`,
-        data
-      );
-      if (response?.data?.success) {
-        setUploadedImageUrl(response.data.result.url);
+      for (const file of filesToUpload) {
+        const formData = new FormData();
+        formData.append('my_file', file);
+        const res = await axios.post(
+          `${apiBase}/admin/products/upload-image`,
+          formData
+        );
+        if (res.data?.success && res.data?.result?.url) {
+          newUrls.push(res.data.result.url);
+        }
       }
-    } catch (error) {
-      console.error("Image upload failed:", error);
+
+      if (setUploadedImages) {
+        setUploadedImages(newUrls);
+      }
+      if (setUploadedImageUrl && newUrls[0]) {
+        setUploadedImageUrl(newUrls[0]);
+      }
+
+      toast({
+        title: 'Upload successful',
+        description: `${filesToUpload.length} image(s) uploaded.`,
+      });
+    } catch (err) {
+      console.error('Upload failed:', err);
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to upload image(s). Please try again.',
+        variant: 'destructive',
+      });
     } finally {
-      setImageLoadingState(false);
+      setUploading(false);
+      if (setImageLoadingState) setImageLoadingState(false);
+      if (inputRef.current) inputRef.current.value = '';
     }
   }
 
-  useEffect(() => {
-    if (imageFile !== null) {
-      uploadImageToCloudinary();
+  function handleRemoveSlot(index) {
+    const updated = images.filter((_, idx) => idx !== index);
+    if (setUploadedImages) {
+      setUploadedImages(updated);
     }
-  }, [imageFile]);
-
-  useEffect(() => {
-    return () => {
-      if (localImageUrl) {
-        URL.revokeObjectURL(localImageUrl);
-      }
-    };
-  }, [localImageUrl]);
-
-  useEffect(() => {
-    if (!imageFile && !uploadedImageUrl && !existingImageUrl) {
-      setLocalImageUrl("");
-      if (inputRef.current) {
-        inputRef.current.value = "";
-      }
+    if (setUploadedImageUrl) {
+      setUploadedImageUrl(updated[0] || '');
     }
-  }, [imageFile, uploadedImageUrl, existingImageUrl]);
-
-  const displayImageUrl = localImageUrl || uploadedImageUrl || existingImageUrl;
-  const hasImage = !!displayImageUrl;
-  const isNewImage = localImageUrl || uploadedImageUrl;
-  const isExistingImage = existingImageUrl && !isNewImage;
+  }
 
   return (
-    <div className={`w-full mt-4 ${isCustomStyling ? "" : "max-w-md mx-auto"}`}>
-      <Label className="text-lg font-semibold mb-2 block">
-        {isEditMode ? "Product Image" : "Upload Image"}
-      </Label>
-
-      {hasImage && (
-        <div className="mb-4 p-4 border rounded-lg bg-gray-50">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
-            <Label className="text-md font-medium">
-              {isExistingImage ? "Current Image" : "Image Preview"}
-            </Label>
-            <div className="flex gap-2 flex-wrap">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-1 flex-1 sm:flex-none min-h-[44px]"
-                  >
-                    <EyeIcon className="w-4 h-4" />
-                    <span className="sm:inline">View</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl mx-4">
-                  <div className="flex justify-center">
-                    <img
-                      src={displayImageUrl}
-                      alt="Preview"
-                      className="max-w-full max-h-[70vh] object-contain rounded-lg"
-                    />
-                  </div>
-                </DialogContent>
-              </Dialog>
-              {isNewImage ? (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleRemoveImage}
-                  className="flex items-center gap-1 flex-1 sm:flex-none min-h-[44px]"
-                >
-                  <XIcon className="w-4 h-4" />
-                  <span className="sm:inline">Remove New</span>
-                </Button>
-              ) : (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleRemoveExistingImage}
-                  className="flex items-center gap-1 flex-1 sm:flex-none min-h-[44px]"
-                >
-                  <XIcon className="w-4 h-4" />
-                  <span className="sm:inline">Remove</span>
-                </Button>
-              )}
-            </div>
-          </div>
-          <div className="flex justify-center">
-            <img
-              src={displayImageUrl}
-              alt="Preview"
-              className="h-32 w-32 sm:h-40 sm:w-40 object-cover rounded-lg border-2 border-gray-300"
-            />
-          </div>
-          {isExistingImage && (
-            <p className="text-xs text-muted-foreground text-center mt-2">
-              Current product image. Upload a new image below to replace it.
-            </p>
-          )}
-        </div>
-      )}
-
-      <div
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        className="border-2 border-dashed rounded-lg p-4"
-      >
-        <Input
-          id="image-upload"
-          type="file"
-          className="hidden"
-          ref={inputRef}
-          onChange={handleImageFileChange}
-          accept="image/*"
-        />
-
-        {!imageFile ? (
-          <label
-            htmlFor="image-upload"
-            className="flex flex-col items-center justify-center h-32 p-4 rounded-lg transition-colors cursor-pointer hover:bg-gray-50"
-          >
-            <UploadCloudIcon className="w-10 h-10 text-muted-foreground mb-2" />
-            <span className="text-center text-sm text-muted-foreground">
-              {isEditMode && hasImage
-                ? "Upload new image to replace current"
-                : "Drag & drop or click to upload image"}
-            </span>
-            <span className="text-xs text-muted-foreground mt-1">
-              Supports: JPG, PNG, WebP
-            </span>
-          </label>
-        ) : imageLoadingState ? (
-          <div className="flex flex-col items-center justify-center h-32">
-            <Skeleton className="h-10 w-10 rounded-full mb-2" />
-            <Skeleton className="h-4 w-32 mb-1" />
-            <Skeleton className="h-3 w-24" />
-            <span className="text-xs text-muted-foreground mt-2">
-              Uploading...
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <FileIcon className="w-8 text-primary h-8 flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">
-                  {imageFile.name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {(imageFile.size / (1024 * 1024)).toFixed(2)} MB
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground hover:text-destructive flex-shrink-0 ml-2 min-h-[44px] min-w-[44px]"
-              onClick={handleRemoveImage}
-            >
-              <XIcon className="w-4 h-4" />
-              <span className="sr-only">Remove File</span>
-            </Button>
-          </div>
-        )}
+    <div className={`w-full mt-4 ${isCustomStyling ? '' : 'max-w-md mx-auto'}`}>
+      <div className="flex items-center justify-between mb-2">
+        <Label className="text-sm font-bold text-[#111344] uppercase tracking-wide">
+          Product Images (Max 3)
+        </Label>
+        <span className="text-xs font-semibold text-gray-500">
+          {images.length}/3 Uploaded
+        </span>
       </div>
 
-      {isEditMode && hasImage && (
-        <p className="text-xs text-muted-foreground text-center mt-2">
-          {isExistingImage
-            ? "Upload a new image above to replace the current one, or click 'Remove' to delete the image."
-            : "New image ready to replace the current one."}
-        </p>
+      {/* 3-Slot Grid Preview */}
+      <div className="grid grid-cols-3 gap-2.5 mb-3">
+        {[0, 1, 2].map((slotIndex) => {
+          const imgUrl = images[slotIndex];
+          return (
+            <div
+              key={slotIndex}
+              className={`relative aspect-square rounded-xl border flex flex-col items-center justify-center overflow-hidden transition-all ${
+                imgUrl
+                  ? 'border-gray-200 bg-gray-50'
+                  : 'border-dashed border-gray-300 bg-gray-50/50'
+              }`}
+            >
+              {imgUrl ? (
+                <>
+                  <img
+                    src={imgUrl}
+                    alt={`Product slot ${slotIndex + 1}`}
+                    className="w-full h-full object-contain p-2"
+                  />
+                  <span className="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                    {slotIndex === 0 ? 'Primary' : `Image ${slotIndex + 1}`}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSlot(slotIndex)}
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-md transition-transform hover:scale-110"
+                    title="Remove image"
+                  >
+                    <XIcon size={12} />
+                  </button>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-gray-400 p-2 text-center">
+                  <ImageIcon size={20} className="mb-1 opacity-40" />
+                  <span className="text-[10px] font-semibold">Slot {slotIndex + 1}</span>
+                  {slotIndex === 0 && (
+                    <span className="text-[8px] text-gray-400">Main</span>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Upload Button / Dropzone if slots remaining */}
+      {images.length < 3 && (
+        <div>
+          <Input
+            id="multi-image-upload"
+            type="file"
+            className="hidden"
+            ref={inputRef}
+            onChange={handleFileSelected}
+            accept="image/*"
+            multiple
+            disabled={uploading}
+          />
+          <label
+            htmlFor="multi-image-upload"
+            className={`border-2 border-dashed border-gray-300 hover:border-[#DF5E00] rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+              uploading ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-[#DF5E00]/[0.02]'
+            }`}
+          >
+            {uploading ? (
+              <div className="flex items-center gap-2 text-sm text-[#DF5E00] font-semibold">
+                <Loader2 size={18} className="animate-spin" />
+                <span>Uploading to Cloudinary...</span>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-center">
+                <UploadCloudIcon className="w-8 h-8 text-[#DF5E00] mb-1.5" />
+                <span className="text-xs font-bold text-[#111344]">
+                  Upload Image ({images.length === 0 ? 'Slot 1' : `Slot ${images.length + 1} of 3`})
+                </span>
+                <span className="text-[10px] text-gray-500 mt-0.5">
+                  Click or drag files here (PNG, JPG, WebP)
+                </span>
+              </div>
+            )}
+          </label>
+        </div>
       )}
     </div>
   );
 }
-
-export default ProductImageUpload;

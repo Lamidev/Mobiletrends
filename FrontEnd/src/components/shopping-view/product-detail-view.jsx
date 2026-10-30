@@ -53,12 +53,23 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
 
   const [selectedStorage, setSelectedStorage] = useState(initialStorage);
   const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0].name);
-  const [activeImage, setActiveImage] = useState(product?.image);
+
+  const galleryImages = useMemo(() => {
+    if (Array.isArray(product?.images) && product.images.length > 0) {
+      return product.images.slice(0, 3);
+    }
+    return product?.image ? [product.image] : [];
+  }, [product]);
+
+  const [activeImage, setActiveImage] = useState(
+    (Array.isArray(product?.images) && product.images[0]) || product?.image
+  );
 
   // Sync active image when product changes
   React.useEffect(() => {
-    if (product?.image) {
-      setActiveImage(product.image);
+    const primary = (Array.isArray(product?.images) && product.images[0]) || product?.image;
+    if (primary) {
+      setActiveImage(primary);
     }
     if (product?.condition) {
       setSelectedCondition(product.condition);
@@ -229,6 +240,33 @@ Product link: ${shareUrl}`;
               className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500 ease-out"
             />
           </div>
+
+          {/* Multi-Image Thumbnail Gallery (up to 3 images) */}
+          {galleryImages.length > 1 && (
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5">
+              {galleryImages.map((img, idx) => {
+                const isActive = (activeImage || product?.image) === img;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveImage(img)}
+                    className={`relative aspect-square rounded-xl sm:rounded-2xl border-2 p-2 bg-[#fafaf8] overflow-hidden transition-all cursor-pointer ${
+                      isActive
+                        ? 'border-[#DF5E00] shadow-sm ring-2 ring-[#DF5E00]/20'
+                        : 'border-[#e5e7eb] hover:border-gray-400 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img
+                      src={img}
+                      alt={`${product?.title} angle ${idx + 1}`}
+                      className="w-full h-full object-contain mix-blend-multiply"
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Right Column: Details & Variant Selectors */}

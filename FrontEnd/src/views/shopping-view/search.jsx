@@ -335,8 +335,7 @@ function SearchProducts() {
   }
 
   function handleGetProductDetails(getCurrentProductId) {
-    if (String(getCurrentProductId).startsWith("swot-stock-")) return;
-    dispatch(fetchProductDetails(getCurrentProductId));
+    navigate(`/shop/product/${getCurrentProductId}`);
   }
 
   useEffect(() => {

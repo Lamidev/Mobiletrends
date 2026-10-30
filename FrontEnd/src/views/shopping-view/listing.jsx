@@ -177,11 +177,7 @@ function ShoppingListing() {
   }
 
   function handleGetProductDetails(getCurrentProductId) {
-    dispatch(fetchProductDetails(getCurrentProductId));
-    setSearchParams((prev) => {
-      prev.set("product", getCurrentProductId);
-      return prev;
-    });
+    navigate(`/shop/product/${getCurrentProductId}`);
   }
 
   async function handleAddToCart(getCurrentProductId, getTotalStock) {
