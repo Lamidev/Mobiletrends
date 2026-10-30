@@ -515,14 +515,14 @@ function ShoppingHome() {
           </div>
 
           {/* Mini-Filter Bar matching user reference */}
-          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-1 mb-7 sm:mb-9">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-1 mb-7 sm:mb-9 font-manrope">
             <button
               type="button"
               onClick={() => setFeaturedTab("all")}
-              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-medium transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 featuredTab === "all"
-                  ? "border border-[#d07b7b] bg-[#fbf3f3] text-[#991b1b] shadow-sm"
-                  : "text-[#4b5563] hover:text-[#111827] hover:bg-black/[0.03]"
+                  ? "border border-[#DF5E00] bg-[#DF5E00]/[0.06] text-[#DF5E00] shadow-sm"
+                  : "text-[#62665d] hover:text-[#20231e] hover:bg-black/[0.03]"
               }`}
             >
               All gadgets
@@ -530,10 +530,10 @@ function ShoppingHome() {
             <button
               type="button"
               onClick={() => setFeaturedTab("laptops")}
-              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-medium transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 featuredTab === "laptops"
-                  ? "border border-[#d07b7b] bg-[#fbf3f3] text-[#991b1b] shadow-sm"
-                  : "text-[#4b5563] hover:text-[#111827] hover:bg-black/[0.03]"
+                  ? "border border-[#DF5E00] bg-[#DF5E00]/[0.06] text-[#DF5E00] shadow-sm"
+                  : "text-[#62665d] hover:text-[#20231e] hover:bg-black/[0.03]"
               }`}
             >
               Laptops
@@ -541,10 +541,10 @@ function ShoppingHome() {
             <button
               type="button"
               onClick={() => setFeaturedTab("phones")}
-              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-medium transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 featuredTab === "phones"
-                  ? "border border-[#d07b7b] bg-[#fbf3f3] text-[#991b1b] shadow-sm"
-                  : "text-[#4b5563] hover:text-[#111827] hover:bg-black/[0.03]"
+                  ? "border border-[#DF5E00] bg-[#DF5E00]/[0.06] text-[#DF5E00] shadow-sm"
+                  : "text-[#62665d] hover:text-[#20231e] hover:bg-black/[0.03]"
               }`}
             >
               Phones
@@ -552,10 +552,10 @@ function ShoppingHome() {
             <button
               type="button"
               onClick={() => setFeaturedTab("gaming")}
-              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-medium transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 featuredTab === "gaming"
-                  ? "border border-[#d07b7b] bg-[#fbf3f3] text-[#991b1b] shadow-sm"
-                  : "text-[#4b5563] hover:text-[#111827] hover:bg-black/[0.03]"
+                  ? "border border-[#DF5E00] bg-[#DF5E00]/[0.06] text-[#DF5E00] shadow-sm"
+                  : "text-[#62665d] hover:text-[#20231e] hover:bg-black/[0.03]"
               }`}
             >
               Gaming
@@ -563,7 +563,7 @@ function ShoppingHome() {
             <button
               type="button"
               onClick={() => navigate('/shop/listing')}
-              className="px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-medium text-[#4b5563] hover:text-[#111827] hover:bg-black/[0.03] transition-all cursor-pointer whitespace-nowrap"
+              className="px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-semibold text-[#62665d] hover:text-[#DF5E00] hover:bg-black/[0.03] transition-all cursor-pointer whitespace-nowrap"
             >
               More tech
             </button>
