@@ -1,30 +1,8 @@
 import type { Metadata } from 'next';
-import { Manrope, DM_Sans, Caveat } from 'next/font/google';
 import './globals.css';
 import { ReduxProvider } from '@/providers/redux-provider';
 import { siteConfig } from '@/config/site';
 import { Toaster } from '@/components/ui/sonner';
-
-const manrope = Manrope({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-manrope',
-  display: 'swap',
-});
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-body',
-  display: 'swap',
-});
-
-const caveat = Caveat({
-  subsets: ['latin'],
-  weight: ['600', '700'],
-  variable: '--font-caveat',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url || 'http://localhost:3000'),
@@ -61,7 +39,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${manrope.variable} ${dmSans.variable} ${caveat.variable}`}>
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Manrope:wght@400;500;600;700;800&display=swap"
+        />
+      </head>
       <body className="font-body antialiased bg-[#fafaf8] text-[#20231e] min-h-screen">
         <ReduxProvider>
           {children}

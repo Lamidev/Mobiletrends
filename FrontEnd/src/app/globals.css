@@ -4,6 +4,10 @@
 
 @layer base {
   :root {
+    --font-manrope: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-caveat: 'Caveat', cursive;
+
     --background: 60 14% 98%;
     --foreground: 100 7% 13%;
     --card: 0 0% 100%;
