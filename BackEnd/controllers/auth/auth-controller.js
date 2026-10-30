@@ -12,7 +12,7 @@ const {
   sendResetSuccessEmail,
   sendVerificationEmail,
   sendWelcomeEmail,
-} = require("../../mailtrap/emails");
+} = require("../../resend/emails");
 
 /**
  * Register a new user

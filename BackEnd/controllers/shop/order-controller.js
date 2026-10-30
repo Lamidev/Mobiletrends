@@ -2,7 +2,7 @@ const { initializeTransaction, verifyTransaction } = require("../../helpers/pays
 const Order = require("../../models/order");
 const Cart = require("../../models/cart");
 const Product = require("../../models/products");
-const { sendReceiptEmail } = require("../../mailtrap/emails")
+const { sendReceiptEmail } = require("../../resend/emails")
 
 const createOrder = async (req, res) => {
   try {

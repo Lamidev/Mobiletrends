@@ -9,7 +9,7 @@ const {
   NEWSLETTER_SUBSCRIPTION_TEMPLATE,
   ADMIN_NEWSLETTER_NOTIFICATION_TEMPLATE,
 } = require("./email-template.js");
-const { resendClient, senderFrom } = require("./mailtrap.config.js");
+const { resendClient, senderFrom } = require("./resend.config.js");
 
 const MAIL_USER_INFO = process.env.ADMIN_EMAIL || "Admin@mobiletrends.ng";
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://mobiletrends.ng";

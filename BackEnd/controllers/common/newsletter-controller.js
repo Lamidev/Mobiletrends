@@ -24,7 +24,7 @@ const subscribeToNewsletter = async (req, res) => {
         await newSubscriber.save();
 
         // Send Email Notifications (Don't block response)
-        const { sendNewsletterWelcomeEmail, sendNewsletterAdminNotification } = require("../../mailtrap/emails");
+        const { sendNewsletterWelcomeEmail, sendNewsletterAdminNotification } = require("../../resend/emails");
         Promise.allSettled([
             sendNewsletterWelcomeEmail(email),
             sendNewsletterAdminNotification(email)
