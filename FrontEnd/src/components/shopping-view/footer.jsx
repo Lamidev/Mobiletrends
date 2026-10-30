@@ -100,11 +100,11 @@ const Footer = () => {
               <span>0814 252 8191</span>
             </a>
             <a
-              href="mailto:Admin@mobiletrends.com.ng"
+              href="mailto:Admin@mobiletrends.ng"
               className="text-[12px] text-[#62665d] hover:text-[#20231e] transition-colors flex items-center gap-2.5"
             >
               <Mail className="w-[15px] h-[15px] text-[#62665d]" />
-              <span>Admin@mobiletrends.com.ng</span>
+              <span>Admin@mobiletrends.ng</span>
             </a>
             <a
               href="https://wa.me/2348034378180?text=Hi%20Mobiletrends%2C%20I'd%20like%20to%20make%20a%20purchase%20or%20order%20enquiry."

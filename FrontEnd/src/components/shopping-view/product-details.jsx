@@ -80,7 +80,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     // Construct the backend share URL which generates Open Graph meta tags for the image preview
     const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
     // Using the user-provided Render production URL for API base
-    const apiBase = isLocal ? "http://localhost:8050" : "https://api.mobiletrends.com.ng";
+    const apiBase = isLocal ? "http://localhost:8050" : "https://api.mobiletrends.ng";
 
     const shareUrl = `${apiBase}/api/share/${productDetails?._id}`;
 
@@ -96,7 +96,7 @@ Link: ${shareUrl}`;
 
   async function handleShareProduct() {
     const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-    const apiBase = isLocal ? "http://localhost:8050" : "https://api.mobiletrends.com.ng";
+    const apiBase = isLocal ? "http://localhost:8050" : "https://api.mobiletrends.ng";
     const shareUrl = `${apiBase}/api/share/${productDetails?._id}`;
 
     const shareData = {

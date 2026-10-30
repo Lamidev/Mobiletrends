@@ -2,11 +2,11 @@ export const siteConfig = {
   name: "Mobiletrends Systems Limited",
   shortName: "Mobiletrends",
   description: "Your premier destination for the latest smartphones, gadgets, and tech accessories.",
-  url: "https://mobiletrends.com.ng",
+  url: "https://mobiletrends.ng",
   logo: "/logo.jpg",
   contact: {
     phones: ["08034378180", "08142528191"],
-    email: "Admin@mobiletrends.com.ng",
+    email: "Admin@mobiletrends.ng",
     offices: [
       {
         title: "Office 1",

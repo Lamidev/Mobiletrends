@@ -1,28 +1,25 @@
 require("dotenv").config();
-const { MailtrapClient } = require("mailtrap");
+const { Resend } = require("resend");
 
-// Load environment variables and ensure endpoint has protocol
-const MAILTRAP_TOKEN = process.env.MAILTRAP_TOKEN || "placeholder_token";
-let MAILTRAP_ENDPOINT = process.env.MAILTRAP_ENDPOINT || "https://send.api.mailtrap.io";
+const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 
-if (MAILTRAP_ENDPOINT && !MAILTRAP_ENDPOINT.startsWith("http")) {
-  MAILTRAP_ENDPOINT = `https://${MAILTRAP_ENDPOINT}`;
-}
+// Initialize Resend client (only if API key is provided so server boot never crashes)
+const resendClient = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
-// Initialize Mailtrap client
-const mailtrapClient = new MailtrapClient({
-  endpoint: MAILTRAP_ENDPOINT || "https://send.api.mailtrap.io",
-  token: MAILTRAP_TOKEN
-});
+const senderEmail = process.env.SENDER_EMAIL || "Admin@mobiletrends.ng";
+const senderName = process.env.SENDER_NAME || "Mobiletrends Systems Limited";
 
-// Define the sender details
+// Resend expects "Name <email@domain.com>"
+const senderFrom = `${senderName} <${senderEmail}>`;
+
 const sender = {
-  email: process.env.SENDER_EMAIL || "Admin@mobiletrends.com.ng",
-  name: process.env.SENDER_NAME || "Mobiletrends Systems Limited"
+  email: senderEmail,
+  name: senderName,
+  from: senderFrom,
 };
 
 module.exports = {
-  mailtrapClient,
+  resendClient,
   sender,
-  MAILTRAP_ENDPOINT
+  senderFrom,
 };

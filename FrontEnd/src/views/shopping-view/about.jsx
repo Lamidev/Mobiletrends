@@ -107,8 +107,8 @@ const AboutPage = () => {
               </p>
               <p className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[#DF5E00]" />
-                <a href="mailto:Admin@mobiletrends.com.ng" className="hover:text-[#DF5E00] transition-colors font-medium">
-                  Admin@mobiletrends.com.ng
+                <a href="mailto:Admin@mobiletrends.ng" className="hover:text-[#DF5E00] transition-colors font-medium">
+                  Admin@mobiletrends.ng
                 </a>
               </p>
             </div>
@@ -142,7 +142,7 @@ const AboutPage = () => {
             variant="outline"
             className="border-white text-white bg-transparent hover:bg-white hover:text-[#0C1172] transition-all duration-300"
           >
-            <a href="mailto:Admin@mobiletrends.com.ng">Contact Us</a>
+            <a href="mailto:Admin@mobiletrends.ng">Contact Us</a>
           </Button>
         </div>
       </motion.div>

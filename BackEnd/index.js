@@ -34,8 +34,8 @@ mongoose
       process.env.CLIENT_URL,
       "http://localhost:3000",
       "http://localhost:5173",
-      "https://mobiletrends.com.ng",
-      "https://www.mobiletrends.com.ng",
+      "https://mobiletrends.ng",
+      "https://www.mobiletrends.ng",
       "https://gadgetgrid-3hz0.onrender.com",
     ].filter(Boolean);
 
