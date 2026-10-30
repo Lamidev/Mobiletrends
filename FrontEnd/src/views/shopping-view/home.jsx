@@ -238,6 +238,7 @@ function ShoppingHome() {
   const { toast } = useToast();
   const [featuredIndex, setFeaturedIndex] = useState(0);
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [featuredTab, setFeaturedTab] = useState("all");
 
   const shuffleArray = (array) => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -404,6 +405,24 @@ function ShoppingHome() {
     }
   );
 
+  const currentFeaturedList = (() => {
+    if (featuredTab === "all") {
+      return displayedFeaturedProducts;
+    }
+    if (featuredTab === "laptops") {
+      return SWOT_STOCK_PRODUCTS.filter((p) => p.category === "laptops");
+    }
+    if (featuredTab === "phones") {
+      return SWOT_STOCK_PRODUCTS.filter(
+        (p) => p.category === "smartphones" || p.category === "phones"
+      );
+    }
+    if (featuredTab === "gaming") {
+      return SWOT_STOCK_PRODUCTS.filter((p) => p.category === "gaming");
+    }
+    return displayedFeaturedProducts;
+  })();
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Reelmark-style Curved Cylinder Hero for Mobiletrends */}
@@ -477,7 +496,7 @@ function ShoppingHome() {
 
       <section className="py-14 sm:py-20 bg-[#f3f4ef] border-y border-[#daddd4] font-body">
         <div className="mx-auto w-[min(1180px,calc(100%-32px))] md:w-[min(1180px,calc(100%-48px))]">
-          <div className="flex flex-row items-end justify-between mb-7 sm:mb-10 gap-4">
+          <div className="flex flex-row items-end justify-between mb-5 sm:mb-6 gap-4">
             <div>
               <p className="text-[8px] sm:text-[10px] tracking-[1.8px] sm:tracking-[2.2px] font-semibold uppercase text-[#62665d] mb-2.5 sm:mb-3">
                 HANDPICKED FOR PERFORMANCE
@@ -494,14 +513,69 @@ function ShoppingHome() {
               View All <ChevronRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
+
+          {/* Mini-Filter Bar matching user reference */}
+          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-1 mb-7 sm:mb-9">
+            <button
+              type="button"
+              onClick={() => setFeaturedTab("all")}
+              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-medium transition-all cursor-pointer whitespace-nowrap ${
+                featuredTab === "all"
+                  ? "border border-[#d07b7b] bg-[#fbf3f3] text-[#991b1b] shadow-sm"
+                  : "text-[#4b5563] hover:text-[#111827] hover:bg-black/[0.03]"
+              }`}
+            >
+              All gadgets
+            </button>
+            <button
+              type="button"
+              onClick={() => setFeaturedTab("laptops")}
+              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-medium transition-all cursor-pointer whitespace-nowrap ${
+                featuredTab === "laptops"
+                  ? "border border-[#d07b7b] bg-[#fbf3f3] text-[#991b1b] shadow-sm"
+                  : "text-[#4b5563] hover:text-[#111827] hover:bg-black/[0.03]"
+              }`}
+            >
+              Laptops
+            </button>
+            <button
+              type="button"
+              onClick={() => setFeaturedTab("phones")}
+              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-medium transition-all cursor-pointer whitespace-nowrap ${
+                featuredTab === "phones"
+                  ? "border border-[#d07b7b] bg-[#fbf3f3] text-[#991b1b] shadow-sm"
+                  : "text-[#4b5563] hover:text-[#111827] hover:bg-black/[0.03]"
+              }`}
+            >
+              Phones
+            </button>
+            <button
+              type="button"
+              onClick={() => setFeaturedTab("gaming")}
+              className={`px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-medium transition-all cursor-pointer whitespace-nowrap ${
+                featuredTab === "gaming"
+                  ? "border border-[#d07b7b] bg-[#fbf3f3] text-[#991b1b] shadow-sm"
+                  : "text-[#4b5563] hover:text-[#111827] hover:bg-black/[0.03]"
+              }`}
+            >
+              Gaming
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/shop/listing')}
+              className="px-4 py-2 rounded-[8px] text-[13.5px] sm:text-[14.5px] font-medium text-[#4b5563] hover:text-[#111827] hover:bg-black/[0.03] transition-all cursor-pointer whitespace-nowrap"
+            >
+              More tech
+            </button>
+          </div>
+
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-[13px] gap-y-[25px] sm:gap-x-[18px] sm:gap-y-[30px] lg:gap-x-[20px] lg:gap-y-[32px]">
-            {displayedFeaturedProducts.map((productItem, index) => (
+            {currentFeaturedList.map((productItem, index) => (
               <motion.div
                 key={productItem.id || productItem._id || index}
                 initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.06 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.04 }}
               >
                 <ShoppingProductTile
                   handleGetProductDetails={handleGetProductDetails}
