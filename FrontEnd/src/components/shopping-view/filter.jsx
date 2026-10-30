@@ -22,9 +22,9 @@ function ProductFilter({
   handleApplyFilters,
 }) {
   const content = (
-    <div className="flex flex-col h-full bg-background">
+    <div className="font-body flex flex-col h-full bg-background">
       <div className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10">
-        <h2 className="text-lg font-extrabold">Filters</h2>
+        <h2 className="font-manrope text-lg font-extrabold tracking-tight">Filters</h2>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"

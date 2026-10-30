@@ -128,7 +128,7 @@ Link: ${shareUrl}`;
 
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
-      <DialogContent className="p-0 max-w-[95vw] md:max-w-[85vw] lg:max-w-[1000px] max-h-[90dvh] overflow-hidden rounded-3xl border-none shadow-2xl bg-white">
+      <DialogContent className="font-body p-0 max-w-[95vw] md:max-w-[85vw] lg:max-w-[1000px] max-h-[90dvh] overflow-hidden rounded-3xl border-none shadow-2xl bg-white">
         <div className="flex flex-col lg:flex-row h-full max-h-[90dvh]">
           {/* Left Side: Image Gallery Style */}
           <div className="hidden lg:block lg:w-1/2 bg-gray-50/50 p-6 flex items-center justify-center relative group">
@@ -177,7 +177,7 @@ Link: ${shareUrl}`;
                   <ChevronRight size={10} />
                   <span>{productDetails?.brand}</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight">
+                <h1 className="font-manrope text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 leading-tight">
                   {productDetails?.title}
                 </h1>
               </div>
@@ -186,7 +186,7 @@ Link: ${shareUrl}`;
               <div className="flex items-end justify-between flex-wrap gap-2">
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
-                    <span className="text-3xl sm:text-4xl font-black text-peach-600">
+                    <span className="font-manrope text-3xl sm:text-4xl font-extrabold tracking-tight text-peach-600">
                       ₦{currentPrice?.toLocaleString("en-NG")}
                     </span>
                     {originalPrice && (

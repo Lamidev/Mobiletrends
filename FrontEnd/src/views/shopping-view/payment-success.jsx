@@ -38,7 +38,7 @@ function PaymentSuccessPage() {
   }, [navigate, toast]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-peach-50 to-orange-100 p-4">
+    <div className="font-body min-h-screen flex items-center justify-center bg-gradient-to-br from-peach-50 to-orange-100 p-4">
       <Confetti width={width} height={height} numberOfPieces={200} gravity={0.2} />
 
       <motion.div

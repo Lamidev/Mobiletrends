@@ -6,7 +6,6 @@ import {
   Airplay,
   Apple,
   Camera,
-  ChevronLeftIcon,
   ChevronRightIcon,
   CloudLightning,
   Laptop,
@@ -19,11 +18,8 @@ import {
   Watch,
   Truck,
   ShieldCheck,
-  Zap,
   Headphones,
-  CheckCircle2,
   Award,
-  Globe
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -38,9 +34,12 @@ import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import { useToast } from "@/components/ui/use-toast";
 import { getFeatureImages } from "@/store/common-slice";
-import { FaTruck, FaCreditCard, FaHeadset } from "react-icons/fa";
-import CustomerReviews from "@/components/shopping-view/customer-reviews";
 import { getOrCreateSessionId } from "@/components/utils/session";
+import ReelmarkHero from "@/components/shopping-view/reelmark-hero";
+import BrandMarquee from "@/components/shopping-view/brand-marquee";
+import GadgetCatalogue from "@/components/shopping-view/gadget-catalogue";
+import BuyingProcessAndReviews from "@/components/shopping-view/buying-process-and-reviews";
+import FaqSection from "@/components/shopping-view/faq-section";
 
 const categoriesWithIcon = [
   { id: "smartphones", label: "Smartphones", icon: Smartphone },
@@ -64,39 +63,173 @@ const whyChooseUs = [
   {
     icon: Truck,
     title: "Swift Delivery",
-    description: "Lagos: Same Day Delivery. Outside Lagos: 1-2 Business Days.",
+    description: "Akure & Ondo: Same Day Delivery. Nationwide: 1-2 Business Days.",
     color: "text-peach-500",
-    bg: "bg-peach-50"
+    bg: "bg-peach-50",
   },
   {
     icon: ShieldCheck,
     title: "Secure Payment",
     description: "100% secure payment processing with multi-layer encryption via Paystack.",
     color: "text-green-500",
-    bg: "bg-green-50"
+    bg: "bg-green-50",
   },
   {
     icon: Award,
     title: "Authentic Only",
-    description: "Every gadget is strictly brand new and authentic, sourced directly from manufacturers.",
+    description: "Every gadget is strictly verified and authentic, sourced directly from trusted global suppliers.",
     color: "text-orange-500",
-    bg: "bg-orange-50"
+    bg: "bg-orange-50",
   },
   {
     icon: Headphones,
     title: "Expert Support",
     description: "Dedicated tech experts available 24/7 to resolve any issues you might have.",
     color: "text-blue-500",
-    bg: "bg-blue-50"
+    bg: "bg-blue-50",
+  },
+];
+
+/* Exact 12 SWOT Stock Products & Media Fitting Rules */
+const SWOT_STOCK_PRODUCTS = [
+  {
+    _id: "swot-stock-1",
+    title: "iPhone 18 Pro",
+    category: "smartphones",
+    swotLabel: "APPLE · FACTORY UNLOCKED",
+    image: "/products/iphone-18-pro.png",
+    media: "cutout phone",
+    price: 1950000,
+    salePrice: 1850000,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-2",
+    title: "MacBook Pro M4",
+    category: "laptops",
+    swotLabel: "APPLE · M-SERIES SILICON",
+    image: "/products/macbook-pro.png",
+    media: "cutout",
+    price: 2650000,
+    salePrice: 2480000,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-3",
+    title: "PlayStation 5 Pro",
+    category: "gaming",
+    swotLabel: "PLAYSTATION · 4K 120FPS GAMING",
+    image: "/products/ps5-pro.jpg",
+    media: "dark-photo",
+    price: 1250000,
+    salePrice: 1180000,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-4",
+    title: "Samsung Galaxy S26 Ultra",
+    category: "smartphones",
+    swotLabel: "SAMSUNG · SNAPDRAGON FLAGSHIP",
+    image: "/products/galaxy-s26-ultra.jpg",
+    media: "dark-photo galaxy",
+    price: 1890000,
+    salePrice: 1760000,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-5",
+    title: "iPhone Duo",
+    category: "smartphones",
+    swotLabel: "APPLE · FOLDABLE FLAGSHIP",
+    image: "/products/iphone-duo.jpg",
+    media: "editorial-photo",
+    price: 2850000,
+    salePrice: 0,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-6",
+    title: "Samsung Galaxy Z Fold8",
+    category: "smartphones",
+    swotLabel: "SAMSUNG · FOLDABLE GALAXY",
+    image: "/products/galaxy-z-fold8.jpg",
+    media: "editorial-photo",
+    price: 2450000,
+    salePrice: 2290000,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-7",
+    title: "Sony WH-1000XM6",
+    category: "speaker",
+    swotLabel: "SONY · ACTIVE NOISE CANCELLING",
+    image: "/products/sony-wh1000xm6.png",
+    media: "wide-photo",
+    price: 620000,
+    salePrice: 580000,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-8",
+    title: "ROG Zephyrus G16",
+    category: "laptops",
+    swotLabel: "ASUS ROG · HIGH-FPS GAMING & 3D",
+    image: "/products/rog-zephyrus-g16.png",
+    media: "cutout rog",
+    price: 2950000,
+    salePrice: 2790000,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-9",
+    title: "Apple Studio Display",
+    category: "accessories",
+    swotLabel: "APPLE · 5K RETINA DISPLAY",
+    image: "/products/studio-display.jpg",
+    media: "studio-photo",
+    price: 2350000,
+    salePrice: 0,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-10",
+    title: "Samsung Portable SSD T9",
+    category: "accessories",
+    swotLabel: "SAMSUNG · 2,000MB/S HIGH-SPEED",
+    image: "/products/t9-product.png",
+    media: "studio-photo",
+    price: 340000,
+    salePrice: 310000,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-11",
+    title: "AirPods 5",
+    category: "speaker",
+    swotLabel: "APPLE · ACTIVE NOISE CANCELLATION",
+    image: "/products/airpods-5.jpg",
+    media: "cutout",
+    price: 385000,
+    salePrice: 350000,
+    condition: "Brand New",
+  },
+  {
+    _id: "swot-stock-12",
+    title: "Nintendo Switch 2",
+    category: "gaming",
+    swotLabel: "NINTENDO · HOME & HANDHELD",
+    image: "/products/switch-2.png",
+    media: "cutout",
+    price: 780000,
+    salePrice: 720000,
+    condition: "Brand New",
   },
 ];
 
 function ShoppingHome() {
-  const [currentSlide, setCurrentSlide] = useState(0);
   const { productList, productDetails } = useSelector(
     (state) => state.shopProducts
   );
-  const { featureImageList } = useSelector((state) => state.commonFeature);
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
@@ -105,14 +238,6 @@ function ShoppingHome() {
   const { toast } = useToast();
   const [featuredIndex, setFeaturedIndex] = useState(0);
   const [featuredProducts, setFeaturedProducts] = useState([]);
-
-  const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const shuffleArray = (array) => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -230,13 +355,6 @@ function ShoppingHome() {
   }, [productDetails]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [featureImageList]);
-
-  useEffect(() => {
     if (productList.length > 4) {
       const interval = setInterval(() => {
         setFeaturedIndex((prevIndex) => (prevIndex + 4) % productList.length);
@@ -246,26 +364,7 @@ function ShoppingHome() {
   }, [productList]);
 
   useEffect(() => {
-    if (productList.length === 0) {
-      dispatch(
-        fetchAllFilteredProducts({
-          filterParams: {},
-          sortParams: "price-lowtohigh",
-        })
-      );
-    }
-  }, [dispatch, productList.length]);
-
-  useEffect(() => {
     dispatch(getFeatureImages());
-  }, [dispatch]);
-
-  const displayedProducts =
-    productList.length > 4
-      ? [...productList, ...productList].slice(featuredIndex, featuredIndex + 4)
-      : productList;
-
-  useEffect(() => {
     dispatch(
       fetchAllFilteredProducts({
         filterParams: {},
@@ -274,89 +373,96 @@ function ShoppingHome() {
     );
   }, [dispatch]);
 
+  const rawTopProducts =
+    productList.length > 4
+      ? [...productList, ...productList].slice(featuredIndex, featuredIndex + 4)
+      : productList.slice(0, 4);
+
+  const displayedProducts = SWOT_STOCK_PRODUCTS.slice(0, 4).map(
+    (stockItem, idx) => {
+      const liveItem = rawTopProducts[idx];
+      if (!liveItem) return stockItem;
+      return {
+        ...liveItem,
+        image: stockItem.image,
+        media: stockItem.media,
+        swotLabel: stockItem.swotLabel,
+      };
+    }
+  );
+
+  const displayedFeaturedProducts = SWOT_STOCK_PRODUCTS.slice(4, 12).map(
+    (stockItem, idx) => {
+      const liveItem = featuredProducts[idx];
+      if (!liveItem) return stockItem;
+      return {
+        ...liveItem,
+        image: stockItem.image,
+        media: stockItem.media,
+        swotLabel: stockItem.swotLabel,
+      };
+    }
+  );
+
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="relative w-full h-[200px] xs:h-[250px] sm:h-[350px] md:h-[450px] lg:h-[550px] xl:h-[600px] overflow-hidden">
-        {featureImageList?.map((slide, index) => (
-          <motion.div
-            key={index}
-            className="absolute top-0 left-0 w-full h-full"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: index === currentSlide ? 1 : 0 }}
-            transition={{ duration: 1 }}
-          >
-            <img
-              src={slide?.image}
-              className="w-full h-full object-cover"
-              alt={`Slide ${index + 1}`}
-            />
-            <motion.div
-              className="absolute bottom-4 left-1/2 transform -translate-x-1/2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: index === currentSlide ? 1 : 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-            >
-              <Button
-                onClick={() => navigate("/shop/listing")}
-                className="bg-white text-black hover:bg-white/90 px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-base font-bold shadow-lg flex items-center gap-2"
-              >
-                <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4" />
-                Shop Now
-              </Button>
-            </motion.div>
-          </motion.div>
-        ))}
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() =>
-            setCurrentSlide(
-              (prevSlide) =>
-                (prevSlide - 1 + featureImageList.length) %
-                featureImageList.length
-            )
-          }
-          className="absolute top-1/2 left-2 sm:left-4 transform -translate-y-1/2 bg-white/80"
-        >
-          <ChevronLeftIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() =>
-            setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList.length)
-          }
-          className="absolute top-1/2 right-2 sm:right-4 transform -translate-y-1/2 bg-white/80"
-        >
-          <ChevronRightIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-        </Button>
-      </div>
+      {/* Reelmark-style Curved Cylinder Hero for Mobiletrends */}
+      <ReelmarkHero
+        products={productList}
+        onSelectProduct={handleGetProductDetails}
+        onExploreClick={() => navigate("/shop/listing")}
+      />
 
-      <section className="py-12 sm:py-20 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8 sm:mb-12">
-            <div className="space-y-1">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
-                Top <span className="text-peach-600">Products</span>
+      {/* 4-Column Trust Bar + Infinite Global Brand Logo Marquee */}
+      <BrandMarquee
+        onSelectBrand={(brandId) => {
+          if (brandId === "products") {
+            navigate("/shop/listing");
+          } else {
+            handleNavigateToListingPage({ id: brandId }, "brand");
+          }
+        }}
+      />
+
+      {/* Exact SWOT Gadget Catalogue Section (Clean devices. Honest specs. Zero stories.) */}
+      <GadgetCatalogue
+        onSelectCategory={(categoryId) => {
+          if (categoryId === "products") {
+            sessionStorage.removeItem("filters");
+            navigate("/shop/listing");
+          } else {
+            handleNavigateToListingPage({ id: categoryId }, "category");
+          }
+        }}
+      />
+
+      <section className="py-14 sm:py-20 bg-[#fafaf8] font-body">
+        <div className="mx-auto w-[min(1180px,calc(100%-32px))] md:w-[min(1180px,calc(100%-48px))]">
+          <div className="flex flex-row items-end justify-between mb-7 sm:mb-10 gap-4">
+            <div>
+              <p className="text-[8px] sm:text-[10px] tracking-[1.8px] sm:tracking-[2.2px] font-semibold uppercase text-[#62665d] mb-2.5 sm:mb-3">
+                CURATED ARRIVALS
+              </p>
+              <h2 className="font-manrope text-[clamp(28px,3.5vw,44px)] leading-[1.18] font-semibold text-[#20231e] tracking-[-1.8px] m-0">
+                Top Products
               </h2>
-              <div className="h-1 w-12 bg-peach-500 rounded-full" />
             </div>
             <Button
               onClick={() => navigate('/shop/listing')}
               variant="ghost"
-              className="text-peach-600 font-bold hover:bg-peach-50 rounded-full group transition-all"
+              className="font-body text-[12px] sm:text-[13px] text-[#20231e] font-semibold hover:bg-[#e6e8e1]/60 hover:text-[#DF5E00] rounded-full group transition-all px-3 h-9 shrink-0"
             >
               View All <ChevronRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-[13px] gap-y-[25px] sm:gap-x-[18px] sm:gap-y-[30px] lg:gap-x-[20px] lg:gap-y-[32px]">
             {displayedProducts.map((productItem, index) => (
               <motion.div
-                key={productItem.id}
-                initial={{ opacity: 0, x: -40 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.08 }}
-                whileHover={{ scale: 1.03 }}
+                key={productItem.id || productItem._id || index}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.06 }}
               >
                 <ShoppingProductTile
                   handleGetProductDetails={handleGetProductDetails}
@@ -369,91 +475,33 @@ function ShoppingHome() {
         </div>
       </section>
 
-      <section className="py-12 sm:py-20 bg-gray-50/50 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight uppercase">
-              Explore <span className="text-peach-600">Categories</span>
-            </h2>
-            <p className="text-gray-400 text-xs sm:text-sm font-bold mt-2 uppercase tracking-widest">Find what you're looking for</p>
-          </div>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-4">
-            {categoriesWithIcon.map(({ id, label, icon: Icon }) => (
-              <motion.div key={id} whileHover={{ scale: 1.05 }}>
-                <Card
-                  onClick={() => handleNavigateToListingPage({ id }, "category")}
-                  className="cursor-pointer hover:shadow-md h-full border-none shadow-none bg-transparent"
-                >
-                  <CardContent className="flex flex-col items-center justify-center p-2 sm:p-4">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-2 transition-colors hover:bg-peach-50">
-                      <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-peach-500" />
-                    </div>
-                    <span className="text-xs sm:text-sm font-semibold text-center leading-tight">
-                      {label}
-                    </span>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-12 sm:py-20 bg-white px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight uppercase">
-              Leading <span className="text-peach-600">Brands</span>
-            </h2>
-            <p className="text-gray-400 text-xs sm:text-sm font-bold mt-2 uppercase tracking-widest">Trusted by millions worldwide</p>
-          </div>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-4">
-            {brandsWithIcon.map(({ id, label, icon: Icon }) => (
-              <motion.div key={id} whileHover={{ scale: 1.05 }}>
-                <Card
-                  onClick={() => handleNavigateToListingPage({ id }, "brand")}
-                  className="cursor-pointer hover:shadow-md h-full border-none shadow-none bg-transparent"
-                >
-                  <CardContent className="flex flex-col items-center justify-center p-2 sm:p-4">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-50 shadow-sm flex items-center justify-center mb-2 transition-colors hover:bg-gray-100">
-                      <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-peach-500" />
-                    </div>
-                    <span className="text-xs sm:text-sm font-semibold text-center leading-tight">
-                      {label}
-                    </span>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-12 sm:py-20 bg-gray-50/30 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8 sm:mb-12">
-            <div className="space-y-1">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
-                Featured <span className="text-peach-600">Picks</span>
+      <section className="py-14 sm:py-20 bg-[#f3f4ef] border-y border-[#daddd4] font-body">
+        <div className="mx-auto w-[min(1180px,calc(100%-32px))] md:w-[min(1180px,calc(100%-48px))]">
+          <div className="flex flex-row items-end justify-between mb-7 sm:mb-10 gap-4">
+            <div>
+              <p className="text-[8px] sm:text-[10px] tracking-[1.8px] sm:tracking-[2.2px] font-semibold uppercase text-[#62665d] mb-2.5 sm:mb-3">
+                HANDPICKED FOR PERFORMANCE
+              </p>
+              <h2 className="font-manrope text-[clamp(28px,3.5vw,44px)] leading-[1.18] font-semibold text-[#20231e] tracking-[-1.8px] m-0">
+                Featured Picks
               </h2>
-              <div className="h-1 w-12 bg-peach-500 rounded-full" />
             </div>
             <Button
               onClick={() => navigate('/shop/listing')}
               variant="ghost"
-              className="text-peach-600 font-bold hover:bg-peach-50 rounded-full group transition-all"
+              className="font-body text-[12px] sm:text-[13px] text-[#20231e] font-semibold hover:bg-[#e6e8e1] hover:text-[#DF5E00] rounded-full group transition-all px-3 h-9 shrink-0"
             >
               View All <ChevronRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-            {featuredProducts.map((productItem, index) => (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-[13px] gap-y-[25px] sm:gap-x-[18px] sm:gap-y-[30px] lg:gap-x-[20px] lg:gap-y-[32px]">
+            {displayedFeaturedProducts.map((productItem, index) => (
               <motion.div
-                key={productItem.id}
-                initial={{ opacity: 0, x: -40 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.08 }}
-                whileHover={{ scale: 1.03 }}
+                key={productItem.id || productItem._id || index}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.06 }}
               >
                 <ShoppingProductTile
                   handleGetProductDetails={handleGetProductDetails}
@@ -466,71 +514,11 @@ function ShoppingHome() {
         </div>
       </section>
 
-      <section className="py-12 sm:py-20 bg-white px-4 sm:px-6 relative overflow-hidden">
-        {/* Subtle Background Elements */}
-        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-96 h-96 bg-peach-50 rounded-full blur-3xl opacity-50" />
-        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-96 h-96 bg-orange-50 rounded-full blur-3xl opacity-50" />
+      {/* SWOT-Style Buying Process, Decade of Earned Customer Trust & Verified Google Reviews */}
+      <BuyingProcessAndReviews />
 
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-12 sm:mb-16 space-y-4">
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 tracking-tight"
-            >
-              Why <span className="text-peach-600">Mobiletrends?</span>
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-gray-500 max-w-2xl mx-auto text-sm sm:text-base font-medium"
-            >
-              We combine cutting-edge technology with world-class service to give you a shopping experience that is fast, secure, and reliable.
-            </motion.p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            {whyChooseUs.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                  whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -8 }}
-                  className="group"
-                >
-                  <Card className="h-full border-none shadow-xl shadow-gray-100/50 hover:shadow-peach-100/50 transition-all duration-300 rounded-3xl overflow-hidden bg-white/50 backdrop-blur-sm border border-gray-50">
-                    <CardContent className="flex flex-col items-center p-8 sm:p-10 space-y-6">
-                      <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl ${feature.bg} flex items-center justify-center transition-transform duration-500 group-hover:rotate-12`}>
-                        <Icon className={`w-8 h-8 sm:w-10 sm:h-10 ${feature.color}`} />
-                      </div>
-                      <div className="text-center space-y-3">
-                        <h3 className="font-black text-xl text-gray-900 uppercase tracking-tight">
-                          {feature.title}
-                        </h3>
-                        <p className="text-sm text-gray-500 font-medium leading-relaxed">
-                          {feature.description}
-                        </p>
-                      </div>
-                      <div className="pt-2">
-                        <div className={`h-1 w-8 rounded-full ${feature.bg.replace('bg-', 'bg-').replace('-50', '-500')} opacity-20`} />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <CustomerReviews />
+      {/* SWOT-Style Frequently Asked Questions Section */}
+      <FaqSection />
 
       <ProductDetailsDialog
         open={openDetailsDialog}

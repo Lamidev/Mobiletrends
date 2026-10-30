@@ -74,7 +74,7 @@ import { Package, MapPin, Home, ShoppingBag } from "lucide-react";
 function ShoppingAccount() {
   return (
     <motion.div
-      className="flex flex-col min-h-screen bg-gray-50"
+      className="font-body flex flex-col min-h-screen bg-gray-50"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -94,7 +94,7 @@ function ShoppingAccount() {
               <ShoppingBag className="h-8 w-8" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold mb-2">My Account</h1>
+          <h1 className="font-manrope text-4xl font-bold tracking-tight mb-2">My Account</h1>
           <p className="text-white/90 text-lg">Manage your orders and addresses</p>
         </motion.div>
         

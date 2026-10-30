@@ -141,10 +141,10 @@ function SearchProducts() {
   }, []);
 
   return (
-    <div className="container mx-auto md:px-6 px-4 py-8 min-h-screen">
+    <div className="font-body container mx-auto md:px-6 px-4 py-8 min-h-screen">
       {/* Search Header */}
       <div className="flex flex-col items-center mb-10 text-center">
-        <h1 className="text-3xl md:text-4xl font-extrabold mb-4 text-primary">Explore Gadgets</h1>
+        <h1 className="font-manrope text-3xl md:text-4xl font-extrabold tracking-tight mb-4 text-primary">Explore Gadgets</h1>
         <p className="text-muted-foreground max-w-lg mb-8">
           Search for your favorite phones, laptops, and accessories across Mobiletrends.
         </p>

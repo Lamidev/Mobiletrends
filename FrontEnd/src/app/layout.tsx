@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Manrope } from 'next/font/google';
+import { Manrope, DM_Sans, Caveat } from 'next/font/google';
 import './globals.css';
 import { ReduxProvider } from '@/providers/redux-provider';
 import { siteConfig } from '@/config/site';
@@ -7,8 +7,22 @@ import { Toaster } from '@/components/ui/sonner';
 
 const manrope = Manrope({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
+  weight: ['400', '500', '600', '700', '800'],
   variable: '--font-manrope',
+  display: 'swap',
+});
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-body',
+  display: 'swap',
+});
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['600', '700'],
+  variable: '--font-caveat',
   display: 'swap',
 });
 
@@ -47,8 +61,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={manrope.variable}>
-      <body className="font-sans antialiased bg-background text-foreground min-h-screen">
+    <html lang="en" className={`${manrope.variable} ${dmSans.variable} ${caveat.variable}`}>
+      <body className="font-body antialiased bg-[#fafaf8] text-[#20231e] min-h-screen">
         <ReduxProvider>
           {children}
           <Toaster />

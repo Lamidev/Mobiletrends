@@ -373,7 +373,7 @@ function AdminOrdersView() {
                     variant={currentPage === page ? "default" : "outline"}
                     size="sm"
                     onClick={() => handlePageChange(page)}
-                    className={`h-8 w-8 p-0 text-xs ${currentPage === page ? "bg-blue-600 text-white" : ""}`}
+                    className={`h-8 w-8 p-0 text-xs ${currentPage === page ? "bg-[#111344] hover:bg-[#0C1172] text-white" : ""}`}
                   >
                     {page}
                   </Button>
@@ -402,7 +402,7 @@ function AdminOrdersView() {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6"
+      className="font-body space-y-6"
     >
       {/* Header Stats - Improved mobile layout */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -558,7 +558,7 @@ function AdminOrdersView() {
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                       className="hover:bg-gray-50 transition-all border-b border-gray-100 last:border-b-0"
                     >
-                      <TableCell className="font-mono text-sm font-medium">
+                      <TableCell className="font-manrope text-sm font-semibold">
                         {formatOrderId(orderItem?._id)}
                       </TableCell>
                       <TableCell className="text-gray-600">
@@ -650,7 +650,7 @@ function AdminOrdersView() {
                     {/* Header */}
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="font-mono text-sm font-medium text-blue-600">
+                        <p className="font-manrope text-sm font-semibold text-blue-600">
                           {formatOrderId(orderItem?._id)}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">

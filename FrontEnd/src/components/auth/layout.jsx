@@ -1,95 +1,49 @@
 'use client';
 
 import React from "react";
-import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 
 function AuthLayout({ children }) {
+  const navigate = useNavigate();
+
   return (
-    <motion.div
-      className="min-h-screen bg-[#fafafa] flex flex-col lg:flex-row items-center justify-center relative overflow-hidden"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8 }}
-    >
-      {/* Dynamic Background Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100 rounded-full blur-[120px] opacity-60 animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-orange-100 rounded-full blur-[120px] opacity-60" />
-      <div className="absolute top-[20%] right-[10%] w-[15%] h-[15%] bg-blue-50 rounded-full blur-[80px] opacity-40" />
-
-      {/* Mobile: Logo above the form */}
-      <motion.div
-        className="lg:hidden flex flex-col items-center justify-center w-full px-6 py-8 relative z-10"
-        initial={{ y: -30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="bg-white p-3 rounded-2xl shadow-xl shadow-blue-100/50 mb-4 border border-gray-100">
-          <img
-            src="/logo.jpg"
-            alt="Mobiletrends Systems Limited"
-            className="w-16 h-16 object-contain rounded-xl"
-          />
-        </div>
-        <motion.p
-          className="text-gray-900 text-center text-lg font-black max-w-xs uppercase tracking-tight leading-tight"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-        >
-          Mobile<span className="text-[#0C1172]">trends</span>
-        </motion.p>
-        <p className="text-[#DF5E00] text-xs font-bold mt-1 uppercase tracking-[0.2em]">Systems Limited</p>
-      </motion.div>
-
-      {/* Desktop: Left Panel with Logo and Description */}
-      <motion.div
-        className="hidden lg:flex flex-col items-center justify-center w-1/2 px-12 py-4 relative z-10"
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 50 }}
-      >
-        <div className="relative group">
-          <div className="absolute inset-0 bg-[#0C1172]/10 blur-2xl opacity-40 group-hover:opacity-60 transition-opacity rounded-full"></div>
-          <motion.div
-            className="bg-white p-6 rounded-[2.5rem] shadow-2xl relative z-20 border border-white/50"
-            whileHover={{ y: -5, rotate: -2 }}
-          >
+    <div className="min-h-screen bg-white flex flex-col font-body text-[#0f172a]">
+      {/* Minimal Top Bar: Brand Logo Left, Circular Close Button Right */}
+      <header className="w-full px-6 sm:px-12 pt-6 pb-2 flex items-center justify-between">
+        <Link to="/shop/home" className="flex items-center gap-2.5 group">
+          <div className="relative overflow-hidden rounded-xl border border-gray-200 p-1 group-hover:border-[#0C1172] transition-colors shadow-sm bg-white">
             <img
               src="/logo.jpg"
-              alt="Mobiletrends Systems Limited"
-              className="w-44 h-44 object-contain rounded-3xl"
+              alt="Mobiletrends Logo"
+              className="h-9 w-9 object-contain rounded-lg"
             />
-          </motion.div>
-        </div>
+          </div>
+          <div className="flex flex-col">
+            <span className="font-manrope text-[18px] leading-tight font-extrabold text-[#0f172a] tracking-[-0.6px] uppercase">
+              Mobile<span className="text-[#DF5E00]">trends</span>
+            </span>
+            <span className="text-[9px] font-bold text-[#64748b] uppercase tracking-[0.16em] -mt-0.5">
+              Systems Limited
+            </span>
+          </div>
+        </Link>
 
-        <motion.div
-          className="mt-12 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+        <button
+          type="button"
+          onClick={() => navigate("/shop/home")}
+          aria-label="Close and return to shop"
+          className="w-10 h-10 rounded-full bg-[#f3f4f6] hover:bg-[#e5e7eb] text-[#1e293b] flex items-center justify-center transition-colors cursor-pointer"
         >
-          <h1 className="text-5xl font-black text-gray-900 mb-2 tracking-tighter">
-            Mobile<span className="text-[#0C1172]">trends</span>
-          </h1>
-          <p className="text-[#DF5E00] text-sm font-black uppercase tracking-[0.3em] mb-8">Systems Limited</p>
-          <p className="text-gray-700 text-lg font-medium max-w-sm mx-auto leading-relaxed border-l-4 border-[#0C1172] pl-6 text-left italic">
-            "Your trusted destination for premium smartphones, laptops, and technology accessories."
-          </p>
-        </motion.div>
-      </motion.div>
+          <X className="w-4 h-4" strokeWidth={2} />
+        </button>
+      </header>
 
-      {/* Right Panel for Content (Login, Register, etc.) */}
-      <motion.div
-        className="flex flex-1 items-center justify-center px-4 py-8 sm:px-6 lg:px-8 w-full relative z-20"
-        initial={{ x: 100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 50 }}
-      >
-        <div className="w-full max-w-lg">
-          {children}
-        </div>
-      </motion.div>
-    </motion.div>
+      {/* Centered Auth Form Container */}
+      <main className="flex-1 flex items-center justify-center px-5 py-8 sm:py-12">
+        <div className="w-full max-w-[430px]">{children}</div>
+      </main>
+    </div>
   );
 }
 

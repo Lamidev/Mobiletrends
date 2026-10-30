@@ -62,7 +62,7 @@ function UnauthPage() {
             >
               <Button
                 onClick={() => navigate("/")}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                className="flex items-center gap-2 bg-[#111344] hover:bg-[#0C1172] text-white"
                 size="lg"
               >
                 <Home className="h-4 w-4" />

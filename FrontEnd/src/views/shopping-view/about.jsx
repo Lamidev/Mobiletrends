@@ -10,13 +10,13 @@ import { MapPin, Phone, Mail } from "lucide-react";
 
 const AboutPage = () => {
   return (
-    <div className="container mx-auto py-16 px-6 md:px-12 lg:px-20">
+    <div className="font-body container mx-auto py-16 px-6 md:px-12 lg:px-20">
       {/* Header Section */}
       <motion.h1
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="text-4xl md:text-5xl font-extrabold text-center text-[#0C1172] mb-6"
+        className="font-manrope text-4xl md:text-5xl font-extrabold tracking-tight text-center text-[#0C1172] mb-6"
       >
         About Us
       </motion.h1>
@@ -132,7 +132,7 @@ const AboutPage = () => {
         <div className="flex flex-wrap gap-4 justify-center">
           <Button
             asChild
-            className="bg-[#DF5E00] text-white font-bold hover:bg-[#c25100] transition-all duration-300 shadow-lg"
+            className="bg-[#111344] text-white font-bold hover:bg-[#0C1172] transition-all duration-300 shadow-lg"
           >
             <Link to="/shop/listing">Shop Now</Link>
           </Button>

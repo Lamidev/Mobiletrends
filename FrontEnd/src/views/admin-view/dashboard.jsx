@@ -315,14 +315,14 @@ function AdminDashboard() {
   }
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="font-body p-6 space-y-8">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-center"
       >
-        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+        <h1 className="font-manrope text-3xl font-bold tracking-tight text-gray-900">Admin Dashboard</h1>
         <p className="text-gray-600 mt-2">Manage your store and content</p>
       </motion.div>
 
@@ -337,7 +337,7 @@ function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-100 text-sm font-medium">Verified Users</p>
-                  <p className="text-3xl font-bold mt-2">
+                  <p className="font-manrope text-3xl font-bold mt-2">
                     {isLoading ? (
                       <div className="h-8 bg-blue-400 rounded animate-pulse"></div>
                     ) : (
@@ -363,7 +363,7 @@ function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-green-100 text-sm font-medium">Total Orders</p>
-                  <p className="text-3xl font-bold mt-2">
+                  <p className="font-manrope text-3xl font-bold mt-2">
                     {isOrdersLoading ? (
                       <div className="h-8 bg-green-400 rounded animate-pulse"></div>
                     ) : (
@@ -389,7 +389,7 @@ function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-purple-100 text-sm font-medium">Feature Images</p>
-                  <p className="text-3xl font-bold mt-2">
+                  <p className="font-manrope text-3xl font-bold mt-2">
                     {featureImageList?.length || 0}
                   </p>
                 </div>
@@ -411,7 +411,7 @@ function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-orange-100 text-sm font-medium">Store Growth</p>
-                  <p className="text-3xl font-bold mt-2">+12%</p>
+                  <p className="font-manrope text-3xl font-bold mt-2">+12%</p>
                 </div>
                 <div className="p-3 bg-orange-400 rounded-full">
                   <TrendingUp className="w-6 h-6" />
@@ -450,7 +450,7 @@ function AdminDashboard() {
               <Button 
                 onClick={handleUploadFeatureImage}
                 disabled={!uploadedImageUrl || isUploading || imageLoadingState}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                className="flex-1 bg-[#111344] hover:bg-[#0C1172] text-white"
               >
                 {isUploading ? (
                   <>

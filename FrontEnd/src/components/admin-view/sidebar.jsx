@@ -42,7 +42,7 @@ function MenuItems({ setOpen }) {
             navigate(menuItem.path);
             setOpen ? setOpen(false) : null;
           }}
-          className="flex cursor-pointer text-sm items-center gap-2 rounded-md px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground transition"
+          className="font-body flex cursor-pointer text-sm font-medium items-center gap-2 rounded-md px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground transition"
         >
           {menuItem.icon}
           <span>{menuItem.label}</span>
@@ -63,7 +63,7 @@ function AdminSideBar({ open, setOpen }) {
             <SheetHeader className="border-b">
               <SheetTitle className="flex gap-2 mt-5 mb-5">
                 <ChartNoAxesCombined size={28} />
-                <h1 className="text-2xl font-extrabold">Admin Panel</h1>
+                <h1 className="font-manrope text-2xl font-extrabold tracking-tight">Admin Panel</h1>
               </SheetTitle>
             </SheetHeader>
             <MenuItems setOpen={setOpen} />
@@ -76,7 +76,7 @@ function AdminSideBar({ open, setOpen }) {
           className="flex cursor-pointer items-center gap-2"
         >
           <ChartNoAxesCombined size={30} />
-          <h1 className="text-2xl font-extrabold">Admin Panel</h1>
+          <h1 className="font-manrope text-2xl font-extrabold tracking-tight">Admin Panel</h1>
         </div>
         <MenuItems />
       </aside>

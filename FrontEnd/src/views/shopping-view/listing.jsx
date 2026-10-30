@@ -318,7 +318,7 @@ function ShoppingListing() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="relative"
+      className="relative font-body"
     >
       {/* Global Filter/Sort Loader Overlay */}
       {(isFilterLoading || minimumLoaderTime) && (
@@ -354,7 +354,7 @@ function ShoppingListing() {
           className="bg-background w-full rounded-lg shadow-sm"
         >
           <div className="p-4 border-b flex items-center justify-between">
-            <h2 className="text-lg font-extrabold">All Products</h2>
+            <h2 className="font-manrope text-lg font-extrabold tracking-tight">All Products</h2>
             <div className="flex items-center gap-3">
               <span className="text-muted-foreground">{productList?.length}</span>
               <Button

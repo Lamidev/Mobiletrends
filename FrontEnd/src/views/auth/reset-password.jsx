@@ -1,12 +1,11 @@
 'use client';
+
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Lock, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { resetPassword } from "../../store/auth-slice/index";
-import CommonForm from "@/components/common/form";
 
 const ResetPasswordPage = () => {
   const [formData, setFormData] = useState({
@@ -48,86 +47,129 @@ const ResetPasswordPage = () => {
       setTimeout(() => {
         navigate("/auth/login");
       }, 2000);
-    } catch (error) {
+    } catch (err) {
       toast({
         title: "Error",
-        description: error || "Error resetting password",
+        description: err || "Error resetting password",
         variant: "destructive",
       });
     }
   };
 
-  const formControls = [
-    {
-      name: "password",
-      label: "New Password",
-      type: showPassword ? "text" : "password",
-      placeholder: "Enter new password",
-      componentType: "input",
-      icon: showPassword ? EyeOff : Eye,
-      toggleVisibility: () => setShowPassword((prev) => !prev),
-    },
-    {
-      name: "confirmPassword",
-      label: "Confirm Password",
-      type: showConfirmPassword ? "text" : "password",
-      placeholder: "Confirm new password",
-      componentType: "input",
-      icon: showConfirmPassword ? EyeOff : Eye,
-      toggleVisibility: () => setShowConfirmPassword((prev) => !prev),
-    },
-  ];
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full bg-white/70 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white/50 overflow-hidden"
-    >
-      <div className="p-8 sm:p-12">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Lock className="h-8 w-8 text-blue-500" />
+    <div className="w-full font-body">
+      {/* Heading */}
+      <div className="mb-7">
+        <h1 className="font-manrope text-[26px] sm:text-[28px] font-bold text-[#0f172a] tracking-[-0.7px] leading-tight">
+          Set new password
+        </h1>
+        <p className="text-[13px] text-[#64748b] mt-1">
+          Create a strong new password for your account
+        </p>
+      </div>
+
+      {error && (
+        <p className="text-red-600 text-[12.5px] font-medium mb-4 text-center bg-red-50 py-2.5 px-4 rounded-[6px] border border-red-100">
+          {error}
+        </p>
+      )}
+
+      {message && (
+        <p className="text-green-700 text-[12.5px] font-medium mb-4 text-center bg-green-50 py-2.5 px-4 rounded-[6px] border border-green-100">
+          {message}
+        </p>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label
+            htmlFor="new-password"
+            className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
+          >
+            New password <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              id="new-password"
+              type={showPassword ? "text" : "password"}
+              required
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              placeholder="••••••••••••"
+              className="w-full h-[46px] rounded-[6px] pl-4 pr-11 bg-[#f4f5f7] focus:bg-white text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[#475569] transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </button>
           </div>
-          <h2 className="text-3xl font-black text-gray-900 tracking-tighter mb-2">
-            Secure Your Account
-          </h2>
-          <p className="text-gray-500 font-medium leading-relaxed">
-            Create a strong new password to regain access to your account.
-          </p>
         </div>
 
-        {error && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-red-500 text-sm font-bold mb-6 text-center bg-red-50 py-2 rounded-lg border border-red-100"
+        <div>
+          <label
+            htmlFor="confirm-password"
+            className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
           >
-            {error}
-          </motion.p>
-        )}
+            Confirm password <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              id="confirm-password"
+              type={showConfirmPassword ? "text" : "password"}
+              required
+              value={formData.confirmPassword}
+              onChange={(e) =>
+                setFormData({ ...formData, confirmPassword: e.target.value })
+              }
+              placeholder="••••••••••••"
+              className="w-full h-[46px] rounded-[6px] pl-4 pr-11 bg-[#f4f5f7] focus:bg-white text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[#475569] transition-colors"
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+        </div>
 
-        {message && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-green-500 text-sm font-bold mb-6 text-center bg-green-50 py-2 rounded-lg border border-green-100"
-          >
-            {message}
-          </motion.p>
-        )}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full h-[46px] rounded-[6px] bg-[#111344] hover:bg-[#0C1172] text-white font-manrope font-semibold text-[13px] shadow-[0_6px_16px_rgba(17,19,68,0.18)] transition-all flex items-center justify-center disabled:opacity-60 cursor-pointer mt-2"
+        >
+          {isLoading ? (
+            <Loader className="w-4 h-4 animate-spin" />
+          ) : (
+            "Update Password"
+          )}
+        </button>
+      </form>
 
-        <CommonForm
-          formControls={formControls}
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleSubmit}
-          buttonText={isLoading ? "Updating Security..." : "Confirm New Password"}
-          isBtnDisabled={isLoading}
-        />
-      </div>
-    </motion.div>
+      <p className="text-[12.5px] text-[#64748b] text-center mt-7">
+        Back to{" "}
+        <Link
+          to="/auth/login"
+          className="text-[#111344] font-semibold underline underline-offset-2 hover:text-[#DF5E00] transition-colors"
+        >
+          Sign in
+        </Link>
+      </p>
+    </div>
   );
 };
 

@@ -324,7 +324,7 @@ function AdminProducts() {
                         size="sm"
                         onClick={() => handlePageChange(page)}
                         className={`h-9 w-9 p-0 font-bold transition-all ${currentPage === page
-                            ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600 shadow-sm"
+                            ? "bg-[#111344] hover:bg-[#0C1172] text-white border-[#111344] shadow-sm"
                             : "border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
                           }`}
                       >
@@ -367,7 +367,7 @@ function AdminProducts() {
         >
           <SheetHeader className="sticky top-0 bg-background z-10 pb-4">
             <SheetTitle>
-              <h2 className="text-xl font-bold">{currentEditedId !== null ? "Edit Product" : "Add New Product"}</h2>
+              <h2 className="font-manrope text-xl font-bold tracking-tight">{currentEditedId !== null ? "Edit Product" : "Add New Product"}</h2>
             </SheetTitle>
           </SheetHeader>
 

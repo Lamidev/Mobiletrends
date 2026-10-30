@@ -1,19 +1,16 @@
 'use client';
 
-
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Mail, Lock, Loader } from "lucide-react";
+import { Eye, EyeOff, Loader } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import CommonForm from "@/components/common/form";
 import { useToast } from "@/components/ui/use-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "@/store/auth-slice";
-import { loginFormControls } from "@/config";
 
 function AuthLogin() {
   const initialState = { email: "", password: "" };
   const [formData, setFormData] = useState(initialState);
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -33,9 +30,8 @@ function AuthLogin() {
       if (result?.success) {
         toast({
           title: "Login successful!",
-          description: "Welcome back!"
+          description: "Welcome back!",
         });
-
         setFormData(initialState);
       } else {
         toast({
@@ -43,11 +39,15 @@ function AuthLogin() {
           variant: "destructive",
         });
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      setError(error || "An error occurred. Please try again.");
+    } catch (err) {
+      console.error("Login error:", err);
+      const errMsg =
+        typeof err === "string"
+          ? err
+          : err?.message || "An error occurred. Please try again.";
+      setError(errMsg);
       toast({
-        title: error || "Login failed. Please try again.",
+        title: errMsg,
         variant: "destructive",
       });
     } finally {
@@ -57,10 +57,10 @@ function AuthLogin() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      const fromCheckout = sessionStorage.getItem('fromCheckout');
+      const fromCheckout = sessionStorage.getItem("fromCheckout");
 
       if (fromCheckout) {
-        sessionStorage.removeItem('fromCheckout');
+        sessionStorage.removeItem("fromCheckout");
         navigate("/shop/checkout");
       } else {
         navigate(user.role === "admin" ? "/admin/dashboard" : "/shop/home");
@@ -69,68 +69,110 @@ function AuthLogin() {
   }, [isAuthenticated, user, navigate]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full bg-white/70 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white/50 overflow-hidden"
-    >
-      <div className="p-8 sm:p-12">
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-black text-gray-900 tracking-tighter mb-2">
-            Welcome Back
-          </h2>
-          <p className="text-gray-500 font-medium">Log in to manage your premium gadgets</p>
+    <div className="w-full font-body">
+      {/* Heading */}
+      <div className="mb-7">
+        <h1 className="font-manrope text-[26px] sm:text-[28px] font-bold text-[#0f172a] tracking-[-0.7px] leading-tight">
+          Welcome back
+        </h1>
+        <p className="text-[13px] text-[#64748b] mt-1">
+          Enter your email and password to sign in
+        </p>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div>
+          <label
+            htmlFor="login-email"
+            className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
+          >
+            Email address
+          </label>
+          <input
+            id="login-email"
+            type="email"
+            required
+            value={formData.email}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
+            placeholder="you@example.com"
+            className="w-full h-[46px] rounded-[6px] px-4 bg-[#f4f5f7] focus:bg-white text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+          />
         </div>
 
-        <CommonForm
-          formControls={loginFormControls}
-          buttonText={isLoading ? <Loader className="w-6 h-6 animate-spin mx-auto" /> : "Sign In"}
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={onSubmit}
-          disabled={isLoading}
-        />
+        <div>
+          <label
+            htmlFor="login-password"
+            className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
+          >
+            Password
+          </label>
+          <div className="relative">
+            <input
+              id="login-password"
+              type={showPassword ? "text" : "password"}
+              required
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              placeholder="••••••••••••"
+              className="w-full h-[46px] rounded-[6px] pl-4 pr-11 bg-[#f4f5f7] focus:bg-white text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[#475569] transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+          <div className="flex justify-end mt-2">
+            <Link
+              to="/auth/forgot-password"
+              className="text-[12px] font-medium text-[#1e293b] hover:text-[#0C1172] transition-colors"
+            >
+              Forgot password?
+            </Link>
+          </div>
+        </div>
 
         {error && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-red-500 text-sm font-bold mt-4 text-center bg-red-50 py-2 rounded-lg border border-red-100"
-          >
+          <p className="text-red-600 text-[12.5px] font-medium text-center bg-red-50 py-2.5 px-4 rounded-[6px] border border-red-100">
             {error}
-          </motion.p>
+          </p>
         )}
 
-        <div className="flex flex-col space-y-4 mt-8">
-          <Link
-            to="/auth/forgot-password"
-            className="text-sm text-peach-600 hover:text-peach-700 font-bold text-center transition-colors"
-          >
-            Forgot your password?
-          </Link>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full h-[46px] rounded-[6px] bg-[#111344] hover:bg-[#0C1172] text-white font-manrope font-semibold text-[13px] shadow-[0_6px_16px_rgba(17,19,68,0.18)] transition-all flex items-center justify-center disabled:opacity-60 cursor-pointer mt-2"
+        >
+          {isLoading ? (
+            <Loader className="w-4 h-4 animate-spin" />
+          ) : (
+            "Sign In"
+          )}
+        </button>
+      </form>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-gray-100"></span>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-transparent px-2 text-gray-400 font-bold tracking-widest">or</span>
-            </div>
-          </div>
-
-          <p className="text-sm text-gray-600 text-center font-medium">
-            Don't have an account?{" "}
-            <Link
-              to="/auth/register"
-              className="text-peach-600 hover:underline font-black transition-colors"
-            >
-              Explore Membership
-            </Link>
-          </p>
-        </div>
-      </div>
-    </motion.div>
+      <p className="text-[12.5px] text-[#64748b] text-center mt-7">
+        Don&apos;t have an account?{" "}
+        <Link
+          to="/auth/register"
+          className="text-[#111344] font-semibold underline underline-offset-2 hover:text-[#DF5E00] transition-colors"
+        >
+          Create an account
+        </Link>
+      </p>
+    </div>
   );
 }
 

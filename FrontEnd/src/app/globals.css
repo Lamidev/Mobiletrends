@@ -4,13 +4,13 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 60 14% 98%;
+    --foreground: 100 7% 13%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 100 7% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    
+    --popover-foreground: 100 7% 13%;
+
     /* Mobiletrends Blue #0C1172 */
     --primary: 237 81% 25%;
     --primary-foreground: 0 0% 100%;
@@ -19,18 +19,18 @@
     --secondary: 25 100% 44%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    
+    --muted: 75 11% 94%;
+    --muted-foreground: 87 4% 38%;
+
     --accent: 25 100% 44%;
     --accent-foreground: 0 0% 100%;
-    
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 80 11% 85%;
+    --input: 80 11% 85%;
     --ring: 237 81% 25%;
-    --radius: 0.625rem;
+    --radius: 0.5rem;
   }
 
   .dark {
@@ -60,9 +60,30 @@
   * {
     @apply border-border;
   }
+  body,
+  button,
+  input,
+  select,
+  textarea,
+  table {
+    font-family: var(--font-body), "DM Sans", sans-serif;
+  }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 15px;
+    line-height: 1.6;
+    background-color: #fafaf8;
+    color: #20231e;
+    -webkit-font-smoothing: antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-manrope), "Manrope", sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -85,3 +106,93 @@
   background: #0C1172;
 }
 
+/* SWOT Product Card Image Container & Media Fitting Rules */
+.swot-product-image {
+  height: 205px;
+  background: #ffffff;
+  border: 1px solid #e6e8e1;
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+.swot-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 20px 15px 34px;
+  filter: none;
+  transition: transform 0.5s ease;
+}
+
+.swot-product-card:hover .swot-product-image img {
+  transform: scale(1.05);
+}
+
+.swot-product-image.dark-photo {
+  background: #000000;
+  border-color: #1f1f1d;
+}
+
+.swot-product-image.dark-photo img {
+  padding: 0 0 22px;
+}
+
+.swot-product-image.phone img {
+  padding: 0 0 18px;
+  transform: scale(1.12);
+}
+
+.swot-product-card:hover .swot-product-image.phone img {
+  transform: scale(1.17);
+}
+
+.swot-product-image.rog img {
+  padding: 0 5px 20px;
+}
+
+.swot-product-image.wide-photo img {
+  padding: 10px 0 25px;
+  object-fit: cover;
+}
+
+.swot-product-image.galaxy img {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  object-fit: contain;
+  transform: scale(1.3);
+}
+
+.swot-product-card:hover .swot-product-image.galaxy img {
+  transform: scale(1.35);
+}
+
+.swot-product-image.editorial-photo img {
+  padding: 0;
+  object-fit: cover;
+}
+
+@media (max-width: 1100px) {
+  .swot-product-image {
+    height: 180px;
+  }
+}
+
+@media (max-width: 800px) {
+  .swot-product-image {
+    height: 230px;
+  }
+}
+
+@media (max-width: 480px) {
+  .swot-product-image {
+    height: 165px;
+  }
+  .swot-product-image img {
+    padding: 18px 10px 30px;
+  }
+  .swot-product-image.wide-photo img {
+    padding: 0 0 25px;
+  }
+}

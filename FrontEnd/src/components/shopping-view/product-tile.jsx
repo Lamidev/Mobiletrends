@@ -1,119 +1,138 @@
 'use client';
 
-
-import { motion } from "framer-motion";
-import { Badge } from "../ui/badge";
 import { ShoppingCart } from "lucide-react";
+import { categoryOptionsMap } from "@/config";
 
-function ShoppingProductTile({ product, handleGetProductDetails, handleAddToCart }) {
+const SWOT_MEDIA_BY_IMAGE = {
+  "/products/iphone-duo.jpg": "editorial-photo",
+  "/products/galaxy-z-fold8.jpg": "editorial-photo",
+  "/products/macbook-pro.png": "cutout",
+  "/products/iphone-18-pro.png": "cutout phone",
+  "/products/ps5-pro.jpg": "dark-photo",
+  "/products/sony-wh1000xm6.png": "wide-photo",
+  "/products/rog-zephyrus-g16.png": "cutout rog",
+  "/products/galaxy-s26-ultra.jpg": "dark-photo galaxy",
+  "/products/studio-display.jpg": "studio-photo",
+  "/products/t9-product.png": "studio-photo",
+  "/products/airpods-5.jpg": "cutout",
+  "/products/switch-2.png": "cutout",
+};
+
+function ShoppingProductTile({
+  product,
+  handleGetProductDetails,
+  handleAddToCart,
+}) {
   const discountPercentage =
     product?.salePrice > 0 && product?.price > product?.salePrice
-      ? Math.round(((product?.price - product?.salePrice) / product?.price) * 100)
+      ? Math.round(
+          ((product?.price - product?.salePrice) / product?.price) * 100
+        )
       : 0;
 
   const hasValidDiscount = discountPercentage > 0;
 
+  const mediaClass =
+    product?.media || SWOT_MEDIA_BY_IMAGE[product?.image] || "cutout";
+
+  const categoryLabel =
+    categoryOptionsMap?.[product?.category] ||
+    product?.category ||
+    "Gadget";
+
+  const badgeText =
+    product?.totalStock === 0
+      ? "OUT OF STOCK"
+      : product?.swotLabel ||
+        (product?.brand && product?.condition
+          ? `${product.brand} · ${product.condition}`
+          : product?.condition || "VERIFIED GEAR");
+
+  const handleCardClick = () => {
+    if (product?._id && handleGetProductDetails && !String(product._id).startsWith("swot-stock-")) {
+      handleGetProductDetails(product._id);
+    }
+  };
+
   return (
-    <div className="w-full group">
-      {/* Image Container */}
-      <div className="relative cursor-pointer mb-3">
+    <article className="swot-product-card w-full group font-body">
+      {/* SWOT Image Container */}
+      <div
+        onClick={handleCardClick}
+        className={`swot-product-image ${mediaClass} ${
+          product?._id && !String(product._id).startsWith("swot-stock-")
+            ? "cursor-pointer"
+            : "cursor-default"
+        }`}
+      >
         <img
           src={product?.image}
-          alt={product?.title}
-          className="w-full h-64 sm:h-72 md:h-80 object-contain rounded-lg"
-          onClick={() => handleGetProductDetails(product?._id)}
+          alt={product?.title || product?.name || "Gadget"}
+          loading="lazy"
         />
 
-        {/* Badges - Top Left */}
-        <div className="absolute top-2 left-2 flex flex-col space-y-1">
-          {product?.totalStock === 0 ? (
-            <motion.div initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.4 }}>
-              <Badge className="text-[9px] bg-red-500 hover:bg-red-600 px-1.5 py-0.5 h-5">
-                Out Of Stock
-              </Badge>
-            </motion.div>
-          ) : product?.totalStock < 10 ? (
-            <motion.div initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.4 }}>
-              <Badge className="text-[9px] bg-red-500 hover:bg-red-600 px-1.5 py-0.5 h-5">{`Only ${product?.totalStock} left`}</Badge>
-            </motion.div>
-          ) : null}
-        </div>
+        {/* Discount tag in top-left if applicable */}
+        {hasValidDiscount && (
+          <div className="absolute top-2.5 left-2.5 bg-[#DF5E00] text-white text-[8px] font-semibold tracking-[0.8px] uppercase px-2 py-[2px] rounded-[2px]">
+            -{discountPercentage}%
+          </div>
+        )}
 
-        {/* Condition + Discount - Top Right */}
-        {product?.condition && (
-          <motion.div
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.4 }}
-            className="absolute top-2 right-2 flex flex-col space-y-1"
-          >
-            <Badge
-              className={`text-[9px] px-1.5 py-0.5 h-5 ${product?.condition === "Brand New"
-                  ? "bg-green-500 hover:bg-green-600"
-                  : "bg-yellow-500 hover:bg-yellow-600"
-                }`}
+        {/* Quick Add-to-Cart button in top-right (only when real inventory item is in stock) */}
+        {product?._id &&
+          !String(product._id).startsWith("swot-stock-") &&
+          product?.totalStock > 0 &&
+          handleAddToCart && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddToCart(product._id, product.totalStock);
+              }}
+              aria-label="Add to cart"
+              className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-[#202020df] backdrop-blur-[5px] text-white flex items-center justify-center transition-all duration-200 hover:bg-[#DF5E00] md:opacity-0 md:group-hover:opacity-100"
             >
-              {product?.condition}
-            </Badge>
-
-            {/* Only show discount badge if there's a valid discount */}
-            {hasValidDiscount && (
-              <Badge className="text-[10px] px-1.5 py-0 h-5 bg-blue-500 hover:bg-blue-600 flex items-center justify-center min-w-[0]">
-                {discountPercentage}%
-              </Badge>
-            )}
-          </motion.div>
-        )}
-
-        {/* Cart Icon - static on mobile, hover on desktop */}
-        {product?.totalStock > 0 && (
-          <motion.button
-            onClick={() => handleAddToCart(product?._id, product?.totalStock)}
-            className="
-              absolute bottom-3 left-1/2 -translate-x-1/2
-              bg-peach-500 text-white rounded-full shadow-lg
-              transition duration-300 ease-in-out
-              p-1.5 md:p-2
-              md:opacity-0 md:group-hover:opacity-100
-            "
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <ShoppingCart className="h-4 w-4" />
-          </motion.button>
-        )}
-      </div>
-
-      {/* Product details */}
-      <div className="space-y-2">
-        {/* Title */}
-        <h2
-          onClick={() => handleGetProductDetails(product?._id)}
-          className="text-xs sm:text-sm font-bold line-clamp-2 cursor-pointer hover:text-peach-600 transition-colors"
-        >
-          {product?.title}
-        </h2>
-
-        {/* Pricing */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 gap-1">
-          {product?.salePrice > 0 && hasValidDiscount ? (
-            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-              <span className="text-[11px] sm:text-xs text-gray-500 line-through">
-                ₦{product?.price?.toLocaleString("en-NG")}
-              </span>
-
-              <span className="text-sm sm:text-base font-semibold text-peach-600">
-                ₦{product?.salePrice?.toLocaleString("en-NG")}
-              </span>
-            </div>
-          ) : (
-            <span className="text-sm sm:text-base font-semibold text-peach-600">
-              ₦{product?.price?.toLocaleString("en-NG")}
-            </span>
+              <ShoppingCart className="h-3.5 w-3.5" />
+            </button>
           )}
-        </div>
+
+        {/* SWOT Bottom-Left Frosted Condition / Spec Pill */}
+        <span className="absolute bottom-[10px] left-[11px] max-w-[calc(100%-22px)] truncate bg-[#202020df] backdrop-blur-[5px] text-white px-[8px] py-[3px] text-[7px] sm:text-[8px] tracking-[0.4px] sm:tracking-[1px] uppercase rounded-[2px] font-medium">
+          {badgeText}
+        </span>
       </div>
-    </div>
+
+      {/* SWOT Category Eyebrow */}
+      <p className="text-[#62665d] text-[9px] tracking-[1.3px] uppercase mt-[18px] mb-0 font-medium">
+        {categoryLabel}
+      </p>
+
+      {/* SWOT Product Title */}
+      <h3
+        onClick={handleCardClick}
+        className="font-manrope text-[13px] sm:text-[15px] font-semibold text-[#20231e] mt-[4px] mb-0 tracking-[-0.3px] line-clamp-1 group-hover:text-[#DF5E00] transition-colors"
+      >
+        {product?.title || product?.name}
+      </h3>
+
+      {/* Price Display (No Check Availability Link) */}
+      <div className="mt-1.5 flex items-baseline gap-2 flex-wrap">
+        {product?.salePrice > 0 && hasValidDiscount ? (
+          <>
+            <span className="font-manrope text-[13px] sm:text-[14.5px] font-bold text-[#20231e]">
+              ₦{Number(product.salePrice).toLocaleString("en-NG")}
+            </span>
+            <span className="text-[11px] text-[#62665d] line-through">
+              ₦{Number(product.price).toLocaleString("en-NG")}
+            </span>
+          </>
+        ) : (
+          <span className="font-manrope text-[13px] sm:text-[14.5px] font-bold text-[#20231e]">
+            ₦{Number(product?.price || 0).toLocaleString("en-NG")}
+          </span>
+        )}
+      </div>
+    </article>
   );
 }
 

@@ -38,7 +38,7 @@ function AdminProductTile({
   const discountPercentage = calculateDiscount();
 
   return (
-    <div className="w-full rounded-lg overflow-hidden group transition duration-300 hover:shadow-lg p-3 bg-white border border-gray-100">
+    <div className="font-body w-full rounded-lg overflow-hidden group transition duration-300 hover:shadow-lg p-3 bg-white border border-gray-100">
 
       {/* Product Image Standalone */}
       <div className="cursor-pointer mb-3 relative bg-transparent">
@@ -71,7 +71,7 @@ function AdminProductTile({
       {/* Product Info */}
       <div className="space-y-2">
         {/* Title */}
-        <h2 className="text-sm font-bold line-clamp-2 text-gray-800 min-h-[2.5rem]">
+        <h2 className="font-manrope text-sm font-bold line-clamp-2 text-gray-800 min-h-[2.5rem]">
           {product?.title}
         </h2>
 
@@ -82,12 +82,12 @@ function AdminProductTile({
               <span className="text-xs text-gray-500 line-through">
                 ₦{product?.price?.toLocaleString("en-NG")}
               </span>
-              <span className="text-base font-semibold text-peach-600">
+              <span className="font-manrope text-base font-semibold text-peach-600">
                 ₦{product?.salePrice?.toLocaleString("en-NG")}
               </span>
             </>
           ) : (
-            <span className="text-base font-semibold text-peach-600">
+            <span className="font-manrope text-base font-semibold text-peach-600">
               ₦{product?.price?.toLocaleString("en-NG")}
             </span>
           )}

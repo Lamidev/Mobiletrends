@@ -231,7 +231,7 @@ function ShoppingCheckout() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="font-body container mx-auto px-4 py-8 max-w-7xl">
       <div className="flex justify-between items-center mb-8 relative">
         <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -z-10"></div>
         <div
