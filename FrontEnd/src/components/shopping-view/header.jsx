@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, Menu, User } from "lucide-react";
+import { LayoutDashboard, LogOut, Menu, User } from "lucide-react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { Button } from "../ui/button";
@@ -280,6 +280,17 @@ function HeaderRightContent({ closeSheet }) {
             >
               <User className="mr-2.5 h-4 w-4 text-[#0C1172]" /> My Account &amp; Orders
             </DropdownMenuItem>
+            {user?.role === "admin" && (
+              <DropdownMenuItem
+                className="rounded-xl cursor-pointer font-semibold py-2.5"
+                onClick={() => {
+                  navigate("/admin/dashboard");
+                  if (closeSheet) closeSheet();
+                }}
+              >
+                <LayoutDashboard className="mr-2.5 h-4 w-4 text-[#DF5E00]" /> Admin Dashboard
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="rounded-xl cursor-pointer font-semibold text-red-600 focus:text-red-600 py-2.5"
@@ -380,6 +391,19 @@ function MobileSheetContent({ closeSheet }) {
               <User className="mr-2.5 h-4 w-4 text-[#0C1172]" />
               My Account ({user.userName})
             </Button>
+            {user?.role === "admin" && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  navigate("/admin/dashboard");
+                  if (closeSheet) closeSheet();
+                }}
+                className="justify-start rounded-full font-manrope font-semibold text-[13px] border-[#daddd4] bg-white text-[#20231e]"
+              >
+                <LayoutDashboard className="mr-2.5 h-4 w-4 text-[#DF5E00]" />
+                Admin Dashboard
+              </Button>
+            )}
             <Button
               variant="ghost"
               onClick={() => setIsLogoutDialogOpen(true)}

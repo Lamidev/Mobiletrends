@@ -40,7 +40,6 @@ function AuthLogin() {
         });
       }
     } catch (err) {
-      console.error("Login error:", err);
       const errMsg =
         typeof err === "string"
           ? err
@@ -57,8 +56,12 @@ function AuthLogin() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      const fromCheckout = sessionStorage.getItem("fromCheckout");
+      if (!user.isVerified) {
+        navigate("/auth/verify-email");
+        return;
+      }
 
+      const fromCheckout = sessionStorage.getItem("fromCheckout");
       if (fromCheckout) {
         sessionStorage.removeItem("fromCheckout");
         navigate("/shop/checkout");
@@ -69,10 +72,10 @@ function AuthLogin() {
   }, [isAuthenticated, user, navigate]);
 
   return (
-    <div className="w-full font-body">
+    <div className="w-full max-w-full font-body">
       {/* Heading */}
-      <div className="mb-7">
-        <h1 className="font-manrope text-[26px] sm:text-[28px] font-bold text-[#0f172a] tracking-[-0.7px] leading-tight">
+      <div className="mb-6 sm:mb-7">
+        <h1 className="font-manrope text-[25px] sm:text-[28px] font-bold text-[#0f172a] tracking-[-0.7px] leading-tight">
           Welcome back
         </h1>
         <p className="text-[13px] text-[#64748b] mt-1">
@@ -81,8 +84,8 @@ function AuthLogin() {
       </div>
 
       {/* Form */}
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div>
+      <form onSubmit={onSubmit} className="space-y-4 w-full">
+        <div className="min-w-0">
           <label
             htmlFor="login-email"
             className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
@@ -93,33 +96,35 @@ function AuthLogin() {
             id="login-email"
             type="email"
             required
+            autoComplete="email"
             value={formData.email}
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
             placeholder="you@example.com"
-            className="w-full h-[46px] rounded-[6px] px-4 bg-[#f4f5f7] focus:bg-white text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+            className="w-full min-w-0 max-w-full box-border h-[46px] rounded-[6px] px-3.5 sm:px-4 bg-[#f4f5f7] focus:bg-white text-[16px] sm:text-[13.5px] text-[#0f172a] placeholder:text-[13px] placeholder:text-[#94a3b8] placeholder:truncate border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
           />
         </div>
 
-        <div>
+        <div className="min-w-0">
           <label
             htmlFor="login-password"
             className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
           >
             Password
           </label>
-          <div className="relative">
+          <div className="relative w-full min-w-0">
             <input
               id="login-password"
               type={showPassword ? "text" : "password"}
               required
+              autoComplete="current-password"
               value={formData.password}
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
               placeholder="••••••••••••"
-              className="w-full h-[46px] rounded-[6px] pl-4 pr-11 bg-[#f4f5f7] focus:bg-white text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+              className="w-full min-w-0 max-w-full box-border h-[46px] rounded-[6px] pl-3.5 sm:pl-4 pr-11 bg-[#f4f5f7] focus:bg-white text-[16px] sm:text-[13.5px] text-[#0f172a] placeholder:text-[13px] placeholder:text-[#94a3b8] placeholder:truncate border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
             />
             <button
               type="button"
@@ -163,7 +168,7 @@ function AuthLogin() {
         </button>
       </form>
 
-      <p className="text-[12.5px] text-[#64748b] text-center mt-7">
+      <p className="text-[12.5px] text-[#64748b] text-center mt-6 sm:mt-7">
         Don&apos;t have an account?{" "}
         <Link
           to="/auth/register"

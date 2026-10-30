@@ -50,17 +50,18 @@ const ResetPasswordPage = () => {
     } catch (err) {
       toast({
         title: "Error",
-        description: err || "Error resetting password",
+        description:
+          typeof err === "string" ? err : "Error resetting password",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="w-full font-body">
+    <div className="w-full max-w-full font-body">
       {/* Heading */}
-      <div className="mb-7">
-        <h1 className="font-manrope text-[26px] sm:text-[28px] font-bold text-[#0f172a] tracking-[-0.7px] leading-tight">
+      <div className="mb-6 sm:mb-7">
+        <h1 className="font-manrope text-[25px] sm:text-[28px] font-bold text-[#0f172a] tracking-[-0.7px] leading-tight">
           Set new password
         </h1>
         <p className="text-[13px] text-[#64748b] mt-1">
@@ -80,25 +81,26 @@ const ResetPasswordPage = () => {
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
+      <form onSubmit={handleSubmit} className="space-y-4 w-full">
+        <div className="min-w-0">
           <label
             htmlFor="new-password"
             className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
           >
             New password <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
+          <div className="relative w-full min-w-0">
             <input
               id="new-password"
               type={showPassword ? "text" : "password"}
               required
+              autoComplete="new-password"
               value={formData.password}
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
               placeholder="••••••••••••"
-              className="w-full h-[46px] rounded-[6px] pl-4 pr-11 bg-[#f4f5f7] focus:bg-white text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+              className="w-full min-w-0 max-w-full box-border h-[46px] rounded-[6px] pl-3.5 sm:pl-4 pr-11 bg-[#f4f5f7] focus:bg-white text-[16px] sm:text-[13.5px] text-[#0f172a] placeholder:text-[13px] placeholder:text-[#94a3b8] placeholder:truncate border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
             />
             <button
               type="button"
@@ -114,24 +116,25 @@ const ResetPasswordPage = () => {
           </div>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <label
             htmlFor="confirm-password"
             className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
           >
             Confirm password <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
+          <div className="relative w-full min-w-0">
             <input
               id="confirm-password"
               type={showConfirmPassword ? "text" : "password"}
               required
+              autoComplete="new-password"
               value={formData.confirmPassword}
               onChange={(e) =>
                 setFormData({ ...formData, confirmPassword: e.target.value })
               }
               placeholder="••••••••••••"
-              className="w-full h-[46px] rounded-[6px] pl-4 pr-11 bg-[#f4f5f7] focus:bg-white text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+              className="w-full min-w-0 max-w-full box-border h-[46px] rounded-[6px] pl-3.5 sm:pl-4 pr-11 bg-[#f4f5f7] focus:bg-white text-[16px] sm:text-[13.5px] text-[#0f172a] placeholder:text-[13px] placeholder:text-[#94a3b8] placeholder:truncate border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
             />
             <button
               type="button"
@@ -160,7 +163,7 @@ const ResetPasswordPage = () => {
         </button>
       </form>
 
-      <p className="text-[12.5px] text-[#64748b] text-center mt-7">
+      <p className="text-[12.5px] text-[#64748b] text-center mt-6 sm:mt-7">
         Back to{" "}
         <Link
           to="/auth/login"

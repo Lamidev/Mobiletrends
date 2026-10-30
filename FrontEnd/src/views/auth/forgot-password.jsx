@@ -31,23 +31,25 @@ function ForgotPasswordPage() {
       toast({
         title: "Success",
         description: response.message,
-        variant: "success",
       });
       setIsSubmitted(true);
     } catch (err) {
       toast({
         title: "Error",
-        description: error || "Failed to send reset password email",
+        description:
+          typeof err === "string"
+            ? err
+            : error || "Failed to send reset password email",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="w-full font-body">
+    <div className="w-full max-w-full font-body">
       {/* Heading */}
-      <div className="mb-7">
-        <h1 className="font-manrope text-[26px] sm:text-[28px] font-bold text-[#0f172a] tracking-[-0.7px] leading-tight">
+      <div className="mb-6 sm:mb-7">
+        <h1 className="font-manrope text-[25px] sm:text-[28px] font-bold text-[#0f172a] tracking-[-0.7px] leading-tight">
           Forgot password
         </h1>
         <p className="text-[13px] text-[#64748b] mt-1">
@@ -56,8 +58,8 @@ function ForgotPasswordPage() {
       </div>
 
       {!isSubmitted ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+        <form onSubmit={handleSubmit} className="space-y-4 w-full">
+          <div className="min-w-0">
             <label
               htmlFor="forgot-email"
               className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
@@ -68,10 +70,11 @@ function ForgotPasswordPage() {
               id="forgot-email"
               type="email"
               required
+              autoComplete="email"
               value={formData.email}
               onChange={(e) => setFormData({ email: e.target.value })}
               placeholder="you@example.com"
-              className="w-full h-[46px] rounded-[6px] px-4 bg-[#f4f5f7] focus:bg-white text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+              className="w-full min-w-0 max-w-full box-border h-[46px] rounded-[6px] px-3.5 sm:px-4 bg-[#f4f5f7] focus:bg-white text-[16px] sm:text-[13.5px] text-[#0f172a] placeholder:text-[13px] placeholder:text-[#94a3b8] placeholder:truncate border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
             />
           </div>
 
@@ -91,12 +94,12 @@ function ForgotPasswordPage() {
         <div className="p-5 bg-green-50 rounded-[6px] border border-green-100 text-center">
           <p className="text-green-800 text-[13px] font-semibold">
             Check your inbox! We&apos;ve sent a recovery link to{" "}
-            <span className="underline">{formData.email}</span>.
+            <span className="underline break-all">{formData.email}</span>.
           </p>
         </div>
       )}
 
-      <p className="text-[12.5px] text-[#64748b] text-center mt-7">
+      <p className="text-[12.5px] text-[#64748b] text-center mt-6 sm:mt-7">
         Remember your password?{" "}
         <Link
           to="/auth/login"

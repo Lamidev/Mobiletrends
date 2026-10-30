@@ -6,6 +6,7 @@ import store from '@/store/store';
 import { checkAuth } from '@/store/auth-slice';
 import AuthListener from '@/components/shopping-view/authListener';
 import ScrollToTop from '@/components/common/scroll-to-top';
+import { InitialVisitPreloader } from '@/components/common/preloader';
 
 function AppInitializer({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch<any>();
@@ -16,6 +17,7 @@ function AppInitializer({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <InitialVisitPreloader />
       <AuthListener />
       <Suspense fallback={null}>
         <ScrollToTop />

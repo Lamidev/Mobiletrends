@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { verifyEmail, checkAuth } from "../../store/auth-slice";
+import { verifyEmail } from "../../store/auth-slice";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader } from "lucide-react";
 
@@ -54,15 +54,13 @@ const EmailVerificationPage = () => {
     try {
       await dispatch(verifyEmail({ code: verificationCode })).unwrap();
       toast({
-        description: "Email verified successfully, login to continue",
-        variant: "success",
+        description: "Email verified successfully! Please sign in to continue.",
       });
-
-      await dispatch(checkAuth());
       navigate("/auth/login");
     } catch (err) {
       toast({
-        description: err || "Verification failed",
+        description:
+          typeof err === "string" ? err : "Verification failed. Please check the code.",
         variant: "destructive",
       });
     }
@@ -76,10 +74,10 @@ const EmailVerificationPage = () => {
   }, [code]);
 
   return (
-    <div className="w-full font-body">
+    <div className="w-full max-w-full font-body">
       {/* Heading */}
-      <div className="mb-7">
-        <h1 className="font-manrope text-[26px] sm:text-[28px] font-bold text-[#0f172a] tracking-[-0.7px] leading-tight">
+      <div className="mb-6 sm:mb-7">
+        <h1 className="font-manrope text-[25px] sm:text-[28px] font-bold text-[#0f172a] tracking-[-0.7px] leading-tight">
           Verify your email
         </h1>
         <p className="text-[13px] text-[#64748b] mt-1">
@@ -87,18 +85,19 @@ const EmailVerificationPage = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex justify-between gap-2.5">
+      <form onSubmit={handleSubmit} className="space-y-6 w-full">
+        <div className="grid grid-cols-6 gap-2 sm:gap-2.5 w-full">
           {code.map((digit, index) => (
             <input
               key={index}
               ref={(el) => (inputRefs.current[index] = el)}
               type="text"
-              maxLength="1"
+              inputMode="numeric"
+              maxLength="6"
               value={digit}
               onChange={(e) => handleChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
-              className="w-full h-14 text-center font-manrope text-xl font-bold bg-[#f4f5f7] focus:bg-white text-[#0f172a] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 rounded-[6px] outline-none transition-all"
+              className="w-full min-w-0 h-12 sm:h-14 text-center font-manrope text-lg sm:text-xl font-bold bg-[#f4f5f7] focus:bg-white text-[#0f172a] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 rounded-[6px] outline-none transition-all"
             />
           ))}
         </div>
@@ -122,7 +121,7 @@ const EmailVerificationPage = () => {
         </button>
       </form>
 
-      <p className="text-[12.5px] text-[#64748b] text-center mt-7">
+      <p className="text-[12.5px] text-[#64748b] text-center mt-6 sm:mt-7">
         Already verified?{" "}
         <Link
           to="/auth/login"

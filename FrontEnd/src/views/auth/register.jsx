@@ -43,7 +43,10 @@ function AuthRegister() {
           setFormData(initialState);
         } else {
           toast({
-            title: data?.payload?.message || "Registration failed",
+            title:
+              typeof data?.payload === "string"
+                ? data.payload
+                : data?.payload?.message || "Registration failed",
             variant: "destructive",
           });
         }
@@ -54,10 +57,10 @@ function AuthRegister() {
   }
 
   return (
-    <div className="w-full font-body">
+    <div className="w-full max-w-full font-body">
       {/* Heading */}
-      <div className="mb-7">
-        <h1 className="font-manrope text-[26px] sm:text-[28px] font-bold text-[#0f172a] tracking-[-0.7px] leading-tight">
+      <div className="mb-6 sm:mb-7">
+        <h1 className="font-manrope text-[25px] sm:text-[28px] font-bold text-[#0f172a] tracking-[-0.7px] leading-tight">
           Create an account
         </h1>
         <p className="text-[13px] text-[#64748b] mt-1">
@@ -66,13 +69,13 @@ function AuthRegister() {
       </div>
 
       {/* Form */}
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} className="space-y-3.5 sm:space-y-4 w-full">
         {/* First Name & Last Name */}
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-          <div>
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
+          <div className="min-w-0">
             <label
               htmlFor="register-first-name"
-              className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
+              className="block text-[12px] font-medium text-[#1e293b] mb-1.5 truncate"
             >
               First name <span className="text-red-500">*</span>
             </label>
@@ -80,37 +83,39 @@ function AuthRegister() {
               id="register-first-name"
               type="text"
               required
+              autoComplete="given-name"
               value={formData.firstName}
               onChange={(e) =>
                 setFormData({ ...formData, firstName: e.target.value })
               }
               placeholder="First name"
-              className="w-full h-[44px] sm:h-[46px] rounded-[6px] px-3.5 sm:px-4 bg-[#f4f5f7] focus:bg-white text-[13px] sm:text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+              className="w-full min-w-0 max-w-full box-border h-[45px] sm:h-[46px] rounded-[6px] px-3 sm:px-4 bg-[#f4f5f7] focus:bg-white text-[16px] sm:text-[13.5px] text-[#0f172a] placeholder:text-[13px] placeholder:text-[#94a3b8] placeholder:truncate border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
             />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label
               htmlFor="register-last-name"
-              className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
+              className="block text-[12px] font-medium text-[#1e293b] mb-1.5 truncate"
             >
               Last name
             </label>
             <input
               id="register-last-name"
               type="text"
+              autoComplete="family-name"
               value={formData.lastName}
               onChange={(e) =>
                 setFormData({ ...formData, lastName: e.target.value })
               }
               placeholder="Last name"
-              className="w-full h-[44px] sm:h-[46px] rounded-[6px] px-3.5 sm:px-4 bg-[#f4f5f7] focus:bg-white text-[13px] sm:text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+              className="w-full min-w-0 max-w-full box-border h-[45px] sm:h-[46px] rounded-[6px] px-3 sm:px-4 bg-[#f4f5f7] focus:bg-white text-[16px] sm:text-[13.5px] text-[#0f172a] placeholder:text-[13px] placeholder:text-[#94a3b8] placeholder:truncate border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
             />
           </div>
         </div>
 
         {/* Email Address */}
-        <div>
+        <div className="min-w-0">
           <label
             htmlFor="register-email"
             className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
@@ -121,17 +126,18 @@ function AuthRegister() {
             id="register-email"
             type="email"
             required
+            autoComplete="email"
             value={formData.email}
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
             placeholder="you@example.com"
-            className="w-full h-[46px] rounded-[6px] px-4 bg-[#f4f5f7] focus:bg-white text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+            className="w-full min-w-0 max-w-full box-border h-[45px] sm:h-[46px] rounded-[6px] px-3.5 sm:px-4 bg-[#f4f5f7] focus:bg-white text-[16px] sm:text-[13.5px] text-[#0f172a] placeholder:text-[13px] placeholder:text-[#94a3b8] placeholder:truncate border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
           />
         </div>
 
         {/* Phone Number (Optional) */}
-        <div>
+        <div className="min-w-0">
           <label
             htmlFor="register-phone"
             className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
@@ -141,34 +147,36 @@ function AuthRegister() {
           <input
             id="register-phone"
             type="tel"
+            autoComplete="tel"
             value={formData.phone}
             onChange={(e) =>
               setFormData({ ...formData, phone: e.target.value })
             }
             placeholder="+234 812 345 6789"
-            className="w-full h-[46px] rounded-[6px] px-4 bg-[#f4f5f7] focus:bg-white text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+            className="w-full min-w-0 max-w-full box-border h-[45px] sm:h-[46px] rounded-[6px] px-3.5 sm:px-4 bg-[#f4f5f7] focus:bg-white text-[16px] sm:text-[13.5px] text-[#0f172a] placeholder:text-[13px] placeholder:text-[#94a3b8] placeholder:truncate border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
           />
         </div>
 
         {/* Password */}
-        <div>
+        <div className="min-w-0">
           <label
             htmlFor="register-password"
             className="block text-[12px] font-medium text-[#1e293b] mb-1.5"
           >
             Password <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
+          <div className="relative w-full min-w-0">
             <input
               id="register-password"
               type={showPassword ? "text" : "password"}
               required
+              autoComplete="new-password"
               value={formData.password}
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
               placeholder="••••••••••••"
-              className="w-full h-[46px] rounded-[6px] pl-4 pr-11 bg-[#f4f5f7] focus:bg-white text-[13.5px] text-[#0f172a] placeholder:text-[#94a3b8] border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
+              className="w-full min-w-0 max-w-full box-border h-[45px] sm:h-[46px] rounded-[6px] pl-3.5 sm:pl-4 pr-11 bg-[#f4f5f7] focus:bg-white text-[16px] sm:text-[13.5px] text-[#0f172a] placeholder:text-[13px] placeholder:text-[#94a3b8] placeholder:truncate border border-[#e2e8f0] focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none transition-all"
             />
             <button
               type="button"
@@ -199,7 +207,7 @@ function AuthRegister() {
         </button>
       </form>
 
-      <p className="text-[12.5px] text-[#64748b] text-center mt-7">
+      <p className="text-[12.5px] text-[#64748b] text-center mt-6 sm:mt-7">
         Already have an account?{" "}
         <Link
           to="/auth/login"

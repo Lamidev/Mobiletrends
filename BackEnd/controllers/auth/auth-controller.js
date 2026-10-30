@@ -18,7 +18,7 @@ const {
  * Register a new user
  */
 const registerUser = async (req, res) => {
-  const { userName, email, password } = req.body;
+  const { userName, email, password, phone } = req.body;
 
   try {
     if (!userName || !email || !password) {
@@ -43,6 +43,7 @@ const registerUser = async (req, res) => {
     const newUser = new User({
       userName,
       email,
+      phone: phone || "",
       password: hashPassword,
       verificationToken,
       verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
@@ -50,7 +51,7 @@ const registerUser = async (req, res) => {
 
     await newUser.save();
 
-    generateTokenAndSetCookie(res, newUser._id);
+    const token = generateTokenAndSetCookie(res, newUser._id);
 
     // Email sending - won't break registration if it fails
     try {
@@ -70,17 +71,16 @@ const registerUser = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Registration successful. Please check your email for verification code.",
+      token,
       user,
     });
-
   } catch (e) {
     console.error("Registration error details:", e);
-    // Handle mongoose duplicate key error if it somehow escapes the manual checks
     if (e.code === 11000) {
       const field = Object.keys(e.keyPattern)[0];
       return res.status(400).json({
         success: false,
-        message: `This ${field === 'userName' ? 'username' : field} is already taken`
+        message: `This ${field === "userName" ? "username" : field} is already taken`,
       });
     }
     res.status(500).json({ success: false, message: "Internal server error during registration" });
@@ -113,8 +113,12 @@ const verifyEmail = async (req, res) => {
 
     await sendWelcomeEmail(user.email, user.userName);
 
-    // Clear session so user has to log in fresh after verification
-    res.clearCookie("token");
+    // Clear session so user logs in fresh after verification
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
 
     res.status(200).json({ success: true, message: "Email verified successfully" });
   } catch (error) {
@@ -141,21 +145,21 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
-    generateTokenAndSetCookie(res, user._id);
+    const token = generateTokenAndSetCookie(res, user._id);
     user.lastLogin = new Date();
     await user.save();
 
     const userData = user.toObject();
     userData.id = userData._id;
     delete userData._id;
-    delete userData.password; // Security: ensure password hash is never sent
+    delete userData.password;
 
     res.status(200).json({
       success: true,
       message: "Logged in successfully",
+      token,
       user: userData,
     });
-
   } catch (e) {
     console.error("Login error:", e);
     res.status(500).json({ success: false, message: "Internal server error during login" });
@@ -166,12 +170,15 @@ const loginUser = async (req, res) => {
  * Log out user
  */
 const logoutUser = (req, res) => {
-  res.cookie("token", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    expires: new Date(0),
-  }).status(200).json({ success: true, message: "Logged out successfully" });
+  res
+    .cookie("token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      expires: new Date(0),
+    })
+    .status(200)
+    .json({ success: true, message: "Logged out successfully" });
 };
 
 /**
@@ -190,7 +197,7 @@ const forgotPassword = async (req, res) => {
     if (!user) {
       return res.status(200).json({
         success: true,
-        message: "If an account exists with this email, a recovery link has been sent"
+        message: "If an account exists with this email, a recovery link has been sent",
       });
     }
 
@@ -200,9 +207,10 @@ const forgotPassword = async (req, res) => {
     user.resetPasswordExpiresAt = Date.now() + 3600000; // 1 hour
     await user.save();
 
-    const resetURL = `${process.env.CLIENT_URL}/auth/reset-password/${resetToken}`;
+    const baseUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || "https://mobiletrends.ng";
+    const resetURL = `${baseUrl.replace(/\/$/, "")}/auth/reset-password/${resetToken}`;
 
-    const emailSent = await sendPasswordResetEmail(user.email, resetURL);
+    await sendPasswordResetEmail(user.email, resetURL);
 
     res.status(200).json({
       success: true,
@@ -246,10 +254,20 @@ const resetPassword = async (req, res) => {
 
 /**
  * Authentication Middleware
+ * Supports both HTTP-only cookies and Bearer Authorization header (for mobile Safari / ITP resilience)
  */
 const authMiddleware = (req, res, next) => {
-  // Security: Only accept token from cookies to prevent XSS-to-CSRF escalation
-  const token = req.cookies.token;
+  let token = req.cookies?.token;
+
+  if (!token || token === "undefined" || token === "null") {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const bearerToken = authHeader.split(" ")[1];
+      if (bearerToken && bearerToken !== "undefined" && bearerToken !== "null") {
+        token = bearerToken;
+      }
+    }
+  }
 
   if (!token) {
     return res.status(401).json({ success: false, message: "Unauthorized: No token provided" });
