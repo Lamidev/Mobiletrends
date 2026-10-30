@@ -36,7 +36,6 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@/pages': path.resolve(__dirname, 'src/views'),
       '@/views': path.resolve(__dirname, 'src/views'),
       'react-router-dom': path.resolve(__dirname, 'src/lib/router-adapter.tsx'),
     };
