@@ -271,7 +271,7 @@ function ShoppingHome() {
     sessionStorage.removeItem("filters");
     const currentFilter = { [section]: [getCurrentItem.id] };
     sessionStorage.setItem("filters", JSON.stringify(currentFilter));
-    navigate(`/shop/listing`);
+    navigate(`/shop/listing?${section}=${encodeURIComponent(getCurrentItem.id)}`);
   }
 
   function handleGetProductDetails(getCurrentProductId) {

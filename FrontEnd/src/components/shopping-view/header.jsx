@@ -118,10 +118,15 @@ function MenuItems({ closeSheet }) {
         sessionStorage.setItem("filters", JSON.stringify(currentFilter));
       }
 
-      if (location.pathname.includes("listing")) {
-        setSearchParams(new URLSearchParams(`?category=${getCurrentMenuItem.id}`));
-        return;
-      }
+      navigate(`/shop/listing?category=${encodeURIComponent(getCurrentMenuItem.id)}`);
+      if (closeSheet) closeSheet();
+      return;
+    }
+
+    if (getCurrentMenuItem.id === "products") {
+      navigate("/shop/listing");
+      if (closeSheet) closeSheet();
+      return;
     }
 
     navigate(getCurrentMenuItem.path);

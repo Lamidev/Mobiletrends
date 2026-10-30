@@ -271,23 +271,56 @@ function ShoppingListing() {
     dispatch(fetchCartItems());
   }, [dispatch]);
 
-  // Handle category param from Home Page
+  // Handle category, brand, condition, and price params from URL / Home Page
   useEffect(() => {
-    const sessionFilters = JSON.parse(sessionStorage.getItem("filters")) || {};
+    let initialFilters = {};
+    try {
+      initialFilters = JSON.parse(sessionStorage.getItem("filters")) || {};
+    } catch (e) {
+      initialFilters = {};
+    }
+
+    const urlCategory = searchParams.get("category");
+    const urlBrand = searchParams.get("brand");
+    const urlCondition = searchParams.get("condition");
     const urlMin = searchParams.get("minPrice") ? parseInt(searchParams.get("minPrice")) : 0;
     const urlMax = searchParams.get("maxPrice") ? parseInt(searchParams.get("maxPrice")) : 5000000;
 
-    setFilters(sessionFilters);
+    if (urlCategory) {
+      initialFilters.category = urlCategory.split(",");
+    } else if (!searchParams.toString()) {
+      initialFilters = {};
+    }
+
+    if (urlBrand) {
+      initialFilters.brand = urlBrand.split(",");
+    }
+
+    if (urlCondition) {
+      initialFilters.condition = urlCondition.split(",");
+    }
+
+    setFilters(initialFilters);
     setMinPrice(urlMin);
     setMaxPrice(urlMax);
+    setCurrentPage(1);
+    sessionStorage.setItem("filters", JSON.stringify(initialFilters));
+
+    setIsFilterLoading(true);
+    setMinimumLoaderTime(true);
 
     dispatch(
       fetchAllFilteredProducts({
-        filterParams: { ...sessionFilters, minPrice: urlMin, maxPrice: urlMax },
+        filterParams: { ...initialFilters, minPrice: urlMin, maxPrice: urlMax },
         sortParams: sort
       })
-    );
-  }, [categorySearchParams]);
+    ).finally(() => {
+      setTimeout(() => {
+        setIsFilterLoading(false);
+        setMinimumLoaderTime(false);
+      }, 350);
+    });
+  }, [searchParams]);
 
   useEffect(() => {
     if (productDetails !== null) setOpenDetailsDialog(true);
