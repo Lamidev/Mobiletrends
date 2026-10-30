@@ -6,12 +6,8 @@ const CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const initialState = {
   isLoading: false,
-  productList: (() => {
-    try { return JSON.parse(safeLocalStorage.getItem("productList")) || []; } catch { return []; }
-  })(),
-  productDetails: (() => {
-    try { return JSON.parse(safeLocalStorage.getItem("productDetails")) || null; } catch { return null; }
-  })(),
+  productList: [],
+  productDetails: null,
 };
 
 // Utility: Get cache safely and remove expired entries

@@ -240,6 +240,12 @@ function ShoppingHome() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [featuredTab, setFeaturedTab] = useState("all");
 
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const shuffleArray = (array) => {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -462,7 +468,7 @@ function ShoppingHome() {
             </Button>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-[13px] gap-y-[25px] sm:gap-x-[18px] sm:gap-y-[30px] lg:gap-x-[20px] lg:gap-y-[32px]">
-            {displayedProducts.map((productItem, index) => (
+            {isMounted && displayedProducts.map((productItem, index) => (
               <motion.div
                 key={productItem.id || productItem._id || index}
                 initial={{ opacity: 0, y: 16 }}
@@ -557,7 +563,7 @@ function ShoppingHome() {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-[13px] gap-y-[25px] sm:gap-x-[18px] sm:gap-y-[30px] lg:gap-x-[20px] lg:gap-y-[32px]">
-            {currentFeaturedList.map((productItem, index) => (
+            {isMounted && currentFeaturedList.map((productItem, index) => (
               <motion.div
                 key={productItem.id || productItem._id || index}
                 initial={{ opacity: 0, y: 16 }}
