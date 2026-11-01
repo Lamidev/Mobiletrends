@@ -380,7 +380,7 @@ function SearchProducts() {
                 onClick={handleClearSearch}
                 aria-label="Clear search"
                 title="Clear search"
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#f3f4f6] hover:bg-[#e5e7eb] text-[#1e293b] text-xs font-semibold transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-[6px] bg-[#f3f4f6] hover:bg-[#e5e7eb] text-[#1e293b] text-xs font-semibold transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
                 <span>Clear</span>
@@ -453,7 +453,7 @@ function SearchProducts() {
             <p className="text-[#62665d] mt-1 mb-5">
               Try adjusting your search or clear the filter to start fresh.
             </p>
-            <Button onClick={handleClearSearch} className="rounded-full px-6">
+            <Button onClick={handleClearSearch} className="rounded-[6px] px-6">
               Clear Search
             </Button>
           </motion.div>

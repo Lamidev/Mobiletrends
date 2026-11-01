@@ -502,7 +502,7 @@ export default function BuyingProcessAndReviews() {
                 type="button"
                 onClick={handlePrev}
                 aria-label="Previous reviews"
-                className="w-[44px] h-[44px] rounded-full bg-white border border-[#daddd4] hover:border-[#20231e] text-[#20231e] hover:text-[#DF5E00] inline-flex items-center justify-center transition-all shrink-0 cursor-pointer"
+                className="w-[44px] h-[44px] rounded-[6px] bg-white border border-[#daddd4] hover:border-[#20231e] text-[#20231e] hover:text-[#DF5E00] inline-flex items-center justify-center transition-all shrink-0 cursor-pointer"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -540,7 +540,7 @@ export default function BuyingProcessAndReviews() {
                 type="button"
                 onClick={handleNext}
                 aria-label="Next reviews"
-                className="w-[44px] h-[44px] rounded-full bg-white border border-[#daddd4] hover:border-[#20231e] text-[#20231e] hover:text-[#DF5E00] inline-flex items-center justify-center transition-all shrink-0 cursor-pointer"
+                className="w-[44px] h-[44px] rounded-[6px] bg-white border border-[#daddd4] hover:border-[#20231e] text-[#20231e] hover:text-[#DF5E00] inline-flex items-center justify-center transition-all shrink-0 cursor-pointer"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>

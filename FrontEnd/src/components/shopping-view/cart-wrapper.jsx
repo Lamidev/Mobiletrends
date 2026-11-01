@@ -110,7 +110,7 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
           <div className="space-y-2">
             <Button
               onClick={handleCheckout}
-              className="w-full py-3 text-sm sm:text-base font-semibold bg-[#111344] hover:bg-[#0C1172] text-white rounded-xl shadow-sm transition-all"
+              className="w-full py-3 text-sm sm:text-base font-semibold bg-[#111344] hover:bg-[#0C1172] text-white rounded-[6px] shadow-sm transition-all"
               size="lg"
             >
               {isAuthenticated ? "Proceed to Checkout" : "Login to Checkout"}
@@ -121,7 +121,7 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
                 setOpenCartSheet(false);
               }}
               variant="outline"
-              className="w-full text-sm font-medium rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50"
+              className="w-full text-sm font-medium rounded-[6px] border-gray-200 text-gray-700 hover:bg-gray-50"
             >
               Continue Shopping
             </Button>

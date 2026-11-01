@@ -500,17 +500,17 @@ export default function ReelmarkHero({
             </svg>
           </motion.div>
 
-          {/* Dashed Outline Ring wrapping the Pill Button */}
+          {/* Dashed Outline Ring wrapping the Button */}
           <motion.div
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.55 }}
-            className="p-2 rounded-full border-[1.5px] border-dashed border-[#0C1172]/45 hover:border-[#DF5E00] transition-colors"
+            className="p-1.5 rounded-[8px] border-[1.5px] border-dashed border-[#0C1172]/45 hover:border-[#DF5E00] transition-colors"
           >
             <button
               type="button"
               onClick={onExploreClick}
-              className="font-manrope h-[52px] px-9 rounded-full bg-[#111344] hover:bg-[#0C1172] text-white text-[14px] sm:text-[15px] font-semibold tracking-tight shadow-md transition-all duration-300 active:scale-95"
+              className="font-manrope h-[52px] px-9 rounded-[6px] bg-[#111344] hover:bg-[#0C1172] text-white text-[14px] sm:text-[15px] font-semibold tracking-tight shadow-md transition-all duration-300 active:scale-95 cursor-pointer"
             >
               Explore Gadgets
             </button>

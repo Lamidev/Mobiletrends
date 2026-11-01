@@ -389,7 +389,7 @@ function MobileSheetContent({ closeSheet }) {
                 navigate("/shop/account");
                 if (closeSheet) closeSheet();
               }}
-              className="justify-start rounded-full font-manrope font-semibold text-[13px] border-[#daddd4] bg-white text-[#20231e]"
+              className="justify-start rounded-[6px] font-manrope font-semibold text-[13px] border-[#daddd4] bg-white text-[#20231e]"
             >
               <User className="mr-2.5 h-4 w-4 text-[#0C1172]" />
               My Account ({user.userName})
@@ -401,7 +401,7 @@ function MobileSheetContent({ closeSheet }) {
                   navigate("/admin/dashboard");
                   if (closeSheet) closeSheet();
                 }}
-                className="justify-start rounded-full font-manrope font-semibold text-[13px] border-[#daddd4] bg-white text-[#20231e]"
+                className="justify-start rounded-[6px] font-manrope font-semibold text-[13px] border-[#daddd4] bg-white text-[#20231e]"
               >
                 <LayoutDashboard className="mr-2.5 h-4 w-4 text-[#DF5E00]" />
                 Admin Dashboard
@@ -410,7 +410,7 @@ function MobileSheetContent({ closeSheet }) {
             <Button
               variant="ghost"
               onClick={() => setIsLogoutDialogOpen(true)}
-              className="justify-start rounded-full hover:bg-red-50 text-red-600 font-manrope font-semibold text-[13px]"
+              className="justify-start rounded-[6px] hover:bg-red-50 text-red-600 font-manrope font-semibold text-[13px]"
             >
               <LogOut className="mr-2.5 h-4 w-4" />
               Sign Out
@@ -418,7 +418,7 @@ function MobileSheetContent({ closeSheet }) {
           </>
         ) : (
           <Button
-            className="w-full h-11 rounded-full font-manrope font-semibold text-[13px] bg-[#111344] hover:bg-[#0C1172] text-white shadow-sm transition-all"
+            className="w-full h-11 rounded-[6px] font-manrope font-semibold text-[13px] bg-[#111344] hover:bg-[#0C1172] text-white shadow-sm transition-all"
             onClick={() => {
               navigate("/auth/login");
               if (closeSheet) closeSheet();
@@ -442,14 +442,14 @@ function MobileSheetContent({ closeSheet }) {
           <DialogFooter className="flex flex-col sm:flex-row gap-2.5">
             <Button
               variant="outline"
-              className="rounded-full font-manrope font-semibold order-2 sm:order-1"
+              className="rounded-[6px] font-manrope font-semibold order-2 sm:order-1"
               onClick={() => setIsLogoutDialogOpen(false)}
             >
               Stay Logged In
             </Button>
             <Button
               variant="destructive"
-              className="rounded-full font-manrope font-semibold bg-red-600 hover:bg-red-700 order-1 sm:order-2"
+              className="rounded-[6px] font-manrope font-semibold bg-red-600 hover:bg-red-700 order-1 sm:order-2"
               onClick={handleLogout}
             >
               Yes, Sign Out

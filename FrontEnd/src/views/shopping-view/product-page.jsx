@@ -132,7 +132,7 @@ export default function ProductPageView() {
         </p>
         <Button
           onClick={() => router.push('/shop/listing')}
-          className="bg-[#111344] hover:bg-[#0C1172] text-white font-manrope font-semibold px-6 py-2.5 rounded-xl gap-2"
+          className="bg-[#111344] hover:bg-[#0C1172] text-white font-manrope font-semibold px-6 py-2.5 rounded-[6px] gap-2"
         >
           <ArrowLeft size={16} />
           Back to Catalogue
@@ -172,7 +172,7 @@ export default function ProductPageView() {
               <Button
                 variant="ghost"
                 onClick={() => router.push('/shop/listing')}
-                className="text-[12px] sm:text-[13px] font-semibold text-[#111344] hover:text-[#DF5E00] hover:bg-[#fafaf8] rounded-xl"
+                className="text-[12px] sm:text-[13px] font-semibold text-[#111344] hover:text-[#DF5E00] hover:bg-[#fafaf8] rounded-[6px]"
               >
                 Explore All
               </Button>

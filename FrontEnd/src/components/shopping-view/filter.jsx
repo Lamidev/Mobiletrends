@@ -58,7 +58,7 @@ function ProductFilter({
             type="button"
             onClick={() => setIsMobileFilterOpen(false)}
             aria-label="Close filters"
-            className="md:hidden flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 text-[#141619] transition-colors"
+            className="md:hidden flex items-center justify-center w-8 h-8 rounded-[6px] hover:bg-gray-100 text-[#141619] transition-colors"
             disabled={isFilterLoading}
           >
             <X className="h-4 w-4" />
@@ -260,7 +260,7 @@ function ProductFilter({
       {/* Sticky Bottom Apply Button */}
       <div className="p-3.5 border-t border-gray-200 sticky bottom-0 bg-white">
         <Button
-          className="w-full bg-[#111344] hover:bg-[#0C1172] text-white h-10 text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition-all"
+          className="w-full bg-[#111344] hover:bg-[#0C1172] text-white h-10 text-xs sm:text-sm font-semibold rounded-[6px] shadow-sm transition-all"
           onClick={handleApplyFilters}
           disabled={isFilterLoading}
         >

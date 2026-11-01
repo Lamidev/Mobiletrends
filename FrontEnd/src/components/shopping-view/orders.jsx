@@ -370,7 +370,7 @@ function ShoppingOrders() {
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2 relative z-10">No Orders Yet</h3>
             <p className="text-gray-500 mb-8 relative z-10">Select from our wide range of gadgets and place your first order today!</p>
-            <Button asChild className="bg-peach-500 hover:bg-peach-600 text-white px-8 py-6 rounded-2xl font-bold shadow-lg shadow-peach-100 transition-all hover:scale-105 active:scale-95">
+            <Button asChild className="bg-peach-500 hover:bg-peach-600 text-white px-8 py-6 rounded-[6px] font-bold shadow-lg shadow-peach-100 transition-all hover:scale-105 active:scale-95">
               <Link to="/shop/listing">Start Shopping Now</Link>
             </Button>
           </div>

@@ -111,7 +111,7 @@ function PaymentSuccessPage() {
               className="space-y-4"
             >
               <Button
-                className="w-full bg-gradient-to-r from-peach-500 to-peach-600 hover:from-peach-600 hover:to-peach-700 text-white shadow-xl shadow-peach-200 py-7 text-lg font-bold rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full bg-gradient-to-r from-peach-500 to-peach-600 hover:from-peach-600 hover:to-peach-700 text-white shadow-xl shadow-peach-200 py-7 text-lg font-bold rounded-[6px] transition-all hover:scale-[1.02] active:scale-[0.98]"
                 onClick={() => navigate("/shop/account")}
               >
                 <Package className="h-5 w-5 mr-2" />
@@ -121,7 +121,7 @@ function PaymentSuccessPage() {
               <div className="flex gap-4">
                 <Button
                   variant="outline"
-                  className="flex-1 py-6 border-2 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 rounded-xl transition-all"
+                  className="flex-1 py-6 border-2 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 rounded-[6px] transition-all"
                   onClick={() => navigate("/shop/listing")}
                 >
                   <ShoppingBag className="h-4 w-4 mr-2 text-peach-500" />
@@ -129,7 +129,7 @@ function PaymentSuccessPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex-1 py-6 border-2 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 rounded-xl transition-all"
+                  className="flex-1 py-6 border-2 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 rounded-[6px] transition-all"
                   onClick={() => navigate("/")}
                 >
                   <Home className="h-4 w-4 mr-2 text-peach-500" />

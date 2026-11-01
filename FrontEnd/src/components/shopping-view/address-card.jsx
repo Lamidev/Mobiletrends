@@ -93,7 +93,7 @@ function AddressCard({
                 e.stopPropagation();
                 handleEditAddress(addressInfo);
               }}
-              className="rounded-xl border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 gap-1.5 h-9 font-bold transition-all"
+              className="rounded-[6px] border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 gap-1.5 h-9 font-bold transition-all"
             >
               <Edit3 className="h-3.5 w-3.5" />
               Edit
@@ -105,7 +105,7 @@ function AddressCard({
                 e.stopPropagation();
                 handleDeleteAddress(addressInfo);
               }}
-              className="rounded-xl border-red-100 text-red-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 gap-1.5 h-9 font-bold transition-all"
+              className="rounded-[6px] border-red-100 text-red-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 gap-1.5 h-9 font-bold transition-all"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Delete

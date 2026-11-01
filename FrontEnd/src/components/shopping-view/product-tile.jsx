@@ -93,7 +93,7 @@ function ShoppingProductTile({
                 handleAddToCart(targetId, product.totalStock);
               }}
               aria-label="Add to cart"
-              className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-[#202020df] backdrop-blur-[5px] text-white flex items-center justify-center transition-all duration-200 hover:bg-[#DF5E00] md:opacity-0 md:group-hover:opacity-100 cursor-pointer z-10"
+              className="absolute top-2.5 right-2.5 w-8 h-8 rounded-[6px] bg-[#202020df] backdrop-blur-[5px] text-white flex items-center justify-center transition-all duration-200 hover:bg-[#DF5E00] md:opacity-0 md:group-hover:opacity-100 cursor-pointer z-10"
             >
               <ShoppingCart className="h-3.5 w-3.5" />
             </button>

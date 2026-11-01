@@ -137,7 +137,7 @@ export default function ProductImageUpload({
                   <button
                     type="button"
                     onClick={() => handleRemoveSlot(slotIndex)}
-                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-md transition-transform hover:scale-110"
+                    className="absolute top-1 right-1 w-6 h-6 rounded-[4px] bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-md transition-transform hover:scale-110"
                     title="Remove image"
                   >
                     <XIcon size={12} />

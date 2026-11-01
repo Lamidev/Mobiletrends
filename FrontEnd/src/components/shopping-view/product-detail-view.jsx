@@ -131,9 +131,9 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
   if (!product) return null;
 
   return (
-    <div className="font-body text-[#20231e]">
+    <div className="font-manrope text-[#20231e]">
       {/* Breadcrumbs (with padding on right to clear dialog close button on mobile) */}
-      <nav className="flex items-center gap-1.5 text-[11px] sm:text-[12px] font-medium text-[#62665d] mb-4 sm:mb-6 overflow-x-auto whitespace-nowrap [scrollbar-width:none] pr-8 sm:pr-0">
+      <nav className="flex items-center gap-1.5 text-[11px] sm:text-[12px] font-semibold text-[#62665d] mb-4 sm:mb-6 overflow-x-auto whitespace-nowrap [scrollbar-width:none] pr-8 sm:pr-0">
         <a href="/" className="hover:text-[#DF5E00] transition-colors shrink-0">
           Home
         </a>
@@ -151,7 +151,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
           </>
         )}
         <ChevronRight size={12} className="text-[#9ca3af] shrink-0" />
-        <span className="text-[#111344] font-semibold truncate max-w-[150px] sm:max-w-[320px] shrink-0">
+        <span className="text-[#111344] font-bold truncate max-w-[150px] sm:max-w-[320px] shrink-0">
           {product?.title}
         </span>
       </nav>
@@ -188,7 +188,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                     key={idx}
                     type="button"
                     onClick={() => setActiveImage(img)}
-                    className={`relative aspect-square rounded-xl sm:rounded-2xl border-2 p-2 bg-[#fafaf8] overflow-hidden transition-all cursor-pointer ${
+                    className={`relative aspect-square rounded-[6px] border-2 p-2 bg-[#fafaf8] overflow-hidden transition-all cursor-pointer ${
                       isActive
                         ? 'border-[#DF5E00] shadow-sm ring-2 ring-[#DF5E00]/20'
                         : 'border-[#e5e7eb] hover:border-gray-400 opacity-70 hover:opacity-100'
@@ -288,7 +288,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                     key={opt.id}
                     type="button"
                     onClick={() => setSelectedCondition(opt.id)}
-                    className={`p-2.5 sm:p-3.5 rounded-xl border text-left transition-all cursor-pointer relative ${
+                    className={`p-2.5 sm:p-3.5 rounded-[6px] border text-left transition-all cursor-pointer relative ${
                       isSelected
                         ? 'border-[#DF5E00] bg-[#DF5E00]/[0.04] shadow-sm'
                         : 'border-[#e5e7eb] bg-white hover:border-[#111344]/30'
@@ -331,7 +331,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                     key={size}
                     type="button"
                     onClick={() => setSelectedStorage(size)}
-                    className={`py-2 sm:py-2.5 px-1 sm:px-2 rounded-xl text-center font-manrope text-[12px] sm:text-[13px] font-bold transition-all cursor-pointer ${
+                    className={`py-2 sm:py-2.5 px-1 sm:px-2 rounded-[6px] text-center font-manrope text-[12px] sm:text-[13px] font-bold transition-all cursor-pointer ${
                       isSelected
                         ? 'border-2 border-[#DF5E00] bg-[#DF5E00]/[0.05] text-[#DF5E00]'
                         : 'border border-[#e5e7eb] bg-white text-[#20231e] hover:border-[#111344]/30'
@@ -362,7 +362,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                     key={col.name}
                     type="button"
                     onClick={() => setSelectedColor(col.name)}
-                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-[12px] font-semibold border transition-all cursor-pointer ${
+                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-[6px] text-[11px] sm:text-[12px] font-semibold border transition-all cursor-pointer ${
                       isSelected
                         ? 'border-[#DF5E00] bg-[#DF5E00]/[0.05] text-[#DF5E00]'
                         : 'border-[#e5e7eb] bg-white text-[#20231e] hover:border-[#111344]/30'
@@ -385,14 +385,14 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
           <div className="space-y-2.5 sm:space-y-3 pt-1">
             <div className="flex items-center gap-2 sm:gap-3">
               {/* Stepper */}
-              <div className="flex items-center border border-[#e5e7eb] rounded-xl bg-[#fafaf8] p-0.5 sm:p-1 shrink-0 h-11 sm:h-12">
+              <div className="flex items-center border border-[#e5e7eb] rounded-[6px] bg-[#fafaf8] p-0.5 sm:p-1 shrink-0 h-11 sm:h-12">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => handleQuantityChange('decrement')}
                   disabled={quantity <= 1 || isOutOfStock}
-                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg hover:bg-white transition-all text-[#20231e]"
+                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-[6px] hover:bg-white transition-all text-[#20231e]"
                 >
                   <Minus size={13} />
                 </Button>
@@ -405,7 +405,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                   size="icon"
                   onClick={() => handleQuantityChange('increment')}
                   disabled={quantity >= (product?.totalStock || 1) || isOutOfStock}
-                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg hover:bg-white transition-all text-[#20231e]"
+                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-[6px] hover:bg-white transition-all text-[#20231e]"
                 >
                   <Plus size={13} />
                 </Button>
@@ -416,7 +416,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                 type="button"
                 onClick={handleAddToCartClick}
                 disabled={isOutOfStock}
-                className="flex-1 h-11 sm:h-12 rounded-xl bg-[#111344] hover:bg-[#0C1172] text-white font-manrope text-[12px] sm:text-[14px] md:text-[15px] font-bold shadow-md hover:shadow-lg transition-all px-2 sm:px-4"
+                className="flex-1 h-11 sm:h-12 rounded-[6px] bg-[#111344] hover:bg-[#0C1172] text-white font-manrope text-[12px] sm:text-[14px] md:text-[15px] font-bold shadow-md hover:shadow-lg transition-all px-2 sm:px-4"
               >
                 {isOutOfStock ? (
                   'OUT OF STOCK'
@@ -437,7 +437,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
               <h3 className="font-manrope text-[13px] font-bold text-[#111344] uppercase tracking-wider">
                 Product Description
               </h3>
-              <p className="text-[13px] sm:text-[14px] text-[#4b5563] leading-relaxed whitespace-pre-line font-medium">
+              <p className="font-manrope text-[13px] sm:text-[14px] text-[#4b5563] leading-relaxed whitespace-pre-line font-medium">
                 {product.description}
               </p>
             </div>
@@ -449,7 +449,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
               <Package size={15} className="text-[#DF5E00]" />
               What's In The Box
             </h3>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px] font-medium text-[#4b5563]">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px] sm:text-[13px] font-manrope font-medium text-[#4b5563]">
               <li className="flex items-center gap-2">
                 <Check size={13} className="text-emerald-600 shrink-0" />
                 <span>1× {product?.title || 'Device'}</span>

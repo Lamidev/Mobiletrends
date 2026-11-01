@@ -224,7 +224,7 @@ function PaystackReturnPage() {
                 </div>
                 <div className="space-y-3 px-4">
                   <Button
-                    className="w-full bg-peach-500 hover:bg-peach-600 text-white shadow-lg shadow-peach-100 py-6 rounded-2xl font-bold transition-all hover:scale-[1.02]"
+                    className="w-full bg-peach-500 hover:bg-peach-600 text-white shadow-lg shadow-peach-100 py-6 rounded-[6px] font-bold transition-all hover:scale-[1.02]"
                     onClick={() => navigate("/shop/checkout")}
                   >
                     <CreditCard className="h-4 w-4 mr-2" />
@@ -233,7 +233,7 @@ function PaystackReturnPage() {
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
-                      className="flex-1 rounded-xl border-gray-200 hover:bg-gray-50 font-semibold"
+                      className="flex-1 rounded-[6px] border-gray-200 hover:bg-gray-50 font-semibold"
                       onClick={() => navigate("/shop/account")}
                     >
                       <Home className="h-4 w-4 mr-2 text-peach-500" />
@@ -241,7 +241,7 @@ function PaystackReturnPage() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="flex-1 rounded-xl border-gray-200 hover:bg-gray-50 font-semibold"
+                      className="flex-1 rounded-[6px] border-gray-200 hover:bg-gray-50 font-semibold"
                       onClick={() => navigate("/")}
                     >
                       <ArrowLeft className="h-4 w-4 mr-2 text-peach-500" />
