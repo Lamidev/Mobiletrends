@@ -12,6 +12,7 @@ import {
   Package,
   Layers,
   Sparkles,
+  Heart,
 } from 'lucide-react';
 import { addToCart, fetchCartItems } from '@/store/shop/cart-slice';
 import { useToast } from '../ui/use-toast';
@@ -70,6 +71,50 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
       setSelectedCondition(product.condition);
     }
   }, [product]);
+
+  const [isInWishlist, setIsInWishlist] = useState(false);
+
+  React.useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('mobiletrends_wishlist') || '[]');
+      const pid = product?._id || product?.id;
+      setIsInWishlist(saved.some((item) => (item._id || item.id) === pid));
+    } catch {
+      setIsInWishlist(false);
+    }
+  }, [product]);
+
+  const handleToggleWishlist = () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('mobiletrends_wishlist') || '[]');
+      const pid = product?._id || product?.id;
+      if (isInWishlist) {
+        const updated = saved.filter((item) => (item._id || item.id) !== pid);
+        localStorage.setItem('mobiletrends_wishlist', JSON.stringify(updated));
+        setIsInWishlist(false);
+        toast({ title: 'Removed from wishlist' });
+      } else {
+        const itemToSave = {
+          id: pid,
+          _id: pid,
+          title: product.title,
+          image: activeImage || product.image,
+          price: currentPrice,
+          salePrice: product.salePrice,
+          brand: product.brand,
+          category: product.category,
+          condition: selectedCondition,
+          totalStock: product.totalStock,
+        };
+        const updated = [itemToSave, ...saved.filter((item) => (item._id || item.id) !== pid)];
+        localStorage.setItem('mobiletrends_wishlist', JSON.stringify(updated));
+        setIsInWishlist(true);
+        toast({ title: 'Saved to wishlist', description: `${product.title} was added to your wishlist.` });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const currentPrice =
     product?.salePrice > 0 ? product?.salePrice : product?.price || 0;
@@ -428,6 +473,20 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                   </span>
                 )}
               </Button>
+
+              {/* Wishlist Button */}
+              <button
+                type="button"
+                onClick={handleToggleWishlist}
+                title={isInWishlist ? "Remove from Wishlist" : "Save to Wishlist"}
+                className={`h-11 sm:h-12 w-11 sm:w-12 rounded-[6px] border flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+                  isInWishlist
+                    ? "border-red-200 bg-red-50 text-red-600 shadow-sm"
+                    : "border-[#e5e7eb] bg-[#fafaf8] text-[#20231e] hover:border-[#DF5E00] hover:text-[#DF5E00]"
+                }`}
+              >
+                <Heart size={18} className={isInWishlist ? "fill-red-600 text-red-600" : ""} />
+              </button>
             </div>
           </div>
 

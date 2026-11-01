@@ -225,11 +225,11 @@ function HeaderRightContent({ closeSheet }) {
       <button
         type="button"
         onClick={() => {
-          navigate("/shop/listing");
+          navigate(user?.userName ? "/shop/account?tab=wishlist" : "/auth/login");
           if (closeSheet) closeSheet();
         }}
-        aria-label="Featured & Saved Gadgets"
-        className="flex h-11 w-11 items-center justify-center rounded-full bg-[#F2F3F7] text-[#14171F] hover:bg-[#E5E7F0] hover:text-[#0C1172] transition-all"
+        aria-label="Wishlist"
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-[#F2F3F7] text-[#14171F] hover:bg-[#E5E7F0] hover:text-[#0C1172] transition-all cursor-pointer"
       >
         <HeartOutlineIcon className="w-5 h-5" />
       </button>
@@ -255,69 +255,24 @@ function HeaderRightContent({ closeSheet }) {
         />
       </Sheet>
 
-      {/* User Profile Circle Button: Routes directly to /auth/login when logged out; opens account menu when logged in */}
-      {user?.userName ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label="User Account"
-              className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[#F2F3F7] text-[#14171F] hover:bg-[#E5E7F0] hover:text-[#0C1172] transition-all focus:outline-none"
-            >
-              <UserOutlineIcon className="w-5 h-5" />
-              <span
-                title={`Logged in as ${user.userName}`}
-                className="absolute bottom-0.5 right-0.5 h-2.5 w-2.5 rounded-full bg-[#0C1172] ring-2 ring-white"
-              />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border-gray-100">
-            <DropdownMenuLabel className="text-xs font-bold text-gray-500 px-3 py-2">
-              Signed in as <span className="text-[#0C1172] font-extrabold">{user?.userName}</span>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="rounded-xl cursor-pointer font-semibold py-2.5"
-              onClick={() => {
-                navigate("/shop/account");
-                if (closeSheet) closeSheet();
-              }}
-            >
-              <User className="mr-2.5 h-4 w-4 text-[#0C1172]" /> My Account &amp; Orders
-            </DropdownMenuItem>
-            {user?.role === "admin" && (
-              <DropdownMenuItem
-                className="rounded-xl cursor-pointer font-semibold py-2.5"
-                onClick={() => {
-                  navigate("/admin/dashboard");
-                  if (closeSheet) closeSheet();
-                }}
-              >
-                <LayoutDashboard className="mr-2.5 h-4 w-4 text-[#DF5E00]" /> Admin Dashboard
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="rounded-xl cursor-pointer font-semibold text-red-600 focus:text-red-600 py-2.5"
-              onClick={() => setIsLogoutDialogOpen(true)}
-            >
-              <LogOut className="mr-2.5 h-4 w-4" /> Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : (
-        <button
-          type="button"
-          onClick={() => {
-            navigate("/auth/login");
-            if (closeSheet) closeSheet();
-          }}
-          aria-label="Sign In"
-          className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[#F2F3F7] text-[#14171F] hover:bg-[#E5E7F0] hover:text-[#0C1172] transition-all focus:outline-none"
-        >
-          <UserOutlineIcon className="w-5 h-5" />
-        </button>
-      )}
+      {/* User Profile Button: Navigates directly to Account Settings when clicked */}
+      <button
+        type="button"
+        onClick={() => {
+          navigate(user?.userName ? "/shop/account" : "/auth/login");
+          if (closeSheet) closeSheet();
+        }}
+        aria-label="User Account"
+        className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[#F2F3F7] text-[#14171F] hover:bg-[#E5E7F0] hover:text-[#0C1172] transition-all focus:outline-none cursor-pointer"
+      >
+        <UserOutlineIcon className="w-5 h-5" />
+        {user?.userName && (
+          <span
+            title={`Logged in as ${user.userName}`}
+            className="absolute bottom-0.5 right-0.5 h-2.5 w-2.5 rounded-full bg-[#0C1172] ring-2 ring-white"
+          />
+        )}
+      </button>
 
       <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
         <DialogContent>
