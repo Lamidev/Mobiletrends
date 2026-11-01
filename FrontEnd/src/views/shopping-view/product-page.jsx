@@ -45,12 +45,41 @@ export default function ProductPageView() {
     dispatch(fetchCartItems());
   }, [dispatch, productList]);
 
-  // Similar products from same category or brand
+  // Similar products recommendation (Category-first with Brand weighting)
   const relatedProducts = useMemo(() => {
     if (!productList || productList.length === 0 || !productDetails) return [];
-    return productList
-      .filter((p) => p._id !== productDetails._id)
-      .slice(0, 4);
+
+    const currentId = String(productDetails._id || productDetails.id);
+    const currentCategory = String(productDetails.category || '').toLowerCase().trim();
+    const currentBrand = String(productDetails.brand || '').toLowerCase().trim();
+
+    // Exclude current product
+    const otherProducts = productList.filter(
+      (p) => String(p._id || p.id) !== currentId
+    );
+
+    // Score similarity:
+    // +10: same category (e.g. smartphones -> smartphones)
+    // +5:  same brand (e.g. apple -> apple)
+    const scored = otherProducts.map((p) => {
+      const pCat = String(p.category || '').toLowerCase().trim();
+      const pBrand = String(p.brand || '').toLowerCase().trim();
+
+      let score = 0;
+      if (currentCategory && pCat === currentCategory) {
+        score += 10;
+      }
+      if (currentBrand && pBrand === currentBrand) {
+        score += 5;
+      }
+
+      return { product: p, score };
+    });
+
+    // Sort by highest similarity score first, then pick top 4
+    scored.sort((a, b) => b.score - a.score);
+
+    return scored.slice(0, 4).map((item) => item.product);
   }, [productList, productDetails]);
 
   async function handleAddToCart(id, totalStock) {

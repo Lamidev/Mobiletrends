@@ -7,14 +7,12 @@ import { Separator } from '../ui/separator';
 import {
   Plus,
   Minus,
-  Share2,
   Check,
   ChevronRight,
   Package,
   Layers,
   Sparkles,
 } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
 import { addToCart, fetchCartItems } from '@/store/shop/cart-slice';
 import { useToast } from '../ui/use-toast';
 import { motion } from 'framer-motion';
@@ -127,63 +125,6 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
         description: 'Failed to add item to cart. Please try again.',
         variant: 'destructive',
       });
-    }
-  }
-
-  function handleWhatsAppOrder() {
-    const phoneNumber = '2349135924262';
-    const isLocal =
-      typeof window !== 'undefined' &&
-      (window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1');
-    const apiBase = isLocal
-      ? 'http://localhost:8050'
-      : 'https://api.mobiletrends.ng';
-    const shareUrl = `${apiBase}/api/share/${product?._id}`;
-
-    const message = `Hello Mobiletrends, I want to order this product:
-*${product?.title}*
-• Condition: ${selectedCondition}
-• Storage: ${selectedStorage}
-• Color: ${selectedColor}
-• Quantity: ${quantity}
-• Total: ₦${totalPrice.toLocaleString('en-NG')}
-Product link: ${shareUrl}`;
-
-    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-      message
-    )}`;
-    window.open(url, '_blank');
-  }
-
-  async function handleShareProduct() {
-    const isLocal =
-      typeof window !== 'undefined' &&
-      (window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1');
-    const apiBase = isLocal
-      ? 'http://localhost:8050'
-      : 'https://api.mobiletrends.ng';
-    const shareUrl = `${apiBase}/api/share/${product?._id}`;
-
-    const shareData = {
-      title: product?.title,
-      text: `Check out ${product?.title} on Mobiletrends Systems Limited!`,
-      url: shareUrl,
-    };
-
-    try {
-      if (typeof navigator !== 'undefined' && navigator.share) {
-        await navigator.share(shareData);
-      } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        await navigator.clipboard.writeText(shareUrl);
-        toast({
-          title: 'Link copied!',
-          description: 'Product link copied to clipboard.',
-        });
-      }
-    } catch (err) {
-      console.error('Error sharing:', err);
     }
   }
 
@@ -486,29 +427,6 @@ Product link: ${shareUrl}`;
                     <span>₦{totalPrice.toLocaleString('en-NG')}</span>
                   </span>
                 )}
-              </Button>
-            </div>
-
-            {/* Secondary Actions: WhatsApp Order & Share */}
-            <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleWhatsAppOrder}
-                className="h-10 sm:h-11 rounded-xl border-[#25D366]/40 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] font-manrope font-bold text-[11px] sm:text-[13px] gap-1.5 sm:gap-2 transition-all cursor-pointer px-2 sm:px-3"
-              >
-                <FaWhatsapp className="text-[15px] sm:text-[17px] text-[#25D366] shrink-0" />
-                <span className="truncate">Order on WhatsApp</span>
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleShareProduct}
-                className="h-10 sm:h-11 rounded-xl border-[#e5e7eb] bg-white hover:bg-[#fafaf8] text-[#111344] font-manrope font-bold text-[11px] sm:text-[13px] gap-1.5 sm:gap-2 transition-all cursor-pointer px-2 sm:px-3"
-              >
-                <Share2 size={14} className="shrink-0" />
-                <span className="truncate">Share Product</span>
               </Button>
             </div>
           </div>
