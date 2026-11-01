@@ -22,6 +22,7 @@ const store = configureStore({
     shopProducts: shopProductSlice,
     shopCart: shopCartSlice,
     shopAddress: shopAddressSlice,
+    address: shopAddressSlice,
     shopOrder: shopOrderSlice,
     shopSearch: shopSearchSlice,
     shopReview: shopReviewSlice,

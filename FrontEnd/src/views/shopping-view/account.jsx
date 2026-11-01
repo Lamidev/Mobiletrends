@@ -42,7 +42,9 @@ import {
 
 function ShoppingAccount() {
   const { user } = useSelector((state) => state.auth);
-  const { addressList, isLoading: addressLoading } = useSelector((state) => state.address);
+  const { addressList = [], isLoading: addressLoading = false } = useSelector(
+    (state) => state.shopAddress || state.address || {}
+  );
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
