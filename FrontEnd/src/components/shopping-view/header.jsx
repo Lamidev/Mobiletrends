@@ -344,10 +344,10 @@ function MobileSheetContent({ closeSheet }) {
                 navigate("/shop/account");
                 if (closeSheet) closeSheet();
               }}
-              className="justify-start rounded-[6px] font-manrope font-semibold text-[13px] border-[#daddd4] bg-white text-[#20231e]"
+              className="w-full justify-start rounded-[6px] font-manrope font-semibold text-[13px] border-[#daddd4] bg-white text-[#20231e] h-11 px-3.5 overflow-hidden"
             >
-              <User className="mr-2.5 h-4 w-4 text-[#0C1172]" />
-              My Account ({user.userName})
+              <User className="mr-2.5 h-4 w-4 text-[#0C1172] shrink-0" />
+              <span className="truncate">My Account</span>
             </Button>
             {user?.role === "admin" && (
               <Button
@@ -356,10 +356,10 @@ function MobileSheetContent({ closeSheet }) {
                   navigate("/admin/dashboard");
                   if (closeSheet) closeSheet();
                 }}
-                className="justify-start rounded-[6px] font-manrope font-semibold text-[13px] border-[#daddd4] bg-white text-[#20231e]"
+                className="w-full justify-start rounded-[6px] font-manrope font-semibold text-[13px] border-[#daddd4] bg-white text-[#20231e] h-11 px-3.5 overflow-hidden"
               >
-                <LayoutDashboard className="mr-2.5 h-4 w-4 text-[#DF5E00]" />
-                Admin Dashboard
+                <LayoutDashboard className="mr-2.5 h-4 w-4 text-[#0C1172] shrink-0" />
+                <span className="truncate">Admin Dashboard</span>
               </Button>
             )}
             <Button

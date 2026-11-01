@@ -306,6 +306,84 @@ const checkAuth = async (req, res) => {
   }
 };
 
+/**
+ * Update user profile (userName, email)
+ */
+const updateProfile = async (req, res) => {
+  try {
+    const { userName, email } = req.body;
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (userName && userName.trim()) {
+      user.userName = userName.trim();
+    }
+
+    if (email && email.trim() && email.trim().toLowerCase() !== user.email.toLowerCase()) {
+      const existing = await User.findOne({ email: email.trim().toLowerCase() });
+      if (existing && existing._id.toString() !== user._id.toString()) {
+        return res.status(400).json({ success: false, message: "Email is already in use by another account" });
+      }
+      user.email = email.trim().toLowerCase();
+    }
+
+    await user.save();
+
+    const userData = user.toObject();
+    userData.id = userData._id;
+    delete userData._id;
+    delete userData.password;
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: userData,
+    });
+  } catch (error) {
+    console.error("updateProfile error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+/**
+ * Change user password
+ */
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: "New password must be at least 6 characters" });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Current password is incorrect" });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 12);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    console.error("changePassword error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 module.exports = {
   registerUser,
   verifyEmail,
@@ -315,4 +393,6 @@ module.exports = {
   resetPassword,
   authMiddleware,
   checkAuth,
+  updateProfile,
+  changePassword,
 };

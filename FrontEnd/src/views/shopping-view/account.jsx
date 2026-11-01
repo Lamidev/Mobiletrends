@@ -11,16 +11,15 @@ import {
   LogOut,
   ArrowLeft,
   ChevronRight,
-  Mail,
-  Phone,
-  Calendar,
   ShieldCheck,
   LayoutDashboard,
   Trash2,
-  Package,
   MapPin,
-  ExternalLink,
   ShoppingCart,
+  Plus,
+  X,
+  Loader2,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,12 +31,18 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import ShoppingOrders from "@/components/shopping-view/orders";
-import Address from "@/components/shopping-view/address";
-import { directLogout, logoutUser } from "@/store/auth-slice";
+import { directLogout, logoutUser, updateUserProfile, changeUserPassword } from "@/store/auth-slice";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
+import {
+  fetchAllAddresses,
+  addNewAddress,
+  editAddress,
+  deleteAddress,
+} from "@/store/shop/address-slice";
 
 function ShoppingAccount() {
   const { user } = useSelector((state) => state.auth);
+  const { addressList, isLoading: addressLoading } = useSelector((state) => state.address);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -47,8 +52,35 @@ function ShoppingAccount() {
   const [activeView, setActiveView] = useState(
     ["profile", "orders", "wishlist"].includes(tabParam) ? tabParam : "main"
   );
+
+  // Dialog States
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [isNameModalOpen, setIsNameModalOpen] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [selectedAddressToEdit, setSelectedAddressToEdit] = useState(null);
+
+  // Form States
+  const [nameInput, setNameInput] = useState("");
+  const [emailInput, setEmailInput] = useState("");
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [addressForm, setAddressForm] = useState({
+    address: "",
+    lga: "",
+    state: "",
+    phone: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Wishlist State
   const [wishlistItems, setWishlistItems] = useState([]);
+
+  const currentUserId = user?.id || user?.Id || user?._id;
 
   // Sync state if URL query param changes
   useEffect(() => {
@@ -59,6 +91,13 @@ function ShoppingAccount() {
       setActiveView("main");
     }
   }, [searchParams]);
+
+  // Fetch addresses on mount
+  useEffect(() => {
+    if (currentUserId) {
+      dispatch(fetchAllAddresses(currentUserId));
+    }
+  }, [dispatch, currentUserId]);
 
   // Load wishlist from localStorage
   const loadWishlist = () => {
@@ -87,16 +126,192 @@ function ShoppingAccount() {
     }
   };
 
+  // Profile Edit Handlers
+  const openNameModal = () => {
+    setNameInput(user?.userName || "");
+    setIsNameModalOpen(true);
+  };
+
+  const openEmailModal = () => {
+    setEmailInput(user?.email || "");
+    setIsEmailModalOpen(true);
+  };
+
+  const openPasswordModal = () => {
+    setPasswordForm({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setIsPasswordModalOpen(true);
+  };
+
+  const handleSaveName = async (e) => {
+    e.preventDefault();
+    if (!nameInput.trim()) {
+      toast({ title: "Name cannot be empty", variant: "destructive" });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const result = await dispatch(updateUserProfile({ userName: nameInput.trim() })).unwrap();
+      if (result?.success) {
+        toast({ title: "Name updated successfully!" });
+        setIsNameModalOpen(false);
+      } else {
+        toast({ title: result?.message || "Failed to update name", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: typeof err === "string" ? err : "Failed to update name", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveEmail = async (e) => {
+    e.preventDefault();
+    if (!emailInput.trim()) {
+      toast({ title: "Email cannot be empty", variant: "destructive" });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const result = await dispatch(updateUserProfile({ email: emailInput.trim() })).unwrap();
+      if (result?.success) {
+        toast({ title: "Email updated successfully!" });
+        setIsEmailModalOpen(false);
+      } else {
+        toast({ title: result?.message || "Failed to update email", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: typeof err === "string" ? err : "Failed to update email", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSavePassword = async (e) => {
+    e.preventDefault();
+    if (!passwordForm.currentPassword || !passwordForm.newPassword) {
+      toast({ title: "Please fill all password fields", variant: "destructive" });
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({ title: "New passwords do not match", variant: "destructive" });
+      return;
+    }
+    if (passwordForm.newPassword.length < 6) {
+      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const result = await dispatch(
+        changeUserPassword({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        })
+      ).unwrap();
+      if (result?.success) {
+        toast({ title: "Password changed successfully!" });
+        setIsPasswordModalOpen(false);
+      } else {
+        toast({ title: result?.message || "Failed to change password", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: typeof err === "string" ? err : "Failed to change password", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Address Handlers
+  const openAddAddressModal = () => {
+    setSelectedAddressToEdit(null);
+    setAddressForm({
+      address: "",
+      lga: "",
+      state: "",
+      phone: user?.phone || "",
+    });
+    setIsAddressModalOpen(true);
+  };
+
+  const openEditAddressModal = (addr) => {
+    setSelectedAddressToEdit(addr);
+    setAddressForm({
+      address: addr.address || "",
+      lga: addr.lga || "",
+      state: addr.state || "",
+      phone: addr.phone || user?.phone || "",
+    });
+    setIsAddressModalOpen(true);
+  };
+
+  const handleSaveAddress = async (e) => {
+    e.preventDefault();
+    if (!addressForm.address.trim() || !addressForm.lga.trim() || !addressForm.state.trim()) {
+      toast({ title: "Please fill in address, city/LGA, and state", variant: "destructive" });
+      return;
+    }
+
+    if (!currentUserId) {
+      toast({ title: "User session not found. Please re-login.", variant: "destructive" });
+      return;
+    }
+
+    setIsSubmitting(true);
+    const payload = {
+      userId: currentUserId,
+      fullName: user?.userName || "Customer",
+      address: addressForm.address.trim(),
+      lga: addressForm.lga.trim(),
+      state: addressForm.state.trim(),
+      phone: addressForm.phone?.trim() || user?.phone || "08000000000",
+      country: "Nigeria",
+    };
+
+    try {
+      if (selectedAddressToEdit?._id) {
+        await dispatch(
+          editAddress({
+            userId: currentUserId,
+            addressId: selectedAddressToEdit._id,
+            formData: payload,
+          })
+        ).unwrap();
+        toast({ title: "Delivery address updated!" });
+      } else {
+        await dispatch(addNewAddress(payload)).unwrap();
+        toast({ title: "Delivery address added!" });
+      }
+      dispatch(fetchAllAddresses(currentUserId));
+      setIsAddressModalOpen(false);
+    } catch (err) {
+      toast({ title: "Failed to save address. Please try again.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteAddress = async (addressId) => {
+    if (!window.confirm("Are you sure you want to delete this delivery address?")) return;
+    try {
+      await dispatch(deleteAddress({ userId: currentUserId, addressId })).unwrap();
+      toast({ title: "Address deleted" });
+      dispatch(fetchAllAddresses(currentUserId));
+    } catch {
+      toast({ title: "Failed to delete address", variant: "destructive" });
+    }
+  };
+
+  // Wishlist Handlers
   const handleRemoveFromWishlist = (productId) => {
     try {
-      const updated = wishlistItems.filter(
-        (item) => (item._id || item.id) !== productId
-      );
+      const updated = wishlistItems.filter((item) => (item._id || item.id) !== productId);
       setWishlistItems(updated);
       localStorage.setItem("mobiletrends_wishlist", JSON.stringify(updated));
-      toast({
-        title: "Item removed from wishlist",
-      });
+      toast({ title: "Item removed from wishlist" });
     } catch (e) {
       console.error(e);
     }
@@ -104,25 +319,20 @@ function ShoppingAccount() {
 
   const handleAddWishlistToCart = (product) => {
     const productId = product._id || product.id;
-    const userId = user?.id || user?.Id || user?._id;
-    if (!userId) {
-      toast({
-        title: "Please log in",
-        description: "Sign in to add items to your cart",
-        variant: "destructive",
-      });
+    if (!currentUserId) {
+      toast({ title: "Please log in to add items to cart", variant: "destructive" });
       return;
     }
 
     dispatch(
       addToCart({
-        userId,
+        userId: currentUserId,
         productId,
         quantity: 1,
       })
     ).then((res) => {
       if (res?.payload?.success) {
-        dispatch(fetchCartItems(userId));
+        dispatch(fetchCartItems(currentUserId));
         toast({
           title: "Added to Cart",
           description: `${product.title} has been moved to your bag.`,
@@ -140,19 +350,20 @@ function ShoppingAccount() {
     });
   };
 
-  const formattedDate = user?.createdAt
+  // Formatted join date (e.g. October 2026)
+  const formattedJoinDate = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
       })
-    : "Member";
+    : "October 2026";
 
   return (
-    <div className="font-manrope min-h-screen bg-[#fafaf8] py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl">
+    <div className="font-manrope min-h-screen bg-[#fafaf8] py-4 sm:py-10 px-2.5 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-2xl">
         <AnimatePresence mode="wait">
           {/* ======================================================== */}
-          {/* VIEW 1: MAIN ACCOUNT SETTINGS CARD (MATCHES ATTACHED IMAGE) */}
+          {/* VIEW 1: MAIN ACCOUNT SETTINGS (MATCHES USER IMAGE)       */}
           {/* ======================================================== */}
           {activeView === "main" && (
             <motion.div
@@ -161,10 +372,10 @@ function ShoppingAccount() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}
-              className="w-full max-w-[480px] mx-auto pt-4 sm:pt-8"
+              className="w-full max-w-[480px] mx-auto pt-2 sm:pt-6"
             >
-              {/* Heading exactly matching screenshot */}
-              <h1 className="text-[26px] sm:text-[30px] font-bold text-[#0f172a] tracking-[-0.6px] mb-6 sm:mb-8">
+              {/* Heading */}
+              <h1 className="text-[25px] sm:text-[30px] font-bold text-[#0f172a] tracking-tight mb-5 sm:mb-7">
                 Account Settings
               </h1>
 
@@ -255,16 +466,11 @@ function ShoppingAccount() {
                   </div>
                 </button>
               </div>
-
-              {/* Logged in indicator */}
-              <p className="text-center text-[12px] text-[#64748b] mt-6">
-                Signed in as <span className="font-semibold text-[#0f172a]">{user?.userName}</span> ({user?.email})
-              </p>
             </motion.div>
           )}
 
           {/* ======================================================== */}
-          {/* VIEW 2: MY PROFILE */}
+          {/* VIEW 2: MY PROFILE (SAMPLE DESIGN MATCHING USER IMAGE 1)  */}
           {/* ======================================================== */}
           {activeView === "profile" && (
             <motion.div
@@ -273,7 +479,7 @@ function ShoppingAccount() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}
-              className="space-y-6"
+              className="space-y-5"
             >
               {/* Return Button */}
               <button
@@ -285,108 +491,173 @@ function ShoppingAccount() {
                 <span>Back to Account Settings</span>
               </button>
 
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-[#0f172a] tracking-tight">
-                  My Profile
+              {/* Welcome Message Header requested by user */}
+              <div className="pb-1">
+                <h1 className="text-[21px] sm:text-[25px] font-bold text-[#0f172a] tracking-tight leading-snug">
+                  Hi {user?.userName || "there"}, welcome to Mobiletrends
                 </h1>
-                <p className="text-sm text-[#64748b] mt-1">
-                  Manage your personal account details and saved delivery addresses
+                <p className="text-[13px] text-[#64748b] mt-1 font-medium">
+                  Joined {formattedJoinDate}
                 </p>
               </div>
 
-              {/* Profile Card */}
-              <div className="bg-white rounded-[20px] border border-[#e5e7eb] p-6 sm:p-8 shadow-sm">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 pb-6 border-b border-[#f1f5f9]">
-                  <div className="w-16 h-16 rounded-full bg-[#111344] text-white flex items-center justify-center font-bold text-2xl shadow-sm">
-                    {user?.userName ? user.userName.slice(0, 2).toUpperCase() : "MT"}
-                  </div>
+              {/* Card 1: My Profile (Image 1 replica) */}
+              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-6">
+                <h2 className="text-[20px] font-bold text-[#0f172a]">
+                  My Profile
+                </h2>
+
+                {/* Name Row */}
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-xl font-bold text-[#0f172a]">
-                      {user?.userName}
-                    </h2>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm text-[#64748b]">{user?.email}</span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                        <ShieldCheck className="w-3 h-3" /> Verified
-                      </span>
-                    </div>
+                    <span className="block text-[13px] font-medium text-[#64748b]">
+                      Name
+                    </span>
+                    <span className="block text-[15px] sm:text-[16px] font-semibold text-[#0f172a] mt-0.5">
+                      {user?.userName || "Not set"}
+                    </span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={openNameModal}
+                    className="text-[#DF5E00] hover:text-[#b84d00] font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
+                  >
+                    Edit
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-6">
-                  <div className="flex items-center gap-3 p-3.5 rounded-[12px] bg-[#f8fafc] border border-[#f1f5f9]">
-                    <Mail className="w-4 h-4 text-[#64748b] shrink-0" />
-                    <div>
-                      <span className="block text-[11px] font-semibold uppercase tracking-wider text-[#94a3b8]">
-                        Email Address
-                      </span>
-                      <span className="text-sm font-semibold text-[#0f172a]">
-                        {user?.email || "—"}
-                      </span>
-                    </div>
+                {/* Email Row */}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-[13px] font-medium text-[#64748b]">
+                      Email
+                    </span>
+                    <span className="block text-[15px] sm:text-[16px] font-semibold text-[#0f172a] mt-0.5 underline decoration-gray-300 truncate">
+                      {user?.email || "Not set"}
+                    </span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={openEmailModal}
+                    className="text-[#DF5E00] hover:text-[#b84d00] font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
+                  >
+                    Edit
+                  </button>
+                </div>
 
-                  <div className="flex items-center gap-3 p-3.5 rounded-[12px] bg-[#f8fafc] border border-[#f1f5f9]">
-                    <Phone className="w-4 h-4 text-[#64748b] shrink-0" />
-                    <div>
-                      <span className="block text-[11px] font-semibold uppercase tracking-wider text-[#94a3b8]">
-                        Phone Number
-                      </span>
-                      <span className="text-sm font-semibold text-[#0f172a]">
-                        {user?.phone || "Not set"}
-                      </span>
-                    </div>
+                {/* Password Row */}
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <span className="block text-[13px] font-medium text-[#64748b]">
+                      Password
+                    </span>
+                    <span className="block text-[15px] font-semibold text-[#0f172a] mt-0.5 tracking-[3px]">
+                      ••••••••••••••••
+                    </span>
                   </div>
-
-                  <div className="flex items-center gap-3 p-3.5 rounded-[12px] bg-[#f8fafc] border border-[#f1f5f9]">
-                    <User className="w-4 h-4 text-[#64748b] shrink-0" />
-                    <div>
-                      <span className="block text-[11px] font-semibold uppercase tracking-wider text-[#94a3b8]">
-                        Account Type
-                      </span>
-                      <span className="text-sm font-semibold text-[#0f172a] capitalize">
-                        {user?.role === "admin" ? "Store Administrator" : "Customer"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3.5 rounded-[12px] bg-[#f8fafc] border border-[#f1f5f9]">
-                    <Calendar className="w-4 h-4 text-[#64748b] shrink-0" />
-                    <div>
-                      <span className="block text-[11px] font-semibold uppercase tracking-wider text-[#94a3b8]">
-                        Member Since
-                      </span>
-                      <span className="text-sm font-semibold text-[#0f172a]">
-                        {formattedDate}
-                      </span>
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={openPasswordModal}
+                    className="text-[#DF5E00] hover:text-[#b84d00] font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
+                  >
+                    Edit
+                  </button>
                 </div>
               </div>
 
-              {/* Delivery Addresses Section */}
-              <div className="bg-white rounded-[20px] border border-[#e5e7eb] p-6 sm:p-8 shadow-sm space-y-5">
-                <div className="flex items-center justify-between flex-wrap gap-2 pb-4 border-b border-[#f1f5f9]">
-                  <div className="flex items-center gap-2.5">
-                    <MapPin className="w-5 h-5 text-[#111344]" />
-                    <div>
-                      <h2 className="text-lg font-bold text-[#0f172a]">
-                        Delivery Addresses
-                      </h2>
-                      <p className="text-xs text-[#64748b]">
-                        Manage shipping locations for faster checkout
-                      </p>
-                    </div>
-                  </div>
+              {/* Card 2: Delivery Address (Image 1 replica) */}
+              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
+                {/* Header Row */}
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-[20px] font-bold text-[#0f172a]">
+                    Delivery Address
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={openAddAddressModal}
+                    className="text-[#0f172a] hover:text-[#DF5E00] font-bold text-[13.5px] flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Update address</span>
+                  </button>
                 </div>
 
-                <Address />
+                {/* Address Listing */}
+                {addressLoading ? (
+                  <div className="py-6 flex items-center justify-center text-sm text-[#64748b]">
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    <span>Loading addresses...</span>
+                  </div>
+                ) : addressList && addressList.length > 0 ? (
+                  <div className="space-y-4 pt-1">
+                    {addressList.map((addr, idx) => (
+                      <div
+                        key={addr._id || idx}
+                        className="pt-3 border-t border-gray-100 first:border-t-0 first:pt-0"
+                      >
+                        <span className="block text-[12px] font-medium text-[#94a3b8] mb-1">
+                          {idx === 0 ? "Primary Shipping Destination" : `Destination ${idx + 1}`}
+                        </span>
+
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-0.5">
+                            <p className="font-bold text-[15px] sm:text-[16px] text-[#0f172a] leading-snug">
+                              {addr.address}
+                            </p>
+                            <p className="text-[14px] text-[#64748b]">
+                              {addr.lga}, {addr.state}, Nigeria
+                            </p>
+                            {addr.phone && (
+                              <p className="text-[12px] text-[#94a3b8]">
+                                Contact: {addr.phone}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-3 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => openEditAddressModal(addr)}
+                              className="text-[#DF5E00] hover:text-[#b84d00] font-bold text-[14px] cursor-pointer hover:underline transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteAddress(addr._id)}
+                              className="text-gray-300 hover:text-red-600 transition-colors cursor-pointer p-1"
+                              title="Delete address"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="pt-2 text-left">
+                    <p className="text-[12px] font-medium text-[#94a3b8] mb-1">
+                      Primary Shipping Destination
+                    </p>
+                    <p className="text-[14px] text-[#64748b] mb-3">
+                      No delivery address saved yet.
+                    </p>
+                    <Button
+                      onClick={openAddAddressModal}
+                      variant="outline"
+                      className="rounded-[6px] text-xs h-8 font-semibold border-gray-200"
+                    >
+                      <Plus className="w-3.5 h-3.5 mr-1" /> Add Address
+                    </Button>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
 
           {/* ======================================================== */}
-          {/* VIEW 3: MY ORDERS */}
+          {/* VIEW 3: MY ORDERS (CLEAN RESPONSIVE FULL WIDTH ON MOBILE)  */}
           {/* ======================================================== */}
           {activeView === "orders" && (
             <motion.div
@@ -395,7 +666,7 @@ function ShoppingAccount() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}
-              className="space-y-6"
+              className="space-y-4"
             >
               {/* Return Button */}
               <button
@@ -407,24 +678,24 @@ function ShoppingAccount() {
                 <span>Back to Account Settings</span>
               </button>
 
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-[#0f172a] tracking-tight">
+              <div className="pb-1">
+                <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0f172a] tracking-tight">
                   My Orders
                 </h1>
-                <p className="text-sm text-[#64748b] mt-1">
-                  Track deliveries, view past gadget orders, and download receipts
+                <p className="text-[13px] text-[#64748b] mt-0.5">
+                  Track delivery status, review previous gadget purchases, and download receipts
                 </p>
               </div>
 
-              {/* Render Orders List */}
-              <div className="bg-white rounded-[20px] border border-[#e5e7eb] p-4 sm:p-7 shadow-sm">
+              {/* Orders List Container without double-nested shrink on mobile */}
+              <div className="w-full">
                 <ShoppingOrders />
               </div>
             </motion.div>
           )}
 
           {/* ======================================================== */}
-          {/* VIEW 4: WISHLIST */}
+          {/* VIEW 4: WISHLIST                                         */}
           {/* ======================================================== */}
           {activeView === "wishlist" && (
             <motion.div
@@ -433,7 +704,7 @@ function ShoppingAccount() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}
-              className="space-y-6"
+              className="space-y-4"
             >
               {/* Return Button */}
               <button
@@ -445,55 +716,55 @@ function ShoppingAccount() {
                 <span>Back to Account Settings</span>
               </button>
 
-              <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center justify-between flex-wrap gap-2 pb-1">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-[#0f172a] tracking-tight">
+                  <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0f172a] tracking-tight">
                     Wishlist
                   </h1>
-                  <p className="text-sm text-[#64748b] mt-1">
-                    Devices and accessories you&apos;ve saved for later
+                  <p className="text-[13px] text-[#64748b] mt-0.5">
+                    Saved devices and accessories you want to buy
                   </p>
                 </div>
                 {wishlistItems.length > 0 && (
-                  <span className="text-xs font-semibold text-[#64748b] bg-white border border-[#e5e7eb] px-3 py-1.5 rounded-[6px]">
-                    {wishlistItems.length} {wishlistItems.length === 1 ? "gadget" : "gadgets"} saved
+                  <span className="text-[11px] font-semibold text-[#64748b] bg-white border border-[#e5e7eb] px-3 py-1 rounded-[6px]">
+                    {wishlistItems.length} {wishlistItems.length === 1 ? "gadget" : "gadgets"}
                   </span>
                 )}
               </div>
 
               {wishlistItems.length === 0 ? (
                 /* Empty Wishlist Card */
-                <div className="bg-white rounded-[20px] border border-[#e5e7eb] p-10 sm:p-14 text-center shadow-sm max-w-lg mx-auto">
-                  <div className="w-16 h-16 rounded-full bg-[#f8fafc] border border-[#e5e7eb] flex items-center justify-center mx-auto mb-4 text-[#94a3b8]">
-                    <Heart className="w-7 h-7" />
+                <div className="bg-white rounded-[20px] border border-[#e5e7eb] p-8 sm:p-12 text-center shadow-sm max-w-md mx-auto">
+                  <div className="w-14 h-14 rounded-full bg-[#f8fafc] border border-[#e5e7eb] flex items-center justify-center mx-auto mb-3 text-[#94a3b8]">
+                    <Heart className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-bold text-[#0f172a] mb-1.5">
+                  <h3 className="text-base font-bold text-[#0f172a] mb-1">
                     Your wishlist is empty
                   </h3>
-                  <p className="text-sm text-[#64748b] max-w-xs mx-auto mb-6">
+                  <p className="text-xs text-[#64748b] max-w-xs mx-auto mb-5">
                     Tap the heart icon on any gadget while browsing to save it to your wishlist.
                   </p>
                   <Button
                     onClick={() => navigate("/shop/listing")}
-                    className="bg-[#111344] hover:bg-[#0C1172] text-white px-6 h-11 rounded-[6px] font-semibold text-sm transition-all"
+                    className="bg-[#111344] hover:bg-[#0C1172] text-white px-5 h-10 rounded-[6px] font-semibold text-xs transition-all"
                   >
                     Browse Gadgets
                   </Button>
                 </div>
               ) : (
                 /* Wishlist Items Grid */
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {wishlistItems.map((item) => {
                     const itemId = item._id || item.id;
                     return (
                       <div
                         key={itemId}
-                        className="bg-white rounded-[16px] border border-[#e5e7eb] p-4 flex flex-col justify-between hover:shadow-md transition-shadow group relative"
+                        className="bg-white rounded-[16px] border border-[#e5e7eb] p-3.5 flex flex-col justify-between hover:shadow-md transition-shadow group relative"
                       >
                         <div>
                           <div
                             onClick={() => navigate(`/shop/product/${itemId}`)}
-                            className="aspect-square w-full rounded-[12px] bg-[#fafaf8] border border-[#f1f5f9] flex items-center justify-center p-4 mb-3.5 overflow-hidden cursor-pointer"
+                            className="aspect-square w-full rounded-[10px] bg-[#fafaf8] border border-[#f1f5f9] flex items-center justify-center p-3 mb-2.5 overflow-hidden cursor-pointer"
                           >
                             <img
                               src={item.image}
@@ -502,28 +773,28 @@ function ShoppingAccount() {
                             />
                           </div>
 
-                          <div className="space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#DF5E00]">
+                          <div className="space-y-0.5">
+                            <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#DF5E00]">
                               {item.brand || item.category || "Gadget"}
                             </span>
                             <h4
                               onClick={() => navigate(`/shop/product/${itemId}`)}
-                              className="font-bold text-[14px] text-[#0f172a] line-clamp-2 hover:text-[#0C1172] cursor-pointer"
+                              className="font-bold text-[13.5px] text-[#0f172a] line-clamp-2 hover:text-[#0C1172] cursor-pointer"
                             >
                               {item.title}
                             </h4>
-                            <div className="flex items-baseline gap-2 pt-1">
-                              <span className="text-[15px] font-extrabold text-[#111344]">
+                            <div className="flex items-baseline gap-2 pt-0.5">
+                              <span className="text-[14.5px] font-extrabold text-[#111344]">
                                 ₦{Number(item.price || item.salePrice || 0).toLocaleString("en-NG")}
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 pt-4 mt-3 border-t border-[#f1f5f9]">
+                        <div className="flex items-center gap-2 pt-3 mt-2 border-t border-[#f1f5f9]">
                           <Button
                             onClick={() => handleAddWishlistToCart(item)}
-                            className="flex-1 h-9 rounded-[6px] bg-[#111344] hover:bg-[#0C1172] text-white text-xs font-semibold gap-1.5"
+                            className="flex-1 h-8 rounded-[6px] bg-[#111344] hover:bg-[#0C1172] text-white text-[11.5px] font-semibold gap-1.5"
                           >
                             <ShoppingCart className="w-3.5 h-3.5" />
                             <span>Add to Cart</span>
@@ -532,10 +803,10 @@ function ShoppingAccount() {
                           <Button
                             variant="outline"
                             onClick={() => handleRemoveFromWishlist(itemId)}
-                            className="h-9 w-9 p-0 rounded-[6px] text-[#94a3b8] hover:text-red-600 hover:border-red-200"
+                            className="h-8 w-8 p-0 rounded-[6px] text-[#94a3b8] hover:text-red-600 hover:border-red-200"
                             title="Remove from wishlist"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </div>
                       </div>
@@ -548,9 +819,290 @@ function ShoppingAccount() {
         </AnimatePresence>
       </div>
 
-      {/* Logout Confirmation Dialog */}
+      {/* ======================================================== */}
+      {/* POP-UP MODAL 1: EDIT NAME                                */}
+      {/* ======================================================== */}
+      <Dialog open={isNameModalOpen} onOpenChange={setIsNameModalOpen}>
+        <DialogContent className="rounded-[24px] max-w-[92vw] sm:max-w-[420px] p-6 font-manrope">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="text-xl font-bold text-[#0f172a]">
+              Edit Name
+            </DialogTitle>
+            <p className="text-xs text-[#64748b]">
+              Update the name displayed on your Mobiletrends account.
+            </p>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveName} className="space-y-4 pt-3">
+            <div>
+              <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                Full Name
+              </label>
+              <input
+                type="text"
+                required
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                placeholder="e.g. Akinyemi Oluwaseun"
+                className="w-full h-11 px-3.5 rounded-[10px] border border-gray-200 focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none text-[14px] text-[#0f172a]"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsNameModalOpen(false)}
+                className="rounded-[6px] h-10 px-4 text-xs font-semibold"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-[6px] h-10 px-5 text-xs font-semibold bg-[#111344] hover:bg-[#0C1172] text-white"
+              >
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Name"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ======================================================== */}
+      {/* POP-UP MODAL 2: EDIT EMAIL                               */}
+      {/* ======================================================== */}
+      <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
+        <DialogContent className="rounded-[24px] max-w-[92vw] sm:max-w-[420px] p-6 font-manrope">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="text-xl font-bold text-[#0f172a]">
+              Edit Email Address
+            </DialogTitle>
+            <p className="text-xs text-[#64748b]">
+              Update your primary email for order updates and receipts.
+            </p>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveEmail} className="space-y-4 pt-3">
+            <div>
+              <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                Email Address
+              </label>
+              <input
+                type="email"
+                required
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="e.g. name@example.com"
+                className="w-full h-11 px-3.5 rounded-[10px] border border-gray-200 focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none text-[14px] text-[#0f172a]"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEmailModalOpen(false)}
+                className="rounded-[6px] h-10 px-4 text-xs font-semibold"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-[6px] h-10 px-5 text-xs font-semibold bg-[#111344] hover:bg-[#0C1172] text-white"
+              >
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Email"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ======================================================== */}
+      {/* POP-UP MODAL 3: CHANGE PASSWORD                          */}
+      {/* ======================================================== */}
+      <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
+        <DialogContent className="rounded-[24px] max-w-[92vw] sm:max-w-[420px] p-6 font-manrope">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="text-xl font-bold text-[#0f172a]">
+              Change Password
+            </DialogTitle>
+            <p className="text-xs text-[#64748b]">
+              Enter your current password and choose a new secure password.
+            </p>
+          </DialogHeader>
+
+          <form onSubmit={handleSavePassword} className="space-y-3.5 pt-3">
+            <div>
+              <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1">
+                Current Password
+              </label>
+              <input
+                type="password"
+                required
+                value={passwordForm.currentPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                placeholder="••••••••••••"
+                className="w-full h-10 px-3.5 rounded-[10px] border border-gray-200 focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none text-[14px] text-[#0f172a]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1">
+                New Password
+              </label>
+              <input
+                type="password"
+                required
+                value={passwordForm.newPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                placeholder="At least 6 characters"
+                className="w-full h-10 px-3.5 rounded-[10px] border border-gray-200 focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none text-[14px] text-[#0f172a]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1">
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                required
+                value={passwordForm.confirmPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                placeholder="Re-enter new password"
+                className="w-full h-10 px-3.5 rounded-[10px] border border-gray-200 focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 outline-none text-[14px] text-[#0f172a]"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsPasswordModalOpen(false)}
+                className="rounded-[6px] h-10 px-4 text-xs font-semibold"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-[6px] h-10 px-5 text-xs font-semibold bg-[#111344] hover:bg-[#0C1172] text-white"
+              >
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update Password"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ======================================================== */}
+      {/* POP-UP MODAL 4: EDIT DELIVERY ADDRESS (IMAGE 2 REPLICA)  */}
+      {/* ======================================================== */}
+      <Dialog open={isAddressModalOpen} onOpenChange={setIsAddressModalOpen}>
+        <DialogContent className="rounded-[24px] max-w-[92vw] sm:max-w-[460px] p-6 sm:p-7 font-manrope">
+          <DialogHeader className="space-y-1 text-left">
+            <DialogTitle className="text-xl sm:text-2xl font-bold text-[#0f172a]">
+              {selectedAddressToEdit ? "Edit Delivery Address" : "Add Delivery Address"}
+            </DialogTitle>
+            <p className="text-xs sm:text-[13px] text-[#64748b] leading-relaxed pt-0.5">
+              Used for door-to-door delivery, POD dispatch, and trade-in device pickup.
+            </p>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveAddress} className="space-y-4 pt-3">
+            {/* House / Street Address */}
+            <div>
+              <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                House / Street Address
+              </label>
+              <input
+                type="text"
+                required
+                value={addressForm.address}
+                onChange={(e) => setAddressForm({ ...addressForm, address: e.target.value })}
+                placeholder="e.g. 2, Bolarinwa street, Ipaja"
+                className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all"
+              />
+            </div>
+
+            {/* City / LGA and State Grid */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                  City / LGA
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={addressForm.lga}
+                  onChange={(e) => setAddressForm({ ...addressForm, lga: e.target.value })}
+                  placeholder="e.g. Alimosho / Ipaja"
+                  className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                  State
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={addressForm.state}
+                  onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
+                  placeholder="e.g. Lagos"
+                  className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                Delivery Phone Number
+              </label>
+              <input
+                type="tel"
+                value={addressForm.phone}
+                onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
+                placeholder="e.g. 08012345678"
+                className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all"
+              />
+            </div>
+
+            {/* Buttons (exact match to Image 2) */}
+            <div className="flex items-center justify-end gap-3 pt-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsAddressModalOpen(false)}
+                className="rounded-[20px] h-10 px-4 text-xs sm:text-sm font-semibold text-[#64748b] hover:text-[#0f172a]"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-[20px] h-10 px-6 text-xs sm:text-sm font-bold bg-[#111344] hover:bg-[#0C1172] text-white transition-all shadow-sm"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Save Address"
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ======================================================== */}
+      {/* LOGOUT CONFIRMATION DIALOG                               */}
+      {/* ======================================================== */}
       <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
-        <DialogContent className="rounded-[16px] max-w-[90vw] sm:max-w-[400px] p-6 font-manrope">
+        <DialogContent className="rounded-[20px] max-w-[90vw] sm:max-w-[400px] p-6 font-manrope">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-center text-[#0f172a]">
               Confirm Logout

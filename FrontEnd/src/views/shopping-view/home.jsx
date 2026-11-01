@@ -514,7 +514,7 @@ function ShoppingHome() {
               onClick={() => setFeaturedTab("all")}
               className={`px-3.5 sm:px-4 py-2 rounded-[6px] text-[13px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 featuredTab === "all"
-                  ? "border border-[#DF5E00] bg-[#DF5E00]/[0.06] text-[#DF5E00] shadow-sm"
+                  ? "border border-[#111344] bg-[#111344]/[0.06] text-[#111344] shadow-sm"
                   : "text-[#62665d] hover:text-[#20231e] hover:bg-black/[0.03]"
               }`}
             >
@@ -525,7 +525,7 @@ function ShoppingHome() {
               onClick={() => setFeaturedTab("laptops")}
               className={`px-3.5 sm:px-4 py-2 rounded-[6px] text-[13px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 featuredTab === "laptops"
-                  ? "border border-[#DF5E00] bg-[#DF5E00]/[0.06] text-[#DF5E00] shadow-sm"
+                  ? "border border-[#111344] bg-[#111344]/[0.06] text-[#111344] shadow-sm"
                   : "text-[#62665d] hover:text-[#20231e] hover:bg-black/[0.03]"
               }`}
             >
@@ -536,7 +536,7 @@ function ShoppingHome() {
               onClick={() => setFeaturedTab("phones")}
               className={`px-3.5 sm:px-4 py-2 rounded-[6px] text-[13px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 featuredTab === "phones"
-                  ? "border border-[#DF5E00] bg-[#DF5E00]/[0.06] text-[#DF5E00] shadow-sm"
+                  ? "border border-[#111344] bg-[#111344]/[0.06] text-[#111344] shadow-sm"
                   : "text-[#62665d] hover:text-[#20231e] hover:bg-black/[0.03]"
               }`}
             >
@@ -547,7 +547,7 @@ function ShoppingHome() {
               onClick={() => setFeaturedTab("gaming")}
               className={`px-3.5 sm:px-4 py-2 rounded-[6px] text-[13px] sm:text-[14.5px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 featuredTab === "gaming"
-                  ? "border border-[#DF5E00] bg-[#DF5E00]/[0.06] text-[#DF5E00] shadow-sm"
+                  ? "border border-[#111344] bg-[#111344]/[0.06] text-[#111344] shadow-sm"
                   : "text-[#62665d] hover:text-[#20231e] hover:bg-black/[0.03]"
               }`}
             >

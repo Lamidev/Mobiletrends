@@ -235,7 +235,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                     onClick={() => setActiveImage(img)}
                     className={`relative aspect-square rounded-[6px] border-2 p-2 bg-[#fafaf8] overflow-hidden transition-all cursor-pointer ${
                       isActive
-                        ? 'border-[#DF5E00] shadow-sm ring-2 ring-[#DF5E00]/20'
+                        ? 'border-[#111344] shadow-sm ring-2 ring-[#111344]/20'
                         : 'border-[#e5e7eb] hover:border-gray-400 opacity-70 hover:opacity-100'
                     }`}
                   >
@@ -310,7 +310,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
               <span className="text-[12px] sm:text-[13px] font-bold text-[#111344] uppercase tracking-wide">
                 1. Select Condition
               </span>
-              <span className="text-[11px] font-semibold text-[#DF5E00]">
+              <span className="text-[11px] font-semibold text-[#111344]">
                 {selectedCondition}
               </span>
             </div>
@@ -335,7 +335,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                     onClick={() => setSelectedCondition(opt.id)}
                     className={`p-2.5 sm:p-3.5 rounded-[6px] border text-left transition-all cursor-pointer relative ${
                       isSelected
-                        ? 'border-[#DF5E00] bg-[#DF5E00]/[0.04] shadow-sm'
+                        ? 'border-[#111344] bg-[#111344]/[0.04] shadow-sm'
                         : 'border-[#e5e7eb] bg-white hover:border-[#111344]/30'
                     }`}
                   >
@@ -344,7 +344,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                         {opt.label}
                       </span>
                       {isSelected && (
-                        <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#DF5E00] text-white flex items-center justify-center shrink-0 ml-1">
+                        <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#111344] text-white flex items-center justify-center shrink-0 ml-1">
                           <Check size={9} strokeWidth={3} />
                         </span>
                       )}
@@ -378,7 +378,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                     onClick={() => setSelectedStorage(size)}
                     className={`py-2 sm:py-2.5 px-1 sm:px-2 rounded-[6px] text-center font-manrope text-[12px] sm:text-[13px] font-bold transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-2 border-[#DF5E00] bg-[#DF5E00]/[0.05] text-[#DF5E00]'
+                        ? 'border-2 border-[#111344] bg-[#111344]/[0.05] text-[#111344]'
                         : 'border border-[#e5e7eb] bg-white text-[#20231e] hover:border-[#111344]/30'
                     }`}
                   >
@@ -409,7 +409,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                     onClick={() => setSelectedColor(col.name)}
                     className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-[6px] text-[11px] sm:text-[12px] font-semibold border transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-[#DF5E00] bg-[#DF5E00]/[0.05] text-[#DF5E00]'
+                        ? 'border-[#111344] bg-[#111344]/[0.05] text-[#111344]'
                         : 'border-[#e5e7eb] bg-white text-[#20231e] hover:border-[#111344]/30'
                     }`}
                   >

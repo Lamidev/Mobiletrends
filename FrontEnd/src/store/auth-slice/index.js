@@ -166,6 +166,46 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
+export const updateUserProfile = createAsyncThunk(
+  "auth/update-profile",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const token = getStoredToken();
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.put(
+        `${API_BASE}/auth/update-profile`,
+        formData,
+        { withCredentials: true, headers }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error updating profile"
+      );
+    }
+  }
+);
+
+export const changeUserPassword = createAsyncThunk(
+  "auth/change-password",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const token = getStoredToken();
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.put(
+        `${API_BASE}/auth/change-password`,
+        formData,
+        { withCredentials: true, headers }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error changing password"
+      );
+    }
+  }
+);
+
 export const checkAuth = createAsyncThunk(
   "auth/check-auth",
   async (_, { rejectWithValue, dispatch }) => {
@@ -315,6 +355,11 @@ const authSlice = createSlice({
         state.isCheckingAuth = false;
         state.isAuthenticated = false;
         state.user = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        if (action.payload?.user) {
+          state.user = action.payload.user;
+        }
       });
   },
 });

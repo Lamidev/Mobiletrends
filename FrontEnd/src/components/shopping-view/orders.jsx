@@ -106,7 +106,7 @@ function ShoppingOrders() {
           size="sm"
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="h-9 px-3 border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 disabled:opacity-50 font-bold transition-all"
+          className="h-9 px-3 border-gray-200 hover:bg-gray-100 hover:text-[#111344] hover:border-gray-300 disabled:opacity-50 font-bold transition-all rounded-[6px]"
         >
           Previous
         </Button>
@@ -127,8 +127,8 @@ function ShoppingOrders() {
                     size="sm"
                     onClick={() => handlePageChange(page)}
                     className={`h-9 w-9 p-0 font-bold transition-all ${currentPage === page
-                      ? "bg-peach-500 hover:bg-peach-600 text-white border-peach-500 shadow-sm"
-                      : "border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200"
+                      ? "bg-[#111344] hover:bg-[#0C1172] text-white border-[#111344] shadow-sm rounded-[6px]"
+                      : "border-gray-200 hover:bg-gray-100 hover:text-[#111344] hover:border-gray-300 rounded-[6px]"
                       }`}
                   >
                     {page}
@@ -144,7 +144,7 @@ function ShoppingOrders() {
           size="sm"
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="h-9 px-3 border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 disabled:opacity-50 font-bold transition-all"
+          className="h-9 px-3 border-gray-200 hover:bg-gray-100 hover:text-[#111344] hover:border-gray-300 disabled:opacity-50 font-bold transition-all rounded-[6px]"
         >
           Next
         </Button>
@@ -193,7 +193,7 @@ function ShoppingOrders() {
                       setCurrentPage(1);
                     }}
                     className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${itemsPerPage === num
-                      ? "bg-peach-500 text-white shadow-sm"
+                      ? "bg-[#111344] text-white shadow-sm"
                       : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
                       }`}
                   >
@@ -269,7 +269,7 @@ function ShoppingOrders() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleFetchOrderDetails(orderItem?._id)}
-                            className="h-9 px-4 rounded-xl border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 transition-all font-bold text-xs"
+                            className="h-9 px-4 rounded-[6px] border-gray-200 hover:bg-gray-100 hover:text-[#111344] hover:border-gray-300 transition-all font-bold text-xs"
                           >
                             <Eye className="h-3.5 w-3.5 mr-2" />
                             View Details
@@ -291,7 +291,7 @@ function ShoppingOrders() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4 hover:border-peach-200 transition-all"
+                  className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4 hover:border-gray-200 transition-all"
                 >
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
@@ -320,7 +320,7 @@ function ShoppingOrders() {
                     </div>
                     <div className="space-y-1 text-right">
                       <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Amount</p>
-                      <p className="text-sm font-black text-peach-600">
+                      <p className="text-sm font-black text-[#111344]">
                         ₦{orderItem?.totalAmount?.toLocaleString("en-NG")}
                       </p>
                     </div>
@@ -338,7 +338,7 @@ function ShoppingOrders() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleFetchOrderDetails(orderItem?._id)}
-                        className="w-full h-12 flex items-center justify-center gap-2 rounded-xl border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 transition-all font-bold text-sm shadow-sm"
+                        className="w-full h-11 flex items-center justify-center gap-2 rounded-[6px] border-gray-200 hover:bg-gray-100 hover:text-[#111344] hover:border-gray-300 transition-all font-bold text-sm shadow-sm"
                       >
                         <Eye className="h-4 w-4" />
                         Order Details
@@ -370,7 +370,7 @@ function ShoppingOrders() {
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2 relative z-10">No Orders Yet</h3>
             <p className="text-gray-500 mb-8 relative z-10">Select from our wide range of gadgets and place your first order today!</p>
-            <Button asChild className="bg-peach-500 hover:bg-peach-600 text-white px-8 py-6 rounded-[6px] font-bold shadow-lg shadow-peach-100 transition-all hover:scale-105 active:scale-95">
+            <Button asChild className="bg-[#111344] hover:bg-[#0C1172] text-white px-8 py-6 rounded-[6px] font-bold shadow-lg shadow-gray-200 transition-all hover:scale-105 active:scale-95">
               <Link to="/shop/listing">Start Shopping Now</Link>
             </Button>
           </div>
