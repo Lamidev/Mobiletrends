@@ -27,7 +27,6 @@ import {
   Mail,
   Calendar,
   ExternalLink,
-  MessageSquare,
   CheckCircle2,
 } from "lucide-react";
 import { getAllOrdersForAdmin } from "@/store/admin/order-slice";
@@ -476,7 +475,6 @@ function AdminCustomersView() {
               phone: "",
             };
             const phoneVal = selectedCustomer.phone || stats.phone || "";
-            const cleanPhone = phoneVal.replace(/[^0-9]/g, "");
 
             return (
               <>
@@ -551,21 +549,6 @@ function AdminCustomersView() {
                           </div>
                         )}
                       </div>
-
-                      {/* WhatsApp Quick Action */}
-                      {cleanPhone && (
-                        <div className="pt-2">
-                          <a
-                            href={`https://wa.me/${cleanPhone.startsWith('0') ? '234' + cleanPhone.slice(1) : cleanPhone}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer"
-                          >
-                            <MessageSquare size={13} />
-                            <span>Chat on WhatsApp</span>
-                          </a>
-                        </div>
-                      )}
                     </div>
 
                     {/* Shipping Address */}
