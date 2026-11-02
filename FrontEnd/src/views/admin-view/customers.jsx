@@ -75,13 +75,8 @@ function AdminCustomersView() {
       const res = await axios.get(`${API_BASE_URL}/admin/verified-users/all`);
       if (res.data?.success) {
         const raw = res.data.data || [];
-        // Strictly exclude users tagged as admin and account CUST-93EEB9
-        const cleanCustomers = raw.filter(
-          (c) =>
-            c?.role !== "admin" &&
-            !String(c?.email || "").toLowerCase().includes("admin") &&
-            !String(c?._id || "").toLowerCase().endsWith("93eeb9")
-        );
+        // Strictly show users tagged as 'user' (never admins)
+        const cleanCustomers = raw.filter((c) => c?.role === "user");
         setCustomers(cleanCustomers);
       }
     } catch (err) {
@@ -141,18 +136,43 @@ function AdminCustomersView() {
   }, [selectedCustomer, orderList]);
 
   // Derived KPI metrics
-  const totalCustomers = customers.length;
-  let activeBuyersCount = 0;
-  let repeatBuyersCount = 0;
-  let totalLtvAmount = 0;
+  const totalCustomers = customers.length; // Registered store accounts (role === 'user')
 
-  customers.forEach((c) => {
-    const emailKey = (c.email || "").toLowerCase().trim();
-    const stats = customerOrderMetrics[c._id] || customerOrderMetrics[emailKey] || { count: 0, total: 0 };
-    if (stats.count > 0) activeBuyersCount++;
-    if (stats.count >= 2) repeatBuyersCount++;
-    totalLtvAmount += stats.total;
-  });
+  // Group all orders by distinct buyer (email or userId) — registered or guest
+  const buyerSummary = useMemo(() => {
+    const map = {};
+    (orderList || []).forEach((order) => {
+      const email = (
+        order?.addressInfo?.email ||
+        order?.userEmail ||
+        order?.email ||
+        order?.payerId ||
+        ""
+      ).toLowerCase().trim();
+      const userId = order?.userId;
+      const key = email || (userId ? `uid-${userId}` : `ord-${order?._id}`);
+      if (!key) return;
+
+      if (!map[key]) {
+        map[key] = { count: 0, total: 0 };
+      }
+      map[key].count += 1;
+      map[key].total += Number(order?.totalAmount) || 0;
+    });
+    return map;
+  }, [orderList]);
+
+  // Active buyers: purchased at least once (registered or guest)
+  const activeBuyersCount = Object.values(buyerSummary).filter((b) => b.count >= 1).length;
+
+  // Repeat buyers: bought more than once (2+ orders, registered or guest)
+  const repeatBuyersCount = Object.values(buyerSummary).filter((b) => b.count >= 2).length;
+
+  // Total LTV recorded from all orders
+  const totalLtvAmount = (orderList || []).reduce(
+    (sum, ord) => sum + (Number(ord?.totalAmount) || 0),
+    0
+  );
 
   // Filtered customer list
   const filtered = customers.filter((c) => {
@@ -234,7 +254,7 @@ function AdminCustomersView() {
                 {activeBuyersCount}
               </h3>
               <p className="text-[10px] sm:text-[11.5px] font-medium text-gray-400 mt-0.5 line-clamp-1">
-                Customers with orders
+                Registered or guest (1+ orders)
               </p>
             </div>
           </Card>
@@ -278,7 +298,7 @@ function AdminCustomersView() {
                 {repeatBuyersCount}
               </h3>
               <p className="text-[10px] sm:text-[11.5px] font-medium text-gray-400 mt-0.5 line-clamp-1">
-                2+ completed orders
+                Purchased more than once (2+ orders)
               </p>
             </div>
           </Card>
