@@ -114,7 +114,12 @@ export default function ProductPageView() {
     router.push(`/shop/product/${id}`);
   }
 
-  if (isLoading && (!productDetails || productDetails._id !== productId)) {
+  const isMatchingProduct =
+    productDetails &&
+    (String(productDetails._id) === String(productId) ||
+      String(productDetails.id) === String(productId));
+
+  if (isLoading || (!isMatchingProduct && productId)) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-[#111344]" />
