@@ -1,7 +1,9 @@
 'use client';
+
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import CommonForm from "@/components/common/form";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Sheet,
@@ -10,7 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { addProductFormElements } from "@/config";
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addNewProduct,
@@ -18,7 +20,6 @@ import {
   fetchAllProducts,
   deleteProduct,
 } from "@/store/admin/products-slice";
-import AdminProductTile from "@/components/admin-view/product-tile";
 import ProductVariantsManager from "@/components/admin-view/product-variants-manager";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -28,7 +29,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Package, ListFilter } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Filter,
+  ArrowUpDown,
+  Edit2,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Package,
+} from "lucide-react";
 
 const initialFormData = {
   image: "",
@@ -56,8 +67,12 @@ function AdminProducts() {
   const [currentEditedId, setCurrentEditedId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Search, Filter, Sort & Pagination
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
@@ -77,11 +92,47 @@ function AdminProducts() {
     }
   }, [openCreateProductsDialog]);
 
-  const totalItems = productList.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // Filtered & Sorted Products
+  const filteredProducts = useMemo(() => {
+    if (!productList) return [];
+    let list = [...productList];
+
+    // Search query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(
+        (p) =>
+          p.title?.toLowerCase().includes(q) ||
+          p.brand?.toLowerCase().includes(q) ||
+          p.category?.toLowerCase().includes(q)
+      );
+    }
+
+    // Category filter
+    if (selectedCategory !== "all") {
+      list = list.filter((p) => p.category?.toLowerCase() === selectedCategory.toLowerCase());
+    }
+
+    // Sorting
+    if (sortBy === "price-low") {
+      list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+    } else if (sortBy === "price-high") {
+      list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+    } else if (sortBy === "title-az") {
+      list.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+    } else {
+      // Newest
+      list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    }
+
+    return list;
+  }, [productList, searchQuery, selectedCategory, sortBy]);
+
+  const totalItems = filteredProducts.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentProducts = productList.slice(startIndex, endIndex);
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
   function onSubmit(event) {
     event.preventDefault();
@@ -96,39 +147,31 @@ function AdminProducts() {
       condition: formData.condition || "Brand New",
     };
 
-    console.log("Submitting data:", submitData);
-    console.log("Uploaded Image URL:", uploadedImageUrl);
-    console.log("Form Data Image:", formData.image);
-
-    currentEditedId !== null
-      ? dispatch(
+    if (currentEditedId !== null) {
+      dispatch(
         editProduct({
           id: currentEditedId,
           formData: submitData,
         })
       ).then((data) => {
-        console.log(data, "edit");
-
         if (data?.payload?.success) {
           dispatch(fetchAllProducts());
+          setFormData(initialFormData);
           setOpenCreateProductsDialog(false);
           setCurrentEditedId(null);
-          toast({
-            title: "Product updated successfully",
-          });
-        }
-      })
-      : dispatch(
-        addNewProduct(submitData)
-      ).then((data) => {
-        if (data?.payload?.success) {
-          dispatch(fetchAllProducts());
-          setOpenCreateProductsDialog(false);
-          toast({
-            title: "Product added successfully",
-          });
+          toast({ title: "Product updated successfully" });
         }
       });
+    } else {
+      dispatch(addNewProduct(submitData)).then((data) => {
+        if (data?.payload?.success) {
+          dispatch(fetchAllProducts());
+          setFormData(initialFormData);
+          setOpenCreateProductsDialog(false);
+          toast({ title: "Product added successfully" });
+        }
+      });
+    }
   }
 
   function handleDelete(productId) {
@@ -136,9 +179,7 @@ function AdminProducts() {
     dispatch(deleteProduct(productId)).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchAllProducts());
-        toast({
-          title: "Product deleted successfully",
-        });
+        toast({ title: "Product deleted successfully" });
       }
       setIsDeleting(false);
     });
@@ -147,9 +188,12 @@ function AdminProducts() {
   function handleEditProduct(product) {
     setOpenCreateProductsDialog(true);
     setCurrentEditedId(product?._id);
-    const existingImages = Array.isArray(product.images) && product.images.length > 0
-      ? product.images
-      : (product.image ? [product.image] : []);
+    const existingImages =
+      Array.isArray(product.images) && product.images.length > 0
+        ? product.images
+        : product.image
+        ? [product.image]
+        : [];
 
     setFormData({
       ...product,
@@ -158,7 +202,10 @@ function AdminProducts() {
       colors: Array.isArray(product.colors) ? product.colors : [],
       storageVariants: Array.isArray(product.storageVariants) ? product.storageVariants : [],
       laptopVariants: Array.isArray(product.laptopVariants) ? product.laptopVariants : [],
-      condition: product.condition === "Premium Used" ? "UK-Used" : (product.condition || "Brand New"),
+      condition:
+        product.condition === "Premium Used"
+          ? "UK-Used"
+          : product.condition || "Brand New",
     });
     setUploadedImages(existingImages);
     setUploadedImageUrl(existingImages[0] || "");
@@ -166,10 +213,9 @@ function AdminProducts() {
   }
 
   function isFormValid() {
-    // For mobile, ensure all required fields are properly filled
-    const hasValidImage = uploadedImages.length > 0 || (currentEditedId !== null
-      ? (formData.image || uploadedImageUrl)
-      : uploadedImageUrl);
+    const hasValidImage =
+      uploadedImages.length > 0 ||
+      (currentEditedId !== null ? formData.image || uploadedImageUrl : uploadedImageUrl);
 
     const requiredFields = {
       title: formData.title?.trim(),
@@ -178,198 +224,305 @@ function AdminProducts() {
       brand: formData.brand?.trim(),
       price: formData.price?.toString().trim(),
       totalStock: formData.totalStock?.toString().trim(),
-      condition: formData.condition?.trim(),
     };
 
-    const allRequiredFieldsFilled = Object.values(requiredFields).every(
-      value => value && value !== "" && value !== "0"
+    const hasRequiredFields = Object.values(requiredFields).every(
+      (value) => value !== "" && value !== undefined && value !== null
     );
 
-    // Additional validation for numeric fields
-    const priceValid = !isNaN(parseFloat(formData.price)) && parseFloat(formData.price) > 0;
-    const stockValid = !isNaN(parseInt(formData.totalStock)) && parseInt(formData.totalStock) >= 0;
-
-    console.log("Form validation:", {
-      hasValidImage,
-      allRequiredFieldsFilled,
-      uploadedImageUrl,
-      formDataImage: formData.image,
-      requiredFields,
-      priceValid,
-      stockValid
-    });
-
-    return hasValidImage && allRequiredFieldsFilled && priceValid && stockValid;
-  }
-
-  function handlePageChange(page) {
-    setCurrentPage(page);
-  }
-
-  function handleItemsPerPageChange(value) {
-    setItemsPerPage(Number(value));
-    setCurrentPage(1);
-  }
-
-  function getPageNumbers() {
-    const pages = [];
-    const maxVisiblePages = 5;
-
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return pages;
+    return hasValidImage && hasRequiredFields;
   }
 
   return (
-    <Fragment>
-      <motion.div
-        className="mb-5 flex justify-end w-full"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
-        <Button
-          onClick={() => setOpenCreateProductsDialog(true)}
-          className="w-full sm:w-auto"
-        >
-          Add New Product
-        </Button>
-      </motion.div>
-
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Show</span>
-          <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
-            <SelectTrigger className="w-20">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="4">4</SelectItem>
-              <SelectItem value="8">8</SelectItem>
-              <SelectItem value="12">12</SelectItem>
-              <SelectItem value="16">16</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-            </SelectContent>
-          </Select>
-          <span className="text-sm text-muted-foreground">products per page</span>
+    <div className="font-manrope space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto bg-[#FBFBFC] min-h-screen">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111344] tracking-tight">
+            Products
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+            Manage device inventory, variants, specifications, and pricing.
+          </p>
         </div>
 
-        <div className="text-sm text-muted-foreground">
-          Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} products
+        <Button
+          type="button"
+          onClick={() => {
+            setCurrentEditedId(null);
+            setFormData(initialFormData);
+            setOpenCreateProductsDialog(true);
+          }}
+          className="h-10 px-4 bg-[#111344] hover:bg-[#0C1172] text-white text-xs sm:text-sm font-bold rounded-xl gap-2 shadow-xs cursor-pointer shrink-0"
+        >
+          <Plus size={16} />
+          <span>New product</span>
+        </Button>
+      </div>
+
+      {/* Toolbar: Category Tabs + Search + Filter + Sort */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
+        {/* Left: All count badge */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-[#111344] text-white shadow-xs">
+            All ({productList?.length || 0})
+          </span>
+        </div>
+
+        {/* Right: Search, Category Filter, Sort Dropdown */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 flex-1 lg:justify-end">
+          {/* Search */}
+          <div className="relative flex-1 sm:w-64 min-w-[200px]">
+            <Search
+              size={14}
+              className="absolute left-3 top-2.5 text-gray-400 pointer-events-none"
+            />
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search products..."
+              className="h-9 pl-9 text-xs bg-[#FAFBFD] border-gray-200 rounded-xl"
+            />
+          </div>
+
+          {/* Category Filter */}
+          <div className="w-36">
+            <Select
+              value={selectedCategory}
+              onValueChange={(val) => {
+                setSelectedCategory(val);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-9 text-xs bg-[#FAFBFD] border-gray-200 rounded-xl font-semibold">
+                <Filter size={13} className="mr-1.5 text-gray-500" />
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="smartphones">Smartphones</SelectItem>
+                <SelectItem value="laptops">Laptops</SelectItem>
+                <SelectItem value="tablets">Tablets</SelectItem>
+                <SelectItem value="accessories">Accessories</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="w-40">
+            <Select
+              value={sortBy}
+              onValueChange={(val) => {
+                setSortBy(val);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-9 text-xs bg-[#FAFBFD] border-gray-200 rounded-xl font-semibold">
+                <ArrowUpDown size={13} className="mr-1.5 text-gray-500" />
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">New Arrivals</SelectItem>
+                <SelectItem value="price-low">Price: Low to High</SelectItem>
+                <SelectItem value="price-high">Price: High to Low</SelectItem>
+                <SelectItem value="title-az">Alphabetical (A-Z)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
-      <motion.div
-        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-        initial="hidden"
-        animate="visible"
-        variants={{
-          hidden: { opacity: 0 },
-          visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-        }}
-      >
-        <AnimatePresence>
-          {currentProducts.length > 0 &&
-            currentProducts.map((productItem) => (
-              <motion.div
-                key={productItem.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
-              >
-                <AdminProductTile
-                  product={productItem}
-                  handleDelete={handleDelete}
-                  handleEditProduct={handleEditProduct}
-                  isDeleting={isDeleting}
-                />
-              </motion.div>
-            ))}
-        </AnimatePresence>
-      </motion.div>
+      {/* Products Table (matching Image 2) */}
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#FAFBFD] text-gray-500 uppercase font-bold text-[10.5px] tracking-wider border-b border-gray-100">
+              <tr>
+                <th className="py-3.5 px-4 w-10">
+                  <input type="checkbox" className="rounded border-gray-300 text-[#111344] focus:ring-0" />
+                </th>
+                <th className="py-3.5 px-4 font-bold min-w-[260px]">Product</th>
+                <th className="py-3.5 px-4 font-bold">Status</th>
+                <th className="py-3.5 px-4 font-bold">Price</th>
+                <th className="py-3.5 px-4 font-bold">Inventory</th>
+                <th className="py-3.5 px-4 font-bold">Category</th>
+                <th className="py-3.5 px-4 font-bold text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 font-medium text-gray-700">
+              {currentProducts.length > 0 ? (
+                currentProducts.map((product) => {
+                  const stockNum = Number(product.totalStock) || 0;
+                  const inStock = stockNum > 0;
 
-      {currentProducts.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground text-lg">No products found.</p>
-          <Button
-            onClick={() => setOpenCreateProductsDialog(true)}
-            className="mt-4 w-full sm:w-auto"
-          >
-            Add Your First Product
-          </Button>
-        </div>
-      )}
+                  // Price calculations
+                  const basePrice = Number(product.price) || 0;
+                  const salePrice = Number(product.salePrice) || 0;
+                  const hasDiscount = salePrice > 0 && salePrice < basePrice;
+                  const discountPct = hasDiscount
+                    ? Math.round(((basePrice - salePrice) / basePrice) * 100)
+                    : 0;
 
-      {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 pb-4 border-t pt-6">
-          <div className="text-sm text-muted-foreground font-medium order-2 sm:order-1">
-            Showing <span className="text-foreground font-bold">{startIndex + 1}</span> to <span className="text-foreground font-bold">{Math.min(endIndex, totalItems)}</span> of <span className="text-foreground font-bold">{totalItems}</span> products
-          </div>
+                  const imageCount = Array.isArray(product.images) ? product.images.length : (product.image ? 1 : 0);
+                  const displayImage = (product.images && product.images[0]) || product.image || "/placeholder.png";
 
-          <div className="flex items-center gap-2 order-1 sm:order-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="flex items-center gap-1 h-9 px-3 border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 disabled:opacity-50 transition-all font-bold"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Previous</span>
-            </Button>
-
-            <div className="flex gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter(page => {
-                  if (totalPages <= 5) return true;
-                  return Math.abs(page - currentPage) <= 1 || page === 1 || page === totalPages;
-                })
-                .map((page, index, array) => {
-                  const showEllipsis = index > 0 && page - array[index - 1] > 1;
                   return (
-                    <div key={page} className="flex items-center gap-1">
-                      {showEllipsis && <span className="text-gray-400 px-1 font-bold">...</span>}
-                      <Button
-                        variant={currentPage === page ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handlePageChange(page)}
-                        className={`h-9 w-9 p-0 font-bold transition-all ${currentPage === page
-                            ? "bg-[#111344] hover:bg-[#0C1172] text-white border-[#111344] shadow-sm"
-                            : "border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
+                    <tr key={product._id} className="hover:bg-gray-50/70 transition-colors">
+                      {/* Checkbox */}
+                      <td className="py-3.5 px-4">
+                        <input type="checkbox" className="rounded border-gray-300 text-[#111344] focus:ring-0" />
+                      </td>
+
+                      {/* Product Thumbnail + Title */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-11 h-11 rounded-lg bg-gray-100 border border-gray-200 shrink-0 overflow-hidden flex items-center justify-center">
+                            <img
+                              src={displayImage}
+                              alt={product.title}
+                              className="w-full h-full object-contain p-1"
+                              onError={(e) => {
+                                e.target.src = "/placeholder.png";
+                              }}
+                            />
+                            {imageCount > 1 && (
+                              <span className="absolute bottom-0.5 right-0.5 bg-black/75 text-white text-[9px] font-bold px-1 rounded">
+                                +{imageCount}
+                              </span>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-gray-900 line-clamp-1 text-xs sm:text-[13px]">
+                              {product.title}
+                            </p>
+                            <p className="text-[11px] text-gray-400 capitalize">
+                              {product.brand} • {product.condition || "Brand New"}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Status Badge */}
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10.5px] font-bold ${
+                            inStock
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-rose-50 text-rose-600"
                           }`}
-                      >
-                        {page}
-                      </Button>
-                    </div>
+                        >
+                          {inStock ? "Active" : "Out of Stock"}
+                        </span>
+                      </td>
+
+                      {/* Price */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        {hasDiscount ? (
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-black text-rose-600 text-xs sm:text-[13px]">
+                                ₦{salePrice.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                              </span>
+                              <span className="text-[10px] font-bold px-1.5 py-0.2 bg-rose-50 text-rose-600 rounded">
+                                -{discountPct}%
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-gray-400 line-through">
+                              ₦{basePrice.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="font-black text-gray-900 text-xs sm:text-[13px]">
+                            ₦{basePrice.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Inventory */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span className={`font-semibold ${inStock ? "text-gray-700" : "text-rose-600 font-bold"}`}>
+                          {stockNum} in stock
+                        </span>
+                      </td>
+
+                      {/* Category */}
+                      <td className="py-3.5 px-4 capitalize font-semibold text-gray-600 whitespace-nowrap">
+                        {product.category || "Gadget"}
+                      </td>
+
+                      {/* Action */}
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        <div className="inline-flex items-center gap-1 justify-end">
+                          <button
+                            type="button"
+                            onClick={() => handleEditProduct(product)}
+                            className="p-1.5 text-gray-500 hover:text-[#111344] hover:bg-gray-100 rounded-md transition-colors"
+                            title="Edit Product"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(product._id)}
+                            className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
+                            title="Delete Product"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })
-              }
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="flex items-center gap-1 h-9 px-3 border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 disabled:opacity-50 transition-all font-bold"
-            >
-              <span className="hidden sm:inline">Next</span>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+              ) : (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-gray-400 font-medium">
+                    No products found matching your filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
 
+        {/* Pagination Toolbar */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-100 bg-[#FAFBFD]">
+            <span className="text-xs text-gray-500 font-medium">
+              Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} products
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="h-8 px-2.5 text-xs font-semibold rounded-lg"
+              >
+                <ChevronLeft size={14} className="mr-1" /> Prev
+              </Button>
+              <span className="text-xs font-bold text-gray-700 px-2">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="h-8 px-2.5 text-xs font-semibold rounded-lg"
+              >
+                Next <ChevronRight size={14} className="ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Slide-out Sheet for Add / Edit Product (Full mobile width & responsive) */}
       <Sheet
         open={openCreateProductsDialog}
         onOpenChange={() => {
@@ -378,20 +531,22 @@ function AdminProducts() {
       >
         <SheetContent
           side="right"
-          className="overflow-auto w-full sm:max-w-md lg:max-w-lg"
+          className="w-full sm:max-w-md lg:max-w-lg p-4 sm:p-6 overflow-y-auto overflow-x-hidden max-w-full"
           as={motion.div}
           initial={{ x: "100%" }}
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "spring", stiffness: 200, damping: 30 }}
         >
-          <SheetHeader className="sticky top-0 bg-background z-10 pb-4">
+          <SheetHeader className="sticky top-0 bg-background z-10 pb-4 border-b border-gray-100">
             <SheetTitle>
-              <h2 className="font-manrope text-xl font-bold tracking-tight">{currentEditedId !== null ? "Edit Product" : "Add New Product"}</h2>
+              <h2 className="font-manrope text-xl font-bold tracking-tight text-[#111344]">
+                {currentEditedId !== null ? "Edit Product" : "Add New Product"}
+              </h2>
             </SheetTitle>
           </SheetHeader>
 
-          <div className="space-y-6 pb-6">
+          <div className="space-y-6 pt-4 pb-8">
             <ProductImageUpload
               uploadedImages={uploadedImages}
               setUploadedImages={setUploadedImages}
@@ -406,7 +561,7 @@ function AdminProducts() {
               onSubmit={onSubmit}
               formData={formData}
               setFormData={setFormData}
-              buttonText={currentEditedId !== null ? "Update Product" : "Add Product"}
+              buttonText={currentEditedId !== null ? "Update Product" : "Save Product"}
               formControls={addProductFormElements}
               isBtnDisabled={!isFormValid() || imageLoadingState}
             >
@@ -418,7 +573,7 @@ function AdminProducts() {
           </div>
         </SheetContent>
       </Sheet>
-    </Fragment>
+    </div>
   );
 }
 

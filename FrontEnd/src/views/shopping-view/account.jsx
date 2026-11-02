@@ -813,25 +813,6 @@ function ShoppingAccount() {
               </div>
             </button>
 
-            {/* Admin Dashboard */}
-            {user?.role === "admin" && (
-              <button
-                type="button"
-                onClick={() => navigate("/admin/dashboard")}
-                className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] text-left text-[#0f172a] hover:bg-[#fafaf8] transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-3.5">
-                  <LayoutDashboard className="w-[19px] h-[19px] text-[#111344] stroke-[1.8] shrink-0" />
-                  <span className="text-[15px] font-semibold">
-                    Admin Dashboard
-                  </span>
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-[#111344]/10 text-[#111344] px-2 py-0.5 rounded-[4px]">
-                  Admin
-                </span>
-              </button>
-            )}
-
             {/* Divider */}
             <div className="my-2 border-t border-gray-100" />
 
@@ -946,24 +927,6 @@ function ShoppingAccount() {
                   </div>
                 </button>
 
-                {/* Admin Dashboard (if admin user) */}
-                {user?.role === "admin" && (
-                  <button
-                    type="button"
-                    onClick={() => navigate("/admin/dashboard")}
-                    className="w-full flex items-center justify-between text-left group transition-all cursor-pointer py-1"
-                  >
-                    <div className="flex items-center gap-4 sm:gap-4.5">
-                      <LayoutDashboard className="w-[21px] h-[21px] text-[#111344] stroke-[1.8] shrink-0" />
-                      <span className="text-[16px] sm:text-[17px] font-semibold text-[#0f172a] group-hover:text-[#0C1172] transition-colors">
-                        Admin Dashboard
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#111344]/10 text-[#111344] px-2 py-0.5 rounded-[4px]">
-                      Admin
-                    </span>
-                  </button>
-                )}
 
                 {/* 4. Logout */}
                 <button

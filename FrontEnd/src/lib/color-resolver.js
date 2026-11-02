@@ -1,10 +1,10 @@
 /**
  * Smart Color Resolution Engine
  * Automatically maps standard, tech, and cosmetic color names to exact hex values.
- * Admin can type "burgundy", "desert titanium", "midnight", etc., without needing hex codes.
+ * Includes typo tolerance (Levenshtein distance) and common alias resolution.
  */
 
-const KNOWN_COLORS = {
+export const KNOWN_COLORS = {
   // Rich / Custom Gadget & Fashion Colors
   burgundy: "#800020",
   maroon: "#800000",
@@ -37,12 +37,14 @@ const KNOWN_COLORS = {
 
   // Samsung Signature Colors
   "titanium gray": "#5E5F64",
+  "titanium grey": "#5E5F64",
   "titanium black": "#28292B",
   "titanium yellow": "#E6D8A2",
   "titanium violet": "#524F60",
   "amber yellow": "#F5C342",
   "cobalt violet": "#44355B",
   "marble gray": "#B7B7B9",
+  "marble grey": "#B7B7B9",
   "onyx black": "#101010",
   "phantom black": "#181818",
   "phantom silver": "#E0E0E0",
@@ -81,14 +83,59 @@ const KNOWN_COLORS = {
   brown: "#78350F",
 };
 
+// Common typos and phonetic aliases
+const COLOR_ALIASES = {
+  burgundry: "burgundy",
+  burgandy: "burgundy",
+  burgendy: "burgundy",
+  titamium: "natural titanium",
+  titanum: "natural titanium",
+  "desert titamium": "desert titanium",
+  "natural titamium": "natural titanium",
+  spacegray: "space gray",
+  spacegrey: "space grey",
+  spaceblack: "space black",
+  rosegold: "rose gold",
+  sierrablue: "sierra blue",
+  deeppurple: "deep purple",
+  pacificblue: "pacific blue",
+  midnightblue: "midnight",
+};
+
+// Calculate Levenshtein distance between two strings
+function levenshtein(a, b) {
+  const an = a ? a.length : 0;
+  const bn = b ? b.length : 0;
+  if (an === 0) return bn;
+  if (bn === 0) return an;
+  const matrix = Array.from({ length: bn + 1 }, (_, i) => [i]);
+  for (let j = 0; j <= an; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= bn; i++) {
+    for (let j = 1; j <= an; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          matrix[i][j - 1] + 1,     // insertion
+          matrix[i - 1][j] + 1      // deletion
+        );
+      }
+    }
+  }
+  return matrix[bn][an];
+}
+
 /**
  * Resolves a text color name into a validated hex code and formatted display name.
- * @param {string} rawName - e.g. "burgundy", "desert titanium", "Space Black"
- * @returns {{ name: string, hex: string }}
+ * @param {string} rawName - e.g. "burgundy", "burgundry", "desert titanium", "#800020"
+ * @param {string} [customHex] - Optional manual override hex from color picker
+ * @returns {{ name: string, hex: string, isRecognized: boolean, matchedKey: string }}
  */
-export function resolveColorName(rawName) {
+export function resolveColorName(rawName, customHex = "") {
   if (!rawName || typeof rawName !== "string") {
-    return { name: "Default", hex: "#111344" };
+    return { name: "Default", hex: customHex || "#111344", isRecognized: true, matchedKey: "default" };
   }
 
   const cleanName = rawName.trim();
@@ -96,22 +143,52 @@ export function resolveColorName(rawName) {
 
   // 1. Direct dictionary match
   if (KNOWN_COLORS[lower]) {
-    return { name: cleanName, hex: KNOWN_COLORS[lower] };
+    return { name: cleanName, hex: KNOWN_COLORS[lower], isRecognized: true, matchedKey: lower };
   }
 
-  // 2. Check if user typed a valid hex directly
+  // 2. Direct alias match (e.g. "burgundry" -> "burgundy")
+  if (COLOR_ALIASES[lower] && KNOWN_COLORS[COLOR_ALIASES[lower]]) {
+    const canonicalKey = COLOR_ALIASES[lower];
+    // Keep user's capitalized label or canonical name
+    return {
+      name: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+      hex: KNOWN_COLORS[canonicalKey],
+      isRecognized: true,
+      matchedKey: canonicalKey
+    };
+  }
+
+  // 3. User supplied direct valid hex
   if (/^#([0-9A-F]{3}){1,2}$/i.test(cleanName)) {
-    return { name: cleanName.toUpperCase(), hex: cleanName };
+    return { name: cleanName.toUpperCase(), hex: cleanName, isRecognized: true, matchedKey: "hex" };
   }
 
-  // 3. Fallback: Generate a deterministic clean pastel/brand tone based on string hash
-  let hash = 0;
-  for (let i = 0; i < lower.length; i++) {
-    hash = lower.charCodeAt(i) + ((hash << 5) - hash);
+  // 4. Fuzzy Levenshtein match across known colors (threshold: distance <= 2 for words >= 5 chars)
+  let bestMatch = null;
+  let minDistance = 999;
+  for (const colorKey of Object.keys(KNOWN_COLORS)) {
+    // Only fuzzy match single words or matching token counts
+    const dist = levenshtein(lower, colorKey);
+    if (dist < minDistance && dist <= (lower.length > 5 ? 2 : 1)) {
+      minDistance = dist;
+      bestMatch = colorKey;
+    }
   }
-  const c = (hash & 0x00ffffff).toString(16).toUpperCase();
-  const generatedHex = `#${"00000".substring(0, 6 - c.length)}${c}`;
 
-  return { name: cleanName, hex: generatedHex };
+  if (bestMatch) {
+    return {
+      name: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+      hex: KNOWN_COLORS[bestMatch],
+      isRecognized: true,
+      matchedKey: bestMatch
+    };
+  }
+
+  // 5. Custom hex passed in from color picker or fallback
+  if (customHex && /^#([0-9A-F]{3}){1,2}$/i.test(customHex)) {
+    return { name: cleanName, hex: customHex, isRecognized: true, matchedKey: "custom" };
+  }
+
+  // 6. Unknown color: use subtle neutral slate fallback so it never shows an unexpected green/random tone
+  return { name: cleanName, hex: "#64748B", isRecognized: false, matchedKey: "unknown" };
 }
-

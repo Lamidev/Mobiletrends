@@ -132,20 +132,28 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
   }, [product]);
 
   // ========================================================
-  // DYNAMIC PRICE & STOCK COMPUTATION
+  // DYNAMIC PRICE & STOCK COMPUTATION (BASE + VARIANT DELTA)
   // ========================================================
   const { currentPrice, originalPrice, currentStock } = useMemo(() => {
+    const baseProductPrice = product?.salePrice > 0 ? product.salePrice : product?.price || 0;
+    const baseOrig =
+      product?.salePrice > 0 && product?.price > product?.salePrice ? product.price : null;
+
     if (isPhoneOrTablet && availableStorageVariants.length > 0) {
       const match =
         availableStorageVariants.find((v) => v.size === selectedStorage) ||
         availableStorageVariants[0];
-      const p = match?.salePrice > 0 ? match.salePrice : match?.price || product?.price || 0;
-      const orig =
-        match?.salePrice > 0 && match?.price > match?.salePrice ? match.price : null;
+
+      const rawVPrice = Number(match?.price) || 0;
+      // If variant has isBase or rawVPrice is smaller than base product price, it is an upgrade delta
+      const isDelta = match?.isBase !== undefined || (baseProductPrice > 0 && rawVPrice < baseProductPrice);
+      const computedPrice = isDelta ? (baseProductPrice + (match?.isBase ? 0 : rawVPrice)) : (rawVPrice || baseProductPrice);
+      const computedOrig = baseOrig ? (baseOrig + (isDelta ? (match?.isBase ? 0 : rawVPrice) : 0)) : null;
+
       return {
-        currentPrice: p,
-        originalPrice: orig,
-        currentStock: match?.stock ?? product?.totalStock ?? 0,
+        currentPrice: computedPrice,
+        originalPrice: computedOrig,
+        currentStock: product?.totalStock ?? 0,
       };
     }
 
@@ -156,22 +164,22 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
         ) ||
         availableLaptopVariants.find((v) => v.ram === selectedRam) ||
         availableLaptopVariants[0];
-      const p = match?.salePrice > 0 ? match.salePrice : match?.price || product?.price || 0;
-      const orig =
-        match?.salePrice > 0 && match?.price > match?.salePrice ? match.price : null;
+
+      const rawVPrice = Number(match?.price) || 0;
+      const isDelta = match?.isBase !== undefined || (baseProductPrice > 0 && rawVPrice < baseProductPrice);
+      const computedPrice = isDelta ? (baseProductPrice + (match?.isBase ? 0 : rawVPrice)) : (rawVPrice || baseProductPrice);
+      const computedOrig = baseOrig ? (baseOrig + (isDelta ? (match?.isBase ? 0 : rawVPrice) : 0)) : null;
+
       return {
-        currentPrice: p,
-        originalPrice: orig,
-        currentStock: match?.stock ?? product?.totalStock ?? 0,
+        currentPrice: computedPrice,
+        originalPrice: computedOrig,
+        currentStock: product?.totalStock ?? 0,
       };
     }
 
-    const p = product?.salePrice > 0 ? product.salePrice : product?.price || 0;
-    const orig =
-      product?.salePrice > 0 && product?.price > product?.salePrice ? product.price : null;
     return {
-      currentPrice: p,
-      originalPrice: orig,
+      currentPrice: baseProductPrice,
+      originalPrice: baseOrig,
       currentStock: product?.totalStock ?? 0,
     };
   }, [
@@ -188,44 +196,27 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
   const isOutOfStock = currentStock <= 0;
   const totalPrice = currentPrice * quantity;
   const savings = originalPrice ? originalPrice - currentPrice : 0;
-  // Base price calculation for delta tags (e.g., 256GB +₦1,000)
-  const baseStoragePrice = useMemo(() => {
-    if (!availableStorageVariants || availableStorageVariants.length === 0) {
-      return product?.salePrice > 0 ? product.salePrice : product?.price || 0;
-    }
-    const prices = availableStorageVariants.map((v) => {
-      const sp = Number(v.salePrice) || 0;
-      const bp = Number(v.price) || 0;
-      if (sp > 0) return sp;
-      if (bp > 0) return bp;
-      return product?.salePrice > 0 ? product.salePrice : product?.price || 0;
-    });
-    return Math.min(...prices);
-  }, [availableStorageVariants, product]);
 
+  // Base price calculation for delta tags (e.g., 256GB +₦1,000)
   const getStorageDelta = (size) => {
     const variant = availableStorageVariants.find((v) => v.size === size);
     if (!variant) return 0;
-    const sp = Number(variant.salePrice) || 0;
-    const bp = Number(variant.price) || 0;
-    const effective = sp > 0 ? sp : bp > 0 ? bp : product?.salePrice > 0 ? product.salePrice : product?.price || 0;
-    const delta = effective - baseStoragePrice;
+    const baseProductPrice = product?.salePrice > 0 ? product.salePrice : product?.price || 0;
+    const rawVPrice = Number(variant.price) || 0;
+    const isDelta = variant.isBase !== undefined || (baseProductPrice > 0 && rawVPrice < baseProductPrice);
+    if (isDelta) {
+      return variant.isBase ? 0 : rawVPrice;
+    }
+    const delta = rawVPrice - baseProductPrice;
     return delta > 0 ? delta : 0;
   };
 
-  const baseLaptopPrice = useMemo(() => {
-    if (!availableLaptopVariants || availableLaptopVariants.length === 0) {
-      return product?.salePrice > 0 ? product.salePrice : product?.price || 0;
-    }
-    const prices = availableLaptopVariants.map((v) => {
-      const sp = Number(v.salePrice) || 0;
-      const bp = Number(v.price) || 0;
-      if (sp > 0) return sp;
-      if (bp > 0) return bp;
-      return product?.salePrice > 0 ? product.salePrice : product?.price || 0;
-    });
-    return Math.min(...prices);
-  }, [availableLaptopVariants, product]);
+  const isStorageBase = (size) => {
+    const variant = availableStorageVariants.find((v) => v.size === size);
+    if (!variant) return false;
+    if (variant.isBase) return true;
+    return getStorageDelta(size) === 0;
+  };
 
   const getLaptopStorageDelta = (ssd) => {
     const variant =
@@ -233,27 +224,21 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
         (v) => v.ram === selectedRam && v.storage === ssd
       ) || availableLaptopVariants.find((v) => v.storage === ssd);
     if (!variant) return 0;
-    const sp = Number(variant.salePrice) || 0;
-    const bp = Number(variant.price) || 0;
-    const effective = sp > 0 ? sp : bp > 0 ? bp : product?.salePrice > 0 ? product.salePrice : product?.price || 0;
-    const delta = effective - baseLaptopPrice;
+    const baseProductPrice = product?.salePrice > 0 ? product.salePrice : product?.price || 0;
+    const rawVPrice = Number(variant.price) || 0;
+    const isDelta = variant.isBase !== undefined || (baseProductPrice > 0 && rawVPrice < baseProductPrice);
+    if (isDelta) {
+      return variant.isBase ? 0 : rawVPrice;
+    }
+    const delta = rawVPrice - baseProductPrice;
     return delta > 0 ? delta : 0;
   };
 
   const getLaptopRamDelta = (ram) => {
     const variantsForRam = availableLaptopVariants.filter((v) => v.ram === ram);
     if (variantsForRam.length === 0) return 0;
-    const minForRam = Math.min(
-      ...variantsForRam.map((v) => {
-        const sp = Number(v.salePrice) || 0;
-        const bp = Number(v.price) || 0;
-        if (sp > 0) return sp;
-        if (bp > 0) return bp;
-        return product?.salePrice > 0 ? product.salePrice : product?.price || 0;
-      })
-    );
-    const delta = minForRam - baseLaptopPrice;
-    return delta > 0 ? delta : 0;
+    const minForRam = Math.min(...variantsForRam.map((v) => Number(v.price) || 0));
+    return minForRam > 0 ? minForRam : 0;
   };
 
 
@@ -601,11 +586,15 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                       }`}
                     >
                       <span className="text-[12px] sm:text-[13px] font-bold leading-tight">{size}</span>
-                      {delta > 0 && (
+                      {delta > 0 ? (
                         <span className="text-[10px] sm:text-[11px] font-semibold text-[#DF5E00] leading-tight mt-0.5">
                           +₦{delta.toLocaleString('en-NG')}
                         </span>
-                      )}
+                      ) : isStorageBase(size) ? (
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-700 leading-tight mt-0.5">
+                          Base
+                        </span>
+                      ) : null}
                     </button>
                   );
                 })}

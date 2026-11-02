@@ -456,19 +456,7 @@ function MobileSheetContent({ closeSheet }) {
               <User className="mr-2.5 h-4 w-4 text-[#0C1172] shrink-0" />
               <span className="truncate">My Account</span>
             </Button>
-            {user?.role === "admin" && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  navigate("/admin/dashboard");
-                  if (closeSheet) closeSheet();
-                }}
-                className="w-full justify-start rounded-[6px] font-manrope font-semibold text-[13px] border-[#daddd4] bg-white text-[#20231e] h-11 px-3.5 overflow-hidden"
-              >
-                <LayoutDashboard className="mr-2.5 h-4 w-4 text-[#0C1172] shrink-0" />
-                <span className="truncate">Admin Dashboard</span>
-              </Button>
-            )}
+
             <Button
               variant="ghost"
               onClick={() => setIsLogoutDialogOpen(true)}

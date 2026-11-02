@@ -5,10 +5,10 @@ import { resolveColorName } from '@/lib/color-resolver';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, X } from 'lucide-react';
+import { Plus, Trash2, X, Star, Check } from 'lucide-react';
 
 const COMMON_STORAGE_PRESETS = ['128GB', '256GB', '512GB', '1TB'];
-const COMMON_RAM_PRESETS = ['8GB', '16GB', '18GB', '24GB', '32GB', '36GB', '64GB'];
+const COMMON_RAM_PRESETS = ['8GB', '16GB', '18GB', '24GB', '32GB', '64GB'];
 const COMMON_SSD_PRESETS = ['256GB SSD', '512GB SSD', '1TB SSD', '2TB SSD'];
 const POPULAR_COLOR_SUGGESTIONS = [
   'Space Black',
@@ -21,17 +21,38 @@ const POPULAR_COLOR_SUGGESTIONS = [
   'Burgundy',
 ];
 
+// Comma formatting helpers
+function formatWithCommas(val) {
+  if (val === undefined || val === null || val === '') return '';
+  const clean = String(val).replace(/[^0-9]/g, '');
+  if (!clean) return '';
+  return Number(clean).toLocaleString('en-NG');
+}
+
+function parseRawNumber(val) {
+  if (val === undefined || val === null || val === '') return 0;
+  const clean = String(val).replace(/[^0-9]/g, '');
+  return clean ? Number(clean) : 0;
+}
+
 export default function ProductVariantsManager({ formData, setFormData }) {
   const [colorInput, setColorInput] = useState('');
+  const [customColorPickerHex, setCustomColorPickerHex] = useState('#111344');
+
+  // Live preview for current typing color
+  const liveColorPreview = resolveColorName(colorInput, customColorPickerHex);
 
   // ----------------------------------------------------
   // COLORS MANAGEMENT
   // ----------------------------------------------------
-  const handleAddColor = (nameToAdd) => {
+  const handleAddColor = (nameToAdd, forcedHex) => {
     const raw = (nameToAdd || colorInput).trim();
     if (!raw) return;
 
-    const resolved = resolveColorName(raw);
+    const resolved = forcedHex
+      ? { name: raw, hex: forcedHex, isRecognized: true }
+      : resolveColorName(raw, customColorPickerHex);
+
     const existing = formData.colors || [];
 
     // Avoid duplicate names (case-insensitive)
@@ -42,7 +63,7 @@ export default function ProductVariantsManager({ formData, setFormData }) {
 
     setFormData({
       ...formData,
-      colors: [...existing, resolved],
+      colors: [...existing, { name: resolved.name, hex: resolved.hex }],
     });
     setColorInput('');
   };
@@ -59,12 +80,11 @@ export default function ProductVariantsManager({ formData, setFormData }) {
   // ----------------------------------------------------
   const handleAddStorageVariant = () => {
     const existing = formData.storageVariants || [];
-    // Suggest next preset size
     const nextPreset =
       COMMON_STORAGE_PRESETS.find((p) => !existing.some((v) => v.size === p)) ||
       `${existing.length + 1}TB`;
 
-    const basePrice = Number(formData.price) || 0;
+    const isFirst = existing.length === 0;
 
     setFormData({
       ...formData,
@@ -72,20 +92,37 @@ export default function ProductVariantsManager({ formData, setFormData }) {
         ...existing,
         {
           size: nextPreset,
-          price: basePrice > 0 ? basePrice : 0,
-          salePrice: 0,
-          stock: Number(formData.totalStock) || 5,
+          price: 0, // Additional delta amount (+₦0 for base, +₦X for upgrades)
+          isBase: isFirst, // First variant defaults to base model
         },
       ],
     });
   };
 
-  const handleUpdateStorageVariant = (index, field, value) => {
+  const handleSetBaseStorage = (targetIndex) => {
+    const updated = (formData.storageVariants || []).map((v, idx) => ({
+      ...v,
+      isBase: idx === targetIndex,
+      price: idx === targetIndex ? 0 : v.price, // Base model is always +₦0
+    }));
+    setFormData({ ...formData, storageVariants: updated });
+  };
+
+  const handleUpdateStorageVariant = (index, field, rawValue) => {
     const updated = [...(formData.storageVariants || [])];
-    updated[index] = {
-      ...updated[index],
-      [field]: field === 'size' ? value : Number(value) || 0,
-    };
+    const current = updated[index] || {};
+
+    if (field === 'size') {
+      updated[index] = { ...current, size: rawValue };
+    } else if (field === 'price') {
+      // Store raw input or empty string during typing so user can backspace 0
+      const numericVal = parseRawNumber(rawValue);
+      updated[index] = {
+        ...current,
+        price: rawValue === '' ? '' : numericVal,
+      };
+    }
+
     setFormData({
       ...formData,
       storageVariants: updated,
@@ -93,20 +130,26 @@ export default function ProductVariantsManager({ formData, setFormData }) {
   };
 
   const handleRemoveStorageVariant = (indexToRemove) => {
+    const updated = (formData.storageVariants || []).filter(
+      (_, idx) => idx !== indexToRemove
+    );
+    // If we removed the base variant, make the first remaining variant the base
+    if (updated.length > 0 && !updated.some((v) => v.isBase)) {
+      updated[0].isBase = true;
+      updated[0].price = 0;
+    }
     setFormData({
       ...formData,
-      storageVariants: (formData.storageVariants || []).filter(
-        (_, idx) => idx !== indexToRemove
-      ),
+      storageVariants: updated,
     });
   };
 
   // ----------------------------------------------------
-  // LAPTOP CONFIG VARIANTS (Laptops)
+  // LAPTOP CONFIG VARIANTS (Laptops: RAM + SSD)
   // ----------------------------------------------------
   const handleAddLaptopVariant = () => {
     const existing = formData.laptopVariants || [];
-    const basePrice = Number(formData.price) || 0;
+    const isFirst = existing.length === 0;
 
     setFormData({
       ...formData,
@@ -115,20 +158,36 @@ export default function ProductVariantsManager({ formData, setFormData }) {
         {
           ram: '16GB',
           storage: '512GB SSD',
-          price: basePrice > 0 ? basePrice : 0,
-          salePrice: 0,
-          stock: Number(formData.totalStock) || 3,
+          price: 0, // Additional delta amount (+₦0 for base config)
+          isBase: isFirst,
         },
       ],
     });
   };
 
-  const handleUpdateLaptopVariant = (index, field, value) => {
+  const handleSetBaseLaptop = (targetIndex) => {
+    const updated = (formData.laptopVariants || []).map((v, idx) => ({
+      ...v,
+      isBase: idx === targetIndex,
+      price: idx === targetIndex ? 0 : v.price,
+    }));
+    setFormData({ ...formData, laptopVariants: updated });
+  };
+
+  const handleUpdateLaptopVariant = (index, field, rawValue) => {
     const updated = [...(formData.laptopVariants || [])];
-    updated[index] = {
-      ...updated[index],
-      [field]: field === 'ram' || field === 'storage' ? value : Number(value) || 0,
-    };
+    const current = updated[index] || {};
+
+    if (field === 'ram' || field === 'storage') {
+      updated[index] = { ...current, [field]: rawValue };
+    } else if (field === 'price') {
+      const numericVal = parseRawNumber(rawValue);
+      updated[index] = {
+        ...current,
+        price: rawValue === '' ? '' : numericVal,
+      };
+    }
+
     setFormData({
       ...formData,
       laptopVariants: updated,
@@ -136,11 +195,16 @@ export default function ProductVariantsManager({ formData, setFormData }) {
   };
 
   const handleRemoveLaptopVariant = (indexToRemove) => {
+    const updated = (formData.laptopVariants || []).filter(
+      (_, idx) => idx !== indexToRemove
+    );
+    if (updated.length > 0 && !updated.some((v) => v.isBase)) {
+      updated[0].isBase = true;
+      updated[0].price = 0;
+    }
     setFormData({
       ...formData,
-      laptopVariants: (formData.laptopVariants || []).filter(
-        (_, idx) => idx !== indexToRemove
-      ),
+      laptopVariants: updated,
     });
   };
 
@@ -168,11 +232,11 @@ export default function ProductVariantsManager({ formData, setFormData }) {
   }
 
   return (
-    <div className="space-y-6 pt-4 border-t border-gray-200">
+    <div className="space-y-6 pt-4 border-t border-gray-200 max-w-full overflow-hidden">
       {/* 1. DYNAMIC COLOR BUILDER */}
-      <div className="space-y-3 bg-gray-50/70 p-4 rounded-xl border border-gray-200">
+      <div className="space-y-3 bg-gray-50/80 p-3.5 sm:p-4 rounded-xl border border-gray-200">
         <div>
-          <Label className="text-sm font-bold text-gray-900 flex items-center justify-between">
+          <Label className="text-sm font-bold text-gray-900 flex flex-wrap items-center justify-between gap-1">
             <span>Available Colors</span>
             <span className="text-[11px] font-normal text-muted-foreground">
               Type color name (e.g. burgundy, midnight)
@@ -186,7 +250,7 @@ export default function ProductVariantsManager({ formData, setFormData }) {
             {formData.colors.map((col, idx) => (
               <span
                 key={idx}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white text-gray-800 border border-gray-300 shadow-sm transition-all"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white text-gray-800 border border-gray-300 shadow-sm"
               >
                 <span
                   className="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0 shadow-inner"
@@ -211,33 +275,76 @@ export default function ProductVariantsManager({ formData, setFormData }) {
         )}
 
         {/* Add Color Input Row */}
-        <div className="flex items-center gap-2">
-          <Input
-            type="text"
-            value={colorInput}
-            onChange={(e) => setColorInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddColor();
-              }
-            }}
-            placeholder="Type color (e.g. burgundy, desert titanium)..."
-            className="h-9 text-sm bg-white"
-          />
-          <Button
-            type="button"
-            onClick={() => handleAddColor()}
-            size="sm"
-            className="h-9 bg-[#111344] hover:bg-[#0C1172] text-white shrink-0 font-semibold"
-          >
-            <Plus size={14} className="mr-1" /> Add Color
-          </Button>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 min-w-0">
+              <Input
+                type="text"
+                value={colorInput}
+                onChange={(e) => setColorInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddColor();
+                  }
+                }}
+                placeholder="Type color (e.g. burgundy, desert titanium)..."
+                className="h-9 text-xs sm:text-sm bg-white pr-8"
+              />
+              {colorInput.trim() && (
+                <div
+                  className="absolute right-2 top-2.5 w-4 h-4 rounded-full border border-black/20 shadow-inner"
+                  style={{ backgroundColor: liveColorPreview.hex }}
+                  title={liveColorPreview.isRecognized ? `Matched: ${liveColorPreview.name}` : 'Unrecognized'}
+                />
+              )}
+            </div>
+
+            <Button
+              type="button"
+              onClick={() => handleAddColor()}
+              size="sm"
+              className="h-9 bg-[#111344] hover:bg-[#0C1172] text-white shrink-0 font-semibold px-3"
+            >
+              <Plus size={14} className="mr-1" /> Add
+            </Button>
+          </div>
+
+          {/* Color Resolution Status & Custom Picker Fallback */}
+          {colorInput.trim() && (
+            <div className="flex items-center justify-between text-[11px] px-1 text-gray-600 bg-white/80 p-1.5 rounded-md border border-gray-200">
+              <div className="flex items-center gap-1.5 truncate">
+                <span
+                  className="w-3 h-3 rounded-full border border-black/20 shrink-0"
+                  style={{ backgroundColor: liveColorPreview.hex }}
+                />
+                {liveColorPreview.isRecognized ? (
+                  <span className="text-emerald-700 font-semibold truncate">
+                    Recognized: {liveColorPreview.name}
+                  </span>
+                ) : (
+                  <span className="text-amber-700 font-medium truncate">
+                    Custom shade: adjust with picker →
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0 ml-2">
+                <input
+                  type="color"
+                  value={liveColorPreview.hex}
+                  onChange={(e) => setCustomColorPickerHex(e.target.value)}
+                  className="w-6 h-6 p-0 border border-gray-300 rounded cursor-pointer"
+                  title="Pick exact custom color"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Quick Suggestion Pills */}
         <div className="flex items-center gap-1.5 flex-wrap pt-1">
-          <span className="text-[11px] font-semibold text-gray-500 flex items-center gap-1">
+          <span className="text-[11px] font-semibold text-gray-500 shrink-0">
             Quick Add:
           </span>
           {POPULAR_COLOR_SUGGESTIONS.map((preset) => (
@@ -245,7 +352,7 @@ export default function ProductVariantsManager({ formData, setFormData }) {
               key={preset}
               type="button"
               onClick={() => handleAddColor(preset)}
-              className="text-[11px] font-medium text-gray-600 bg-white hover:bg-gray-100 hover:text-gray-900 border border-gray-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+              className="text-[11px] font-medium text-gray-600 bg-white hover:bg-gray-100 hover:text-gray-900 border border-gray-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer shrink-0"
             >
               + {preset}
             </button>
@@ -255,14 +362,14 @@ export default function ProductVariantsManager({ formData, setFormData }) {
 
       {/* 2. DYNAMIC STORAGE VARIANTS (SMARTPHONES / TABLETS) */}
       {isPhoneOrTablet && (
-        <div className="space-y-3 bg-gray-50/70 p-4 rounded-xl border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label className="text-sm font-bold text-gray-900">
+        <div className="space-y-3 bg-gray-50/80 p-3.5 sm:p-4 rounded-xl border border-gray-200">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <Label className="text-sm font-bold text-gray-900 block truncate">
                 Storage Variants & Pricing
               </Label>
-              <p className="text-[11px] text-muted-foreground">
-                Set individual price & stock for each storage size (e.g. 128GB, 256GB).
+              <p className="text-[11px] text-muted-foreground truncate">
+                Set additional price (+₦) per storage upgrade.
               </p>
             </div>
             <Button
@@ -270,7 +377,7 @@ export default function ProductVariantsManager({ formData, setFormData }) {
               onClick={handleAddStorageVariant}
               size="sm"
               variant="outline"
-              className="h-8 text-xs font-bold border-gray-300 hover:bg-white"
+              className="h-8 text-xs font-bold border-gray-300 hover:bg-white shrink-0 px-2.5"
             >
               <Plus size={13} className="mr-1" /> Add Storage
             </Button>
@@ -278,84 +385,92 @@ export default function ProductVariantsManager({ formData, setFormData }) {
 
           {formData.storageVariants && formData.storageVariants.length > 0 ? (
             <div className="space-y-2.5">
-              {formData.storageVariants.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="grid grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-lg border border-gray-200 shadow-sm"
-                >
-                  <div className="col-span-3">
-                    <Label className="text-[10px] font-bold text-gray-500 uppercase">
-                      Storage
-                    </Label>
-                    <Input
-                      type="text"
-                      value={item.size}
-                      onChange={(e) =>
-                        handleUpdateStorageVariant(idx, 'size', e.target.value)
-                      }
-                      placeholder="e.g. 128GB"
-                      className="h-8 text-xs font-semibold"
-                    />
+              {formData.storageVariants.map((item, idx) => {
+                const isBase = Boolean(item.isBase);
+                const displayPrice = isBase
+                  ? '0'
+                  : item.price === ''
+                  ? ''
+                  : formatWithCommas(item.price);
+
+                return (
+                  <div
+                    key={idx}
+                    className={`bg-white p-3 rounded-lg border shadow-sm transition-all ${
+                      isBase
+                        ? 'border-[#111344]/30 bg-blue-50/20 ring-1 ring-[#111344]/15'
+                        : 'border-gray-200'
+                    }`}
+                  >
+                    {/* Top Row: Storage Size & Base Model Pill */}
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <Input
+                          type="text"
+                          value={item.size}
+                          onChange={(e) =>
+                            handleUpdateStorageVariant(idx, 'size', e.target.value)
+                          }
+                          placeholder="e.g. 128GB"
+                          className="h-8 text-xs font-bold w-24 sm:w-28 bg-white shrink-0"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSetBaseStorage(idx)}
+                          className={`text-[11px] font-bold px-2 py-1 rounded-md transition-all flex items-center gap-1 shrink-0 ${
+                            isBase
+                              ? 'bg-[#111344] text-white shadow-xs'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                          title="Click to set as base model"
+                        >
+                          <Star size={11} className={isBase ? 'fill-amber-400 text-amber-400' : ''} />
+                          <span>{isBase ? 'Base Model' : 'Set as Base'}</span>
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveStorageVariant(idx)}
+                        className="h-7 w-7 text-gray-400 hover:text-red-600 flex items-center justify-center rounded-md hover:bg-red-50 transition-colors shrink-0"
+                        title="Delete Variant"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+
+                    {/* Bottom Row: Additional Price Input */}
+                    <div>
+                      <Label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">
+                        {isBase ? 'Additional Price (Base Included)' : 'Additional Price (+₦ Upgrade)'}
+                      </Label>
+                      <div className="relative flex items-center">
+                        <span className="absolute left-2.5 text-xs font-bold text-gray-500 pointer-events-none">
+                          + ₦
+                        </span>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          disabled={isBase}
+                          value={displayPrice}
+                          onChange={(e) =>
+                            handleUpdateStorageVariant(idx, 'price', e.target.value)
+                          }
+                          placeholder={isBase ? '0 (Included in Base Price)' : 'e.g. 50,000'}
+                          className={`h-8 text-xs font-semibold pl-8 ${
+                            isBase ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'
+                          }`}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="col-span-3">
-                    <Label className="text-[10px] font-bold text-gray-500 uppercase">
-                      Price (₦)
-                    </Label>
-                    <Input
-                      type="number"
-                      value={item.price}
-                      onChange={(e) =>
-                        handleUpdateStorageVariant(idx, 'price', e.target.value)
-                      }
-                      placeholder="₦ Price"
-                      className="h-8 text-xs font-semibold"
-                    />
-                  </div>
-                  <div className="col-span-3">
-                    <Label className="text-[10px] font-bold text-gray-500 uppercase">
-                      Sale Price (₦)
-                    </Label>
-                    <Input
-                      type="number"
-                      value={item.salePrice || ''}
-                      onChange={(e) =>
-                        handleUpdateStorageVariant(idx, 'salePrice', e.target.value)
-                      }
-                      placeholder="Optional"
-                      className="h-8 text-xs font-semibold"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <Label className="text-[10px] font-bold text-gray-500 uppercase">
-                      Stock
-                    </Label>
-                    <Input
-                      type="number"
-                      value={item.stock}
-                      onChange={(e) =>
-                        handleUpdateStorageVariant(idx, 'stock', e.target.value)
-                      }
-                      placeholder="Qty"
-                      className="h-8 text-xs font-semibold"
-                    />
-                  </div>
-                  <div className="col-span-1 flex items-end justify-center pb-0.5">
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveStorageVariant(idx)}
-                      className="h-8 w-8 text-gray-400 hover:text-red-600 flex items-center justify-center rounded-md hover:bg-red-50 transition-colors"
-                      title="Delete Variant"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-4 bg-white rounded-lg border border-dashed border-gray-300">
               <p className="text-xs text-muted-foreground">
-                No storage variants added. Base price (₦{formData.price || 0}) will be used.
+                No storage variants added. Base product price will be used.
               </p>
               <Button
                 type="button"
@@ -371,16 +486,16 @@ export default function ProductVariantsManager({ formData, setFormData }) {
         </div>
       )}
 
-      {/* 3. DYNAMIC LAPTOP CONFIG VARIANTS (LAPTOPS) */}
+      {/* 3. DYNAMIC LAPTOP CONFIG VARIANTS (LAPTOPS: RAM + SSD) */}
       {isLaptop && (
-        <div className="space-y-3 bg-gray-50/70 p-4 rounded-xl border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label className="text-sm font-bold text-gray-900">
+        <div className="space-y-3 bg-gray-50/80 p-3.5 sm:p-4 rounded-xl border border-gray-200">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <Label className="text-sm font-bold text-gray-900 block truncate">
                 Laptop RAM & SSD Configurations
               </Label>
-              <p className="text-[11px] text-muted-foreground">
-                Set individual price & stock for RAM & SSD combinations.
+              <p className="text-[11px] text-muted-foreground truncate">
+                Set additional price (+₦) per hardware configuration.
               </p>
             </div>
             <Button
@@ -388,7 +503,7 @@ export default function ProductVariantsManager({ formData, setFormData }) {
               onClick={handleAddLaptopVariant}
               size="sm"
               variant="outline"
-              className="h-8 text-xs font-bold border-gray-300 hover:bg-white"
+              className="h-8 text-xs font-bold border-gray-300 hover:bg-white shrink-0 px-2.5"
             >
               <Plus size={13} className="mr-1" /> Add Config
             </Button>
@@ -396,84 +511,101 @@ export default function ProductVariantsManager({ formData, setFormData }) {
 
           {formData.laptopVariants && formData.laptopVariants.length > 0 ? (
             <div className="space-y-2.5">
-              {formData.laptopVariants.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="grid grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-lg border border-gray-200 shadow-sm"
-                >
-                  <div className="col-span-3">
-                    <Label className="text-[10px] font-bold text-gray-500 uppercase">
-                      RAM
-                    </Label>
-                    <Input
-                      type="text"
-                      value={item.ram}
-                      onChange={(e) =>
-                        handleUpdateLaptopVariant(idx, 'ram', e.target.value)
-                      }
-                      placeholder="e.g. 16GB"
-                      className="h-8 text-xs font-semibold"
-                    />
+              {formData.laptopVariants.map((item, idx) => {
+                const isBase = Boolean(item.isBase);
+                const displayPrice = isBase
+                  ? '0'
+                  : item.price === ''
+                  ? ''
+                  : formatWithCommas(item.price);
+
+                return (
+                  <div
+                    key={idx}
+                    className={`bg-white p-3 rounded-lg border shadow-sm transition-all ${
+                      isBase
+                        ? 'border-[#111344]/30 bg-blue-50/20 ring-1 ring-[#111344]/15'
+                        : 'border-gray-200'
+                    }`}
+                  >
+                    {/* Top Row: RAM & SSD Specs + Base Toggle */}
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-1.5 flex-1 flex-wrap">
+                        <Input
+                          type="text"
+                          value={item.ram}
+                          onChange={(e) =>
+                            handleUpdateLaptopVariant(idx, 'ram', e.target.value)
+                          }
+                          placeholder="RAM (e.g. 16GB)"
+                          className="h-8 text-xs font-bold w-20 sm:w-24 bg-white shrink-0"
+                        />
+                        <Input
+                          type="text"
+                          value={item.storage}
+                          onChange={(e) =>
+                            handleUpdateLaptopVariant(idx, 'storage', e.target.value)
+                          }
+                          placeholder="SSD (e.g. 512GB SSD)"
+                          className="h-8 text-xs font-bold w-28 sm:w-32 bg-white shrink-0"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSetBaseLaptop(idx)}
+                          className={`text-[11px] font-bold px-2 py-1 rounded-md transition-all flex items-center gap-1 shrink-0 ${
+                            isBase
+                              ? 'bg-[#111344] text-white shadow-xs'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                          title="Click to set as base configuration"
+                        >
+                          <Star size={11} className={isBase ? 'fill-amber-400 text-amber-400' : ''} />
+                          <span>{isBase ? 'Base Config' : 'Set Base'}</span>
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLaptopVariant(idx)}
+                        className="h-7 w-7 text-gray-400 hover:text-red-600 flex items-center justify-center rounded-md hover:bg-red-50 transition-colors shrink-0"
+                        title="Delete Config"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+
+                    {/* Bottom Row: Additional Price Input */}
+                    <div>
+                      <Label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">
+                        {isBase ? 'Additional Price (Base Included)' : 'Additional Price (+₦ Upgrade)'}
+                      </Label>
+                      <div className="relative flex items-center">
+                        <span className="absolute left-2.5 text-xs font-bold text-gray-500 pointer-events-none">
+                          + ₦
+                        </span>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          disabled={isBase}
+                          value={displayPrice}
+                          onChange={(e) =>
+                            handleUpdateLaptopVariant(idx, 'price', e.target.value)
+                          }
+                          placeholder={isBase ? '0 (Included in Base Price)' : 'e.g. 100,000'}
+                          className={`h-8 text-xs font-semibold pl-8 ${
+                            isBase ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'
+                          }`}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="col-span-3">
-                    <Label className="text-[10px] font-bold text-gray-500 uppercase">
-                      SSD Storage
-                    </Label>
-                    <Input
-                      type="text"
-                      value={item.storage}
-                      onChange={(e) =>
-                        handleUpdateLaptopVariant(idx, 'storage', e.target.value)
-                      }
-                      placeholder="e.g. 512GB SSD"
-                      className="h-8 text-xs font-semibold"
-                    />
-                  </div>
-                  <div className="col-span-3">
-                    <Label className="text-[10px] font-bold text-gray-500 uppercase">
-                      Price (₦)
-                    </Label>
-                    <Input
-                      type="number"
-                      value={item.price}
-                      onChange={(e) =>
-                        handleUpdateLaptopVariant(idx, 'price', e.target.value)
-                      }
-                      placeholder="₦ Price"
-                      className="h-8 text-xs font-semibold"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <Label className="text-[10px] font-bold text-gray-500 uppercase">
-                      Stock
-                    </Label>
-                    <Input
-                      type="number"
-                      value={item.stock}
-                      onChange={(e) =>
-                        handleUpdateLaptopVariant(idx, 'stock', e.target.value)
-                      }
-                      placeholder="Qty"
-                      className="h-8 text-xs font-semibold"
-                    />
-                  </div>
-                  <div className="col-span-1 flex items-end justify-center pb-0.5">
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveLaptopVariant(idx)}
-                      className="h-8 w-8 text-gray-400 hover:text-red-600 flex items-center justify-center rounded-md hover:bg-red-50 transition-colors"
-                      title="Delete Config"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-4 bg-white rounded-lg border border-dashed border-gray-300">
               <p className="text-xs text-muted-foreground">
-                No laptop configurations added. Base price (₦{formData.price || 0}) will be used.
+                No configurations added. Base product price will be used.
               </p>
               <Button
                 type="button"
@@ -491,4 +623,3 @@ export default function ProductVariantsManager({ formData, setFormData }) {
     </div>
   );
 }
-

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
-import { AlignJustify, LogOut, UserCircle } from "lucide-react";
+import { AlignJustify, LogOut, UserCircle, Store } from "lucide-react";
 import { logoutUser } from "@/store/auth-slice";
 import {
   Dialog,
@@ -25,6 +25,12 @@ function AdminHeader({ setOpen }) {
       navigate("/shop/home");
     });
     setIsLogoutDialogOpen(false);
+  }
+
+  function handleGoToStorefront() {
+    dispatch(logoutUser()).then(() => {
+      window.location.href = "/shop/home";
+    });
   }
 
   return (
@@ -54,7 +60,19 @@ function AdminHeader({ setOpen }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Go to Customer Storefront (1-click auto logout & redirect) */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleGoToStorefront}
+          className="inline-flex gap-1.5 items-center px-3 py-1.5 text-xs font-bold text-[#111344] border-gray-300 hover:bg-[#111344]/5 hover:border-[#111344] rounded-lg transition-colors"
+          title="Sign out of admin and switch to customer view"
+        >
+          <Store size={14} className="text-[#DF5E00]" />
+          <span>View Storefront</span>
+        </Button>
+
         {/* Admin User Info */}
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs">
           <UserCircle className="w-4 h-4 text-[#111344]" />
