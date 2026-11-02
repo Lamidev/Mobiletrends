@@ -443,7 +443,7 @@ export default function ReelmarkHero({
 
               {/* Frosted round play icon at bottom-left matching Reelmark spec */}
               <div className="pointer-events-none absolute bottom-3.5 left-3.5 flex items-center gap-2">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/35 backdrop-blur-md border border-white/40 text-white shadow-sm group-hover:bg-[#DF5E00] group-hover:border-[#DF5E00] transition-colors">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/35 backdrop-blur-md border border-white/40 text-white shadow-sm group-hover:bg-[#111344] group-hover:border-[#111344] transition-colors">
                   <svg
                     viewBox="0 0 24 24"
                     fill="currentColor"
@@ -505,7 +505,7 @@ export default function ReelmarkHero({
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.55 }}
-            className="p-1.5 rounded-[8px] border-[1.5px] border-dashed border-[#0C1172]/45 hover:border-[#DF5E00] transition-colors"
+            className="p-1.5 rounded-[8px] border-[1.5px] border-dashed border-[#0C1172]/45 hover:border-[#0C1172] transition-colors"
           >
             <button
               type="button"

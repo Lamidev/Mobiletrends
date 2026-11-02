@@ -146,7 +146,7 @@ function MenuItems({ closeSheet }) {
               className={`font-body text-[13.5px] cursor-pointer flex items-center gap-2 py-1 transition-colors duration-200 ${
                 isActive
                   ? "text-[#0C1172] font-semibold"
-                  : "text-[#141619] font-medium hover:text-[#DF5E00]"
+                  : "text-[#141619] font-medium hover:text-[#0C1172]"
               }`}
             >
               {menuItem.label}

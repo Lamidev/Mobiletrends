@@ -116,7 +116,7 @@ export default function GadgetCatalogue({
                 MacBooks, high-battery Windows workhorses &amp; gaming rigs.
               </p>
             </div>
-            <span className="absolute right-[15px] sm:right-5 bottom-[20px] sm:bottom-[26px] w-[27px] h-[27px] sm:w-[34px] sm:h-[34px] border border-white/25 rounded-full grid place-items-center transition-colors duration-200 text-[#f4f3ef] group-hover:bg-[#DF5E00] group-hover:border-[#DF5E00] group-hover:text-white">
+            <span className="absolute right-[15px] sm:right-5 bottom-[20px] sm:bottom-[26px] w-[27px] h-[27px] sm:w-[34px] sm:h-[34px] border border-white/25 rounded-full grid place-items-center transition-colors duration-200 text-[#f4f3ef] group-hover:bg-[#111344] group-hover:border-[#111344] group-hover:text-white">
               <ArrowUpRight className="w-[13px] h-[13px] sm:w-[14px] sm:h-[14px]" strokeWidth={1.75} />
             </span>
           </button>
@@ -141,7 +141,7 @@ export default function GadgetCatalogue({
                 Phones
               </h3>
             </div>
-            <span className="absolute right-[15px] sm:right-5 bottom-[20px] sm:bottom-[26px] w-[27px] h-[27px] sm:w-[34px] sm:h-[34px] border border-white/25 rounded-full grid place-items-center transition-colors duration-200 text-[#f4f3ef] group-hover:bg-[#DF5E00] group-hover:border-[#DF5E00] group-hover:text-white">
+            <span className="absolute right-[15px] sm:right-5 bottom-[20px] sm:bottom-[26px] w-[27px] h-[27px] sm:w-[34px] sm:h-[34px] border border-white/25 rounded-full grid place-items-center transition-colors duration-200 text-[#f4f3ef] group-hover:bg-[#111344] group-hover:border-[#111344] group-hover:text-white">
               <ArrowUpRight className="w-[13px] h-[13px] sm:w-[14px] sm:h-[14px]" strokeWidth={1.75} />
             </span>
           </button>
@@ -166,7 +166,7 @@ export default function GadgetCatalogue({
                 Gaming
               </h3>
             </div>
-            <span className="absolute right-[15px] sm:right-5 bottom-[20px] sm:bottom-[26px] w-[27px] h-[27px] sm:w-[34px] sm:h-[34px] border border-white/25 rounded-full grid place-items-center transition-colors duration-200 text-[#f4f3ef] group-hover:bg-[#DF5E00] group-hover:border-[#DF5E00] group-hover:text-white">
+            <span className="absolute right-[15px] sm:right-5 bottom-[20px] sm:bottom-[26px] w-[27px] h-[27px] sm:w-[34px] sm:h-[34px] border border-white/25 rounded-full grid place-items-center transition-colors duration-200 text-[#f4f3ef] group-hover:bg-[#111344] group-hover:border-[#111344] group-hover:text-white">
               <ArrowUpRight className="w-[13px] h-[13px] sm:w-[14px] sm:h-[14px]" strokeWidth={1.75} />
             </span>
           </button>

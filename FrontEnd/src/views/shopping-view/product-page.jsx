@@ -148,7 +148,7 @@ export default function ProductPageView() {
         <button
           type="button"
           onClick={() => router.back()}
-          className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#62665d] hover:text-[#DF5E00] mb-6 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#62665d] hover:text-[#111344] mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft size={14} />
           <span>Back</span>
@@ -172,7 +172,7 @@ export default function ProductPageView() {
               <Button
                 variant="ghost"
                 onClick={() => router.push('/shop/listing')}
-                className="text-[12px] sm:text-[13px] font-semibold text-[#111344] hover:text-[#DF5E00] hover:bg-[#fafaf8] rounded-[6px]"
+                className="text-[12px] sm:text-[13px] font-semibold text-[#111344] hover:text-[#0C1172] hover:bg-[#fafaf8] rounded-[6px]"
               >
                 Explore All
               </Button>

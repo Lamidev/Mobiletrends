@@ -56,11 +56,11 @@ function ShoppingCheckout() {
             </h2>
             <div className="text-[11px] sm:text-xs text-gray-500 font-medium bg-gray-50/80 p-3 rounded-xl border border-gray-100 flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <Truck className="h-3.5 w-3.5 text-peach-500" />
+                <Truck className="h-3.5 w-3.5 text-[#111344]" />
                 <span>Lagos: <span className="text-gray-900 font-bold">Same Day Delivery</span></span>
               </div>
               <div className="flex items-center gap-2">
-                <Package className="h-3.5 w-3.5 text-orange-400" />
+                <Package className="h-3.5 w-3.5 text-[#111344]" />
                 <span>Outside Lagos: <span className="text-gray-900 font-bold">1-2 Business Days</span></span>
               </div>
             </div>
@@ -235,14 +235,14 @@ function ShoppingCheckout() {
       <div className="flex justify-between items-center mb-8 relative">
         <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -z-10"></div>
         <div
-          className="absolute top-1/2 left-0 h-1 bg-peach-600 -z-10 transition-all duration-300"
+          className="absolute top-1/2 left-0 h-1 bg-[#111344] -z-10 transition-all duration-300"
           style={{ width: `${((currentStep - 1) / 3) * 100}%` }}
         ></div>
 
         {[1, 2, 3, 4].map((step) => (
           <div key={step} className="flex flex-col items-center bg-white px-4">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${currentStep >= step
-              ? 'bg-peach-600 border-peach-600 text-white'
+              ? 'bg-[#111344] border-[#111344] text-white'
               : 'bg-white border-gray-300 text-gray-500'
               }`}>
               {step === 1 && <Package className="w-5 h-5" />}
@@ -250,7 +250,7 @@ function ShoppingCheckout() {
               {step === 3 && <CreditCard className="w-5 h-5" />}
               {step === 4 && <CheckCircle className="w-5 h-5" />}
             </div>
-            <span className={`text-sm mt-2 font-medium ${currentStep >= step ? 'text-peach-600' : 'text-gray-500'
+            <span className={`text-sm mt-2 font-medium ${currentStep >= step ? 'text-[#111344]' : 'text-gray-500'
               }`}>
               {step === 1 && 'Cart'}
               {step === 2 && 'Address'}
@@ -286,13 +286,13 @@ function ShoppingCheckout() {
           </div>
 
           {/* Delivery Timeline Badge */}
-          <div className="flex flex-col sm:flex-row items-center gap-4 bg-peach-50/50 p-4 rounded-xl border border-peach-100">
-            <div className="flex items-center gap-2 text-sm font-semibold text-peach-700">
+          <div className="flex flex-col sm:flex-row items-center gap-4 bg-gray-50/80 p-4 rounded-xl border border-gray-200">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#111344]">
               <Truck className="h-4 w-4" />
               <span>Same Day Delivery (Lagos)</span>
             </div>
-            <div className="hidden sm:block w-px h-4 bg-peach-200" />
-            <div className="flex items-center gap-2 text-sm font-semibold text-orange-700">
+            <div className="hidden sm:block w-px h-4 bg-gray-300" />
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
               <Package className="h-4 w-4" />
               <span>1-2 Days (Outside Lagos)</span>
             </div>
@@ -304,7 +304,7 @@ function ShoppingCheckout() {
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Subtotal ({cartItems.length} items)</span>
-                <span className="text-orange-500">₦{totalCartAmount.toLocaleString("en-NG")}</span>
+                <span className="font-bold text-[#111344]">₦{totalCartAmount.toLocaleString("en-NG")}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600 flex items-center gap-1">
@@ -316,12 +316,12 @@ function ShoppingCheckout() {
                     </span>
                   )}
                 </span>
-                <span className="text-orange-500">₦{deliveryPrice.toLocaleString("en-NG")}</span>
+                <span className="font-bold text-[#111344]">₦{deliveryPrice.toLocaleString("en-NG")}</span>
               </div>
               <div className="border-t pt-3">
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total Amount</span>
-                  <span className="text-orange-500">₦{totalAmountWithDelivery.toLocaleString("en-NG")}</span>
+                  <span className="font-bold text-[#111344]">₦{totalAmountWithDelivery.toLocaleString("en-NG")}</span>
                 </div>
               </div>
             </div>
@@ -344,7 +344,7 @@ function ShoppingCheckout() {
             <Button
               onClick={handleInitiatepaystackPayment}
               disabled={!currentSelectedAddress || isPaymentStart}
-              className="w-full mt-6 py-3 text-base font-semibold bg-peach-600 hover:bg-peach-700 text-white"
+              className="w-full mt-6 py-3 text-base font-semibold bg-[#111344] hover:bg-[#0C1172] text-white rounded-[6px]"
               size="lg"
             >
               {isPaymentStart
@@ -353,7 +353,7 @@ function ShoppingCheckout() {
             </Button>
 
             {!currentSelectedAddress && (
-              <div className="text-center text-sm text-orange-600 mt-2">
+              <div className="text-center text-sm text-[#111344] mt-2">
                 Please select a delivery address to continue
               </div>
             )}

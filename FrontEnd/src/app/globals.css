@@ -19,15 +19,14 @@
     --primary: 237 81% 25%;
     --primary-foreground: 0 0% 100%;
 
-    /* Mobiletrends Orange #DF5E00 */
-    --secondary: 25 100% 44%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 75 11% 94%;
+    --secondary-foreground: 100 7% 13%;
 
     --muted: 75 11% 94%;
     --muted-foreground: 87 4% 38%;
 
-    --accent: 25 100% 44%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 75 11% 94%;
+    --accent-foreground: 100 7% 13%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -46,17 +45,17 @@
     --popover-foreground: 210 40% 98%;
     --primary: 237 81% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 25 100% 50%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 237 25% 15%;
+    --secondary-foreground: 210 40% 98%;
     --muted: 237 25% 15%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 25 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 237 25% 15%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 237 25% 18%;
     --input: 237 25% 18%;
-    --ring: 25 100% 50%;
+    --ring: 237 81% 60%;
   }
 }
 

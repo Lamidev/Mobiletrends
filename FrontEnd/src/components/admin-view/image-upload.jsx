@@ -172,8 +172,8 @@ export default function ProductImageUpload({
           />
           <label
             htmlFor="multi-image-upload"
-            className={`border-2 border-dashed border-gray-300 hover:border-[#DF5E00] rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition-colors ${
-              uploading ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-[#DF5E00]/[0.02]'
+            className={`border-2 border-dashed border-gray-300 hover:border-[#111344] rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+              uploading ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-[#111344]/[0.02]'
             }`}
           >
             {uploading ? (

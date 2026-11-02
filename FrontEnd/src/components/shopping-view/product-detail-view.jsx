@@ -179,13 +179,13 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
     <div className="font-manrope text-[#20231e]">
       {/* Breadcrumbs (with padding on right to clear dialog close button on mobile) */}
       <nav className="flex items-center gap-1.5 text-[11px] sm:text-[12px] font-semibold text-[#62665d] mb-4 sm:mb-6 overflow-x-auto whitespace-nowrap [scrollbar-width:none] pr-8 sm:pr-0">
-        <a href="/" className="hover:text-[#DF5E00] transition-colors shrink-0">
+        <a href="/" className="hover:text-[#111344] transition-colors shrink-0">
           Home
         </a>
         <ChevronRight size={12} className="text-[#9ca3af] shrink-0" />
         <a
           href="/shop/listing"
-          className="hover:text-[#DF5E00] transition-colors capitalize shrink-0"
+          className="hover:text-[#111344] transition-colors capitalize shrink-0"
         >
           {product?.category || 'Products'}
         </a>
@@ -482,7 +482,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                 className={`h-11 sm:h-12 w-11 sm:w-12 rounded-[6px] border flex items-center justify-center transition-all cursor-pointer shrink-0 ${
                   isInWishlist
                     ? "border-red-200 bg-red-50 text-red-600 shadow-sm"
-                    : "border-[#e5e7eb] bg-[#fafaf8] text-[#20231e] hover:border-[#DF5E00] hover:text-[#DF5E00]"
+                    : "border-[#e5e7eb] bg-[#fafaf8] text-[#20231e] hover:border-[#111344] hover:text-[#111344]"
                 }`}
               >
                 <Heart size={18} className={isInWishlist ? "fill-red-600 text-red-600" : ""} />

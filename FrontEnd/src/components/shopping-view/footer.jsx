@@ -71,7 +71,7 @@ const Footer = () => {
               href="https://maps.google.com/?q=Oba+Adesida+Road+Akure+Ondo+State"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#DF5E00] hover:text-[#0C1172] transition-colors"
+              className="mt-5 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors"
             >
               <span>Get directions on Google Maps</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -85,7 +85,7 @@ const Footer = () => {
             </span>
             <a
               href="tel:+2348034378180"
-              className="font-manrope text-[21px] font-semibold text-[#20231e] hover:text-[#DF5E00] transition-colors flex items-center gap-2.5 mb-2.5"
+              className="font-manrope text-[21px] font-semibold text-[#20231e] hover:text-[#0C1172] transition-colors flex items-center gap-2.5 mb-2.5"
             >
               <Phone className="w-[17px] h-[17px] text-[#62665d]" />
               <span>0803 437 8180</span>
@@ -108,7 +108,7 @@ const Footer = () => {
               href="https://wa.me/2348034378180?text=Hi%20Mobiletrends%2C%20I'd%20like%20to%20make%20a%20purchase%20or%20order%20enquiry."
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center gap-2 text-[11px] font-semibold text-[#DF5E00] hover:text-[#0C1172] transition-colors"
+              className="mt-5 inline-flex items-center gap-2 text-[11px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors"
             >
               <FaWhatsapp className="w-3.5 h-3.5" />
               <span>Chat on WhatsApp</span>
@@ -127,7 +127,7 @@ const Footer = () => {
               rel="noopener noreferrer"
               className="flex items-center justify-between gap-4 border-b border-[#daddd4] pb-2.5 mb-2.5 group"
             >
-              <span className="inline-flex items-center gap-2.5 text-[12px] text-[#20231e] group-hover:text-[#DF5E00] transition-colors">
+              <span className="inline-flex items-center gap-2.5 text-[12px] text-[#20231e] group-hover:text-[#0C1172] transition-colors">
                 <FaInstagram className="w-4 h-4" />
                 <span>Instagram</span>
               </span>
@@ -143,7 +143,7 @@ const Footer = () => {
               rel="noopener noreferrer"
               className="flex items-center justify-between gap-4 border-b border-[#daddd4] pb-2.5 mb-2.5 group"
             >
-              <span className="inline-flex items-center gap-2.5 text-[12px] text-[#20231e] group-hover:text-[#DF5E00] transition-colors">
+              <span className="inline-flex items-center gap-2.5 text-[12px] text-[#20231e] group-hover:text-[#0C1172] transition-colors">
                 <FaFacebook className="w-4 h-4" />
                 <span>Facebook</span>
               </span>
@@ -159,7 +159,7 @@ const Footer = () => {
               rel="noopener noreferrer"
               className="flex items-center justify-between gap-4 border-b border-[#daddd4] pb-2.5 group"
             >
-              <span className="inline-flex items-center gap-2.5 text-[12px] text-[#20231e] group-hover:text-[#DF5E00] transition-colors">
+              <span className="inline-flex items-center gap-2.5 text-[12px] text-[#20231e] group-hover:text-[#0C1172] transition-colors">
                 <FaTwitter className="w-4 h-4" />
                 <span>X</span>
               </span>

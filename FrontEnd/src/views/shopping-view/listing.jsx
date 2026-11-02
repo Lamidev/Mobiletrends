@@ -391,7 +391,7 @@ function ShoppingListing() {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsMobileFilterOpen(true)}
-                className="md:hidden flex items-center gap-1.5 border-peach-200 bg-peach-50/30 text-peach-700 hover:bg-peach-100 font-bold"
+                className="md:hidden flex items-center gap-1.5 border-[#111344]/20 bg-[#111344]/[0.04] text-[#111344] hover:bg-[#111344]/10 font-bold"
                 disabled={isFilterLoading}
               >
                 <ArrowUpDown className="h-3.5 w-3.5" />
@@ -492,7 +492,7 @@ function ShoppingListing() {
                   size="sm"
                   onClick={handlePreviousPage}
                   disabled={currentPage === 1 || isLoading || isFilterLoading}
-                  className="h-9 px-3 border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 disabled:opacity-50 transition-all font-bold"
+                  className="h-9 px-3 border-gray-200 hover:bg-gray-100 hover:text-[#111344] hover:border-gray-300 disabled:opacity-50 transition-all font-bold"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span className="hidden sm:inline ml-1">Previous</span>
@@ -515,8 +515,8 @@ function ShoppingListing() {
                             onClick={() => !isLoading && handlePageChange(page)}
                             disabled={isLoading || isFilterLoading}
                             className={`h-9 w-9 p-0 font-bold transition-all ${currentPage === page
-                              ? "bg-peach-500 hover:bg-peach-600 text-white border-peach-500 shadow-sm"
-                              : "border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200"
+                              ? "bg-[#111344] hover:bg-[#0C1172] text-white border-[#111344] shadow-sm"
+                              : "border-gray-200 hover:bg-gray-100 hover:text-[#111344] hover:border-gray-300"
                               }`}
                           >
                             {page}
@@ -531,7 +531,7 @@ function ShoppingListing() {
                   size="sm"
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages || isLoading || isFilterLoading}
-                  className="h-9 px-3 border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 disabled:opacity-50 transition-all font-bold"
+                  className="h-9 px-3 border-gray-200 hover:bg-gray-100 hover:text-[#111344] hover:border-gray-300 disabled:opacity-50 transition-all font-bold"
                 >
                   <span className="hidden sm:inline mr-1">Next</span>
                   <ChevronRight className="h-4 w-4" />

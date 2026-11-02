@@ -99,15 +99,15 @@ const AboutPage = () => {
             <div className="space-y-3 text-sm text-gray-700">
               <p className="flex items-center gap-2">
                 <span className="font-bold text-[#0C1172]">Phone 1:</span>
-                <a href="tel:08034378180" className="hover:text-[#DF5E00] transition-colors">08034378180</a>
+                <a href="tel:08034378180" className="hover:text-[#0C1172] transition-colors">08034378180</a>
               </p>
               <p className="flex items-center gap-2">
                 <span className="font-bold text-[#0C1172]">Phone 2:</span>
-                <a href="tel:08142528191" className="hover:text-[#DF5E00] transition-colors">08142528191</a>
+                <a href="tel:08142528191" className="hover:text-[#0C1172] transition-colors">08142528191</a>
               </p>
               <p className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-[#DF5E00]" />
-                <a href="mailto:Admin@mobiletrends.ng" className="hover:text-[#DF5E00] transition-colors font-medium">
+                <Mail className="w-4 h-4 text-[#111344]" />
+                <a href="mailto:Admin@mobiletrends.ng" className="hover:text-[#0C1172] transition-colors font-medium">
                   Admin@mobiletrends.ng
                 </a>
               </p>

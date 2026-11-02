@@ -121,7 +121,7 @@ function PaystackReturnPage() {
   };
 
   return (
-    <div className="font-body min-h-screen flex items-center justify-center bg-gradient-to-br from-peach-50 to-orange-100 p-4">
+    <div className="font-body min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-slate-100 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -224,7 +224,7 @@ function PaystackReturnPage() {
                 </div>
                 <div className="space-y-3 px-4">
                   <Button
-                    className="w-full bg-peach-500 hover:bg-peach-600 text-white shadow-lg shadow-peach-100 py-6 rounded-[6px] font-bold transition-all hover:scale-[1.02]"
+                    className="w-full bg-[#111344] hover:bg-[#0C1172] text-white shadow-md py-6 rounded-[6px] font-bold transition-all hover:scale-[1.02]"
                     onClick={() => navigate("/shop/checkout")}
                   >
                     <CreditCard className="h-4 w-4 mr-2" />

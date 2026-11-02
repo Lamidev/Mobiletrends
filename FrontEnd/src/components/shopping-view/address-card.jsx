@@ -30,13 +30,13 @@ function AddressCard({
             : null
         }
         className={`relative overflow-hidden cursor-pointer transition-all duration-300 border-2 ${isSelected
-            ? "border-peach-500 shadow-lg shadow-peach-100 ring-2 ring-peach-50 ring-offset-2"
-            : "border-gray-100 hover:border-peach-200 hover:shadow-md"
+            ? "border-[#111344] shadow-md ring-2 ring-[#111344]/20 ring-offset-2"
+            : "border-gray-100 hover:border-[#111344]/30 hover:shadow-md"
           }`}
       >
         {isSelected && (
           <div className="absolute top-0 right-0 p-2">
-            <div className="bg-peach-500 text-white rounded-full p-1 shadow-sm">
+            <div className="bg-[#111344] text-white rounded-full p-1 shadow-sm">
               <CheckCircle2 className="h-4 w-4" />
             </div>
           </div>
@@ -45,7 +45,7 @@ function AddressCard({
         <CardContent className="p-5 space-y-4">
           {/* Header with Name */}
           <div className="flex items-center gap-3 border-b border-gray-50 pb-3">
-            <div className={`p-2 rounded-xl ${isSelected ? 'bg-peach-100 text-peach-600' : 'bg-gray-100 text-gray-400'}`}>
+            <div className={`p-2 rounded-xl ${isSelected ? 'bg-[#111344]/10 text-[#111344]' : 'bg-gray-100 text-gray-400'}`}>
               <User className="h-4 w-4" />
             </div>
             <span className="font-bold text-gray-900 truncate">
@@ -76,7 +76,7 @@ function AddressCard({
 
             {addressInfo?.notes && (
               <div className="flex items-start gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                <FileText className="h-4 w-4 text-peach-300 mt-0.5 flex-shrink-0" />
+                <FileText className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                 <p className="text-[11px] text-gray-500 font-medium italic line-clamp-2">
                   "{addressInfo?.notes}"
                 </p>
@@ -93,7 +93,7 @@ function AddressCard({
                 e.stopPropagation();
                 handleEditAddress(addressInfo);
               }}
-              className="rounded-[6px] border-gray-200 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 gap-1.5 h-9 font-bold transition-all"
+              className="rounded-[6px] border-gray-200 hover:bg-gray-50 hover:text-[#111344] hover:border-[#111344] gap-1.5 h-9 font-bold transition-all"
             >
               <Edit3 className="h-3.5 w-3.5" />
               Edit

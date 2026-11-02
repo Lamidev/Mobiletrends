@@ -462,7 +462,7 @@ function ShoppingHome() {
             <Button
               onClick={() => navigate('/shop/listing')}
               variant="ghost"
-              className="font-body text-[12px] sm:text-[13px] text-[#20231e] font-semibold hover:bg-[#e6e8e1]/60 hover:text-[#DF5E00] rounded-[6px] group transition-all px-3 h-9 shrink-0"
+              className="font-body text-[12px] sm:text-[13px] text-[#20231e] font-semibold hover:bg-[#e6e8e1]/60 hover:text-[#111344] rounded-[6px] group transition-all px-3 h-9 shrink-0"
             >
               View All <ChevronRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -501,7 +501,7 @@ function ShoppingHome() {
             <Button
               onClick={() => navigate('/shop/listing')}
               variant="ghost"
-              className="font-body text-[12px] sm:text-[13px] text-[#20231e] font-semibold hover:bg-[#e6e8e1] hover:text-[#DF5E00] rounded-[6px] group transition-all px-3 h-9 shrink-0"
+              className="font-body text-[12px] sm:text-[13px] text-[#20231e] font-semibold hover:bg-[#e6e8e1] hover:text-[#111344] rounded-[6px] group transition-all px-3 h-9 shrink-0"
             >
               View All <ChevronRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -556,7 +556,7 @@ function ShoppingHome() {
             <button
               type="button"
               onClick={() => navigate('/shop/listing')}
-              className="px-3.5 sm:px-4 py-2 rounded-[6px] text-[13px] sm:text-[14.5px] font-semibold text-[#62665d] hover:text-[#DF5E00] hover:bg-black/[0.03] transition-all cursor-pointer whitespace-nowrap shrink-0"
+              className="px-3.5 sm:px-4 py-2 rounded-[6px] text-[13px] sm:text-[14.5px] font-semibold text-[#62665d] hover:text-[#111344] hover:bg-black/[0.03] transition-all cursor-pointer whitespace-nowrap shrink-0"
             >
               More tech
             </button>

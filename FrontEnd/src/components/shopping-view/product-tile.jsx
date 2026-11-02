@@ -93,7 +93,7 @@ function ShoppingProductTile({
                 handleAddToCart(targetId, product.totalStock);
               }}
               aria-label="Add to cart"
-              className="absolute top-2.5 right-2.5 w-8 h-8 rounded-[6px] bg-[#202020df] backdrop-blur-[5px] text-white flex items-center justify-center transition-all duration-200 hover:bg-[#DF5E00] md:opacity-0 md:group-hover:opacity-100 cursor-pointer z-10"
+              className="absolute top-2.5 right-2.5 w-8 h-8 rounded-[6px] bg-[#202020df] backdrop-blur-[5px] text-white flex items-center justify-center transition-all duration-200 hover:bg-[#111344] md:opacity-0 md:group-hover:opacity-100 cursor-pointer z-10"
             >
               <ShoppingCart className="h-3.5 w-3.5" />
             </button>
@@ -112,7 +112,7 @@ function ShoppingProductTile({
 
       {/* SWOT Product Title */}
       <h3
-        className="font-manrope text-[13px] sm:text-[15px] font-semibold text-[#20231e] mt-[4px] mb-0 tracking-[-0.3px] line-clamp-1 group-hover:text-[#DF5E00] transition-colors"
+        className="font-manrope text-[13px] sm:text-[15px] font-semibold text-[#20231e] mt-[4px] mb-0 tracking-[-0.3px] line-clamp-1 group-hover:text-[#111344] transition-colors"
       >
         {product?.title || product?.name}
       </h3>

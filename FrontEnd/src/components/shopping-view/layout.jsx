@@ -30,7 +30,7 @@ const ShoppingLayout = ({ children }) => {
             href="https://wa.me/2348034378180?text=Hi%20Mobiletrends%2C%20I%20need%20help%20checking%20gadget%20availability%20or%20prices."
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 flex items-center justify-between gap-6 text-[12px] font-semibold text-[#35522c] hover:text-[#DF5E00] transition-colors"
+            className="mt-1 flex items-center justify-between gap-6 text-[12px] font-semibold text-[#35522c] hover:text-[#111344] transition-colors"
           >
             <span className="inline-flex items-center gap-1.5">
               <FaWhatsapp className="w-3.5 h-3.5" />

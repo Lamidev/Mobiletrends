@@ -125,7 +125,7 @@ const EmailVerificationPage = () => {
         Already verified?{" "}
         <Link
           to="/auth/login"
-          className="text-[#111344] font-semibold underline underline-offset-2 hover:text-[#DF5E00] transition-colors"
+          className="text-[#111344] font-semibold underline underline-offset-2 hover:text-[#0C1172] transition-colors"
         >
           Sign in
         </Link>

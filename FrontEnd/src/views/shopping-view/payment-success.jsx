@@ -38,7 +38,7 @@ function PaymentSuccessPage() {
   }, [navigate, toast]);
 
   return (
-    <div className="font-body min-h-screen flex items-center justify-center bg-gradient-to-br from-peach-50 to-orange-100 p-4">
+    <div className="font-body min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-slate-100 p-4">
       <Confetti width={width} height={height} numberOfPieces={200} gravity={0.2} />
 
       <motion.div
@@ -50,7 +50,7 @@ function PaymentSuccessPage() {
         <Card className="p-8 shadow-2xl border-0 bg-white/95 backdrop-blur-sm rounded-3xl overflow-hidden relative">
           {/* Decorative Background Element */}
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-peach-100 rounded-full blur-3xl opacity-50" />
-          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-orange-100 rounded-full blur-3xl opacity-50" />
+          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-slate-200 rounded-full blur-3xl opacity-50" />
 
           <motion.div
             initial={{ scale: 0.8 }}
@@ -111,7 +111,7 @@ function PaymentSuccessPage() {
               className="space-y-4"
             >
               <Button
-                className="w-full bg-gradient-to-r from-peach-500 to-peach-600 hover:from-peach-600 hover:to-peach-700 text-white shadow-xl shadow-peach-200 py-7 text-lg font-bold rounded-[6px] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full bg-gradient-to-r bg-[#111344] hover:bg-[#0C1172] text-white shadow-md py-7 text-lg font-bold rounded-[6px] transition-all hover:scale-[1.02] active:scale-[0.98]"
                 onClick={() => navigate("/shop/account")}
               >
                 <Package className="h-5 w-5 mr-2" />
@@ -121,7 +121,7 @@ function PaymentSuccessPage() {
               <div className="flex gap-4">
                 <Button
                   variant="outline"
-                  className="flex-1 py-6 border-2 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 rounded-[6px] transition-all"
+                  className="flex-1 py-6 border-2 hover:bg-gray-100 hover:text-[#111344] hover:border-gray-300 rounded-[6px] transition-all"
                   onClick={() => navigate("/shop/listing")}
                 >
                   <ShoppingBag className="h-4 w-4 mr-2 text-peach-500" />
@@ -129,7 +129,7 @@ function PaymentSuccessPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex-1 py-6 border-2 hover:bg-peach-50 hover:text-peach-600 hover:border-peach-200 rounded-[6px] transition-all"
+                  className="flex-1 py-6 border-2 hover:bg-gray-100 hover:text-[#111344] hover:border-gray-300 rounded-[6px] transition-all"
                   onClick={() => navigate("/")}
                 >
                   <Home className="h-4 w-4 mr-2 text-peach-500" />

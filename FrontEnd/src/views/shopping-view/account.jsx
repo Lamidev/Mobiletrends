@@ -443,12 +443,12 @@ function ShoppingAccount() {
                     className="w-full flex items-center justify-between text-left group transition-all cursor-pointer py-1"
                   >
                     <div className="flex items-center gap-4 sm:gap-4.5">
-                      <LayoutDashboard className="w-[21px] h-[21px] text-[#DF5E00] stroke-[1.8] shrink-0" />
-                      <span className="text-[16px] sm:text-[17px] font-semibold text-[#0f172a] group-hover:text-[#DF5E00] transition-colors">
+                      <LayoutDashboard className="w-[21px] h-[21px] text-[#111344] stroke-[1.8] shrink-0" />
+                      <span className="text-[16px] sm:text-[17px] font-semibold text-[#0f172a] group-hover:text-[#0C1172] transition-colors">
                         Admin Dashboard
                       </span>
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#DF5E00]/10 text-[#DF5E00] px-2 py-0.5 rounded-[4px]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#111344]/10 text-[#111344] px-2 py-0.5 rounded-[4px]">
                       Admin
                     </span>
                   </button>
@@ -487,7 +487,7 @@ function ShoppingAccount() {
               <button
                 type="button"
                 onClick={() => handleSelectView("main")}
-                className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#DF5E00] transition-colors cursor-pointer group py-1"
+                className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors cursor-pointer group py-1"
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                 <span>Back to Account Settings</span>
@@ -522,7 +522,7 @@ function ShoppingAccount() {
                   <button
                     type="button"
                     onClick={openNameModal}
-                    className="text-[#DF5E00] hover:text-[#b84d00] font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
+                    className="text-black hover:text-black/70 font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
                   >
                     Edit
                   </button>
@@ -541,7 +541,7 @@ function ShoppingAccount() {
                   <button
                     type="button"
                     onClick={openEmailModal}
-                    className="text-[#DF5E00] hover:text-[#b84d00] font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
+                    className="text-black hover:text-black/70 font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
                   >
                     Edit
                   </button>
@@ -560,7 +560,7 @@ function ShoppingAccount() {
                   <button
                     type="button"
                     onClick={openPasswordModal}
-                    className="text-[#DF5E00] hover:text-[#b84d00] font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
+                    className="text-black hover:text-black/70 font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
                   >
                     Edit
                   </button>
@@ -577,10 +577,10 @@ function ShoppingAccount() {
                   <button
                     type="button"
                     onClick={openAddAddressModal}
-                    className="text-[#0f172a] hover:text-[#DF5E00] font-bold text-[13.5px] flex items-center gap-1 cursor-pointer transition-colors"
+                    className="text-[#0f172a] hover:text-[#111344] font-bold text-[13.5px] flex items-center gap-1 cursor-pointer transition-colors"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>Update address</span>
+                    <span>{addressList && addressList.length > 0 ? "Update address" : "Add address"}</span>
                   </button>
                 </div>
 
@@ -620,7 +620,7 @@ function ShoppingAccount() {
                             <button
                               type="button"
                               onClick={() => openEditAddressModal(addr)}
-                              className="text-[#DF5E00] hover:text-[#b84d00] font-bold text-[14px] cursor-pointer hover:underline transition-colors"
+                              className="text-black hover:text-black/70 font-bold text-[14px] cursor-pointer hover:underline transition-colors"
                             >
                               Edit
                             </button>
@@ -674,7 +674,7 @@ function ShoppingAccount() {
               <button
                 type="button"
                 onClick={() => handleSelectView("main")}
-                className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#DF5E00] transition-colors cursor-pointer group py-1"
+                className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors cursor-pointer group py-1"
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                 <span>Back to Account Settings</span>
@@ -712,7 +712,7 @@ function ShoppingAccount() {
               <button
                 type="button"
                 onClick={() => handleSelectView("main")}
-                className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#DF5E00] transition-colors cursor-pointer group py-1"
+                className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors cursor-pointer group py-1"
               >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                 <span>Back to Account Settings</span>
@@ -776,7 +776,7 @@ function ShoppingAccount() {
                           </div>
 
                           <div className="space-y-0.5">
-                            <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#DF5E00]">
+                            <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#111344]">
                               {item.brand || item.category || "Gadget"}
                             </span>
                             <h4

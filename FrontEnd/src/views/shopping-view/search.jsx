@@ -407,7 +407,7 @@ function SearchProducts() {
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="text-xs font-semibold text-[#DF5E00] hover:text-[#111344] underline underline-offset-2 ml-2 cursor-pointer"
+                className="text-xs font-semibold text-[#111344] hover:text-[#0C1172] underline underline-offset-2 ml-2 cursor-pointer"
               >
                 Clear results
               </button>
