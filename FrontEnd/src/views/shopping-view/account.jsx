@@ -385,16 +385,14 @@ function ShoppingAccount() {
         </button>
       )}
 
-      {/* Welcome Message Header (Option 1 - Clean with no icon) */}
-      <div className="pb-1 space-y-1.5">
+      {/* Welcome Message Header (Clean without pill) */}
+      <div className="pb-1">
         <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0f172a] tracking-tight leading-snug">
           Hello, {firstName}
         </h1>
-        <div>
-          <span className="inline-flex items-center text-[12px] font-medium text-[#64748b] bg-white border border-[#e5e7eb] px-3 py-0.5 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-            Member since {formattedJoinDate}
-          </span>
-        </div>
+        <p className="text-[13px] text-[#64748b] mt-1 font-medium">
+          Member since {formattedJoinDate}
+        </p>
       </div>
 
       {/* Card 1: My Profile (Image 1 replica) */}
