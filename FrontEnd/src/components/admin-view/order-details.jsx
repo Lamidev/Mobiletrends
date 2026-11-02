@@ -439,6 +439,11 @@ function AdminOrderDetailsView({ orderDetails }) {
                   />
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-sm line-clamp-2">{item.title}</p>
+                    {(item.selectedStorage || item.selectedRam || item.selectedColor || item.selectedCondition) && (
+                      <p className="text-xs text-orange-600 font-medium">
+                        {[item.selectedCondition, item.selectedStorage, item.selectedRam ? `${item.selectedRam} RAM` : null, item.selectedColor].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
                     <p className="text-gray-600 text-xs">Quantity: {item.quantity}</p>
                   </div>
                 </div>

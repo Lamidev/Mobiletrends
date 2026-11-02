@@ -199,6 +199,11 @@ function ShoppingOrderDetailsView({ orderDetails }) {
                     <p className="font-semibold text-[13px] text-[#0f172a] line-clamp-1">
                       {item.title}
                     </p>
+                    {(item.selectedStorage || item.selectedRam || item.selectedColor || item.selectedCondition) && (
+                      <p className="text-[11px] text-[#DF5E00] font-medium">
+                        {[item.selectedCondition, item.selectedStorage, item.selectedRam ? `${item.selectedRam} RAM` : null, item.selectedColor].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
                     <p className="text-[#94a3b8] text-[11px]">
                       Quantity: <span className="font-bold text-[#64748b]">{item.quantity}</span>
                     </p>

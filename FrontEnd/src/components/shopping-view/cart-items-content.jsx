@@ -21,18 +21,21 @@ function UserCartItemsContent({ cartItem }) {
     const sessionId = getOrCreateSessionId();
 
     if (typeOfAction === "plus") {
-      const currentItem = cartItems?.find(
-        (item) => item.productId === getCartItem?.productId
+      const currentItem = cartItems?.find((item) =>
+        item._id && getCartItem?._id
+          ? item._id === getCartItem._id
+          : item.productId === getCartItem?.productId
       );
       const product = productList?.find(
         (product) => product._id === getCartItem?.productId
       );
 
-      if (currentItem && product) {
-        if (currentItem.quantity + 1 > product.totalStock) {
+      const maxStock = getCartItem?.totalStock ?? product?.totalStock;
+      if (currentItem && maxStock != null) {
+        if (currentItem.quantity + 1 > maxStock) {
           toast({
             title: `Stock Limit`,
-            description: `Only ${product.totalStock} units available in stock.`,
+            description: `Only ${maxStock} units available in stock.`,
             variant: "destructive",
           });
           return;
@@ -43,6 +46,7 @@ function UserCartItemsContent({ cartItem }) {
     dispatch(
       updateCartQuantity({
         productId: getCartItem?.productId,
+        cartItemId: getCartItem?._id,
         quantity:
           typeOfAction === "plus"
             ? getCartItem?.quantity + 1
@@ -61,7 +65,10 @@ function UserCartItemsContent({ cartItem }) {
   function handleCartItemDelete(getCartItem) {
     setIsDeleting(true);
     dispatch(
-      deleteCartItem({ productId: getCartItem?.productId })
+      deleteCartItem({
+        productId: getCartItem?.productId,
+        cartItemId: getCartItem?._id,
+      })
     ).then((data) => {
       if (data?.payload?.success) {
         toast({
@@ -73,9 +80,17 @@ function UserCartItemsContent({ cartItem }) {
     });
   }
 
-  const currentPrice = cartItem?.salePrice > 0 ? cartItem?.salePrice : cartItem?.price;
+  const currentPrice =
+    cartItem?.salePrice > 0 ? cartItem?.salePrice : cartItem?.price;
   const originalPrice = cartItem?.salePrice > 0 ? cartItem?.price : null;
   const itemTotal = currentPrice * cartItem?.quantity;
+
+  const hasVariants = Boolean(
+    cartItem?.selectedStorage ||
+      cartItem?.selectedRam ||
+      cartItem?.selectedColor ||
+      cartItem?.selectedCondition
+  );
 
   return (
     <motion.div
@@ -108,6 +123,32 @@ function UserCartItemsContent({ cartItem }) {
             <Trash className="h-3.5 w-3.5" />
           </Button>
         </div>
+
+        {/* Selected Variant Attributes */}
+        {hasVariants && (
+          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+            {cartItem?.selectedCondition && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-100 text-gray-700">
+                {cartItem.selectedCondition}
+              </span>
+            )}
+            {cartItem?.selectedStorage && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-orange-50 text-[#DF5E00] border border-orange-100">
+                {cartItem.selectedStorage}
+              </span>
+            )}
+            {cartItem?.selectedRam && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                {cartItem.selectedRam} RAM
+              </span>
+            )}
+            {cartItem?.selectedColor && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-gray-100 text-gray-700 capitalize">
+                {cartItem.selectedColor}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Price Display */}
         <div className="flex items-center gap-2">

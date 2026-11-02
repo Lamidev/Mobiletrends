@@ -12,7 +12,18 @@ const initialState = {
 
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
-  async ({ productId, quantity }, { getState, rejectWithValue }) => {
+  async (
+    {
+      productId,
+      quantity,
+      selectedStorage,
+      selectedRam,
+      selectedColor,
+      selectedCondition,
+      price,
+    },
+    { getState, rejectWithValue }
+  ) => {
     try {
       const state = getState();
       const user = state.auth.user;
@@ -21,7 +32,17 @@ export const addToCart = createAsyncThunk(
 
       const response = await axios.post(
         `${API_BASE_URL}/shop/cart/add`,
-        { userId, productId, quantity, isGuest }
+        {
+          userId,
+          productId,
+          quantity,
+          isGuest,
+          selectedStorage,
+          selectedRam,
+          selectedColor,
+          selectedCondition,
+          price,
+        }
       );
       return response.data;
     } catch (error) {
@@ -51,7 +72,7 @@ export const fetchCartItems = createAsyncThunk(
 
 export const updateCartQuantity = createAsyncThunk(
   "cart/updateCartQuantity",
-  async ({ productId, quantity }, { getState, rejectWithValue }) => {
+  async ({ productId, cartItemId, quantity }, { getState, rejectWithValue }) => {
     try {
       const state = getState();
       const user = state.auth.user;
@@ -59,7 +80,7 @@ export const updateCartQuantity = createAsyncThunk(
 
       const response = await axios.put(
         `${API_BASE_URL}/shop/cart/update-cart`,
-        { userId, productId, quantity }
+        { userId, productId, cartItemId, quantity }
       );
       return response.data;
     } catch (error) {
@@ -70,7 +91,7 @@ export const updateCartQuantity = createAsyncThunk(
 
 export const deleteCartItem = createAsyncThunk(
   "cart/deleteCartItem",
-  async ({ productId }, { getState, rejectWithValue }) => {
+  async ({ productId, cartItemId }, { getState, rejectWithValue }) => {
     try {
       const state = getState();
       const user = state.auth.user;
@@ -82,6 +103,7 @@ export const deleteCartItem = createAsyncThunk(
           data: {
             userId,
             productId,
+            cartItemId,
           },
         }
       );

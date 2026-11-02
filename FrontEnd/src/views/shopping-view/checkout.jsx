@@ -179,6 +179,10 @@ function ShoppingCheckout() {
             ? singleCartItem?.salePrice
             : singleCartItem?.price,
         quantity: singleCartItem?.quantity,
+        selectedStorage: singleCartItem?.selectedStorage || "",
+        selectedRam: singleCartItem?.selectedRam || "",
+        selectedColor: singleCartItem?.selectedColor || "",
+        selectedCondition: singleCartItem?.selectedCondition || "",
       })),
       addressInfo: {
         addressId: currentSelectedAddress?._id,
@@ -280,7 +284,7 @@ function ShoppingCheckout() {
             <h2 className="text-xl font-bold mb-4">Order Items ({cartItems.length})</h2>
             <div className="space-y-4">
               {cartItems.map((item) => (
-                <UserCartItemsContent cartItem={item} key={item.productId} />
+                <UserCartItemsContent cartItem={item} key={item._id || item.productId} />
               ))}
             </div>
           </div>

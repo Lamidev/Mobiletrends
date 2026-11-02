@@ -114,3 +114,4 @@ export function resolveColorName(rawName) {
 
   return { name: cleanName, hex: generatedHex };
 }
+
