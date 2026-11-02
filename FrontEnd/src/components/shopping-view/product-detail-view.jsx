@@ -377,64 +377,80 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
       {/* Main 2-Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         {/* Left Column: Image Showcase */}
-        <div className="lg:col-span-6 space-y-3 sm:space-y-4">
-          <div className="relative w-full h-[250px] sm:h-[320px] md:h-[380px] lg:h-auto lg:aspect-square rounded-2xl sm:rounded-3xl bg-white border border-[#e5e7eb] flex items-center justify-center p-0 sm:p-6 lg:p-8 overflow-hidden group shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
-            {/* Top-Left: Stock Badge */}
-            <span
-              className={`absolute top-3 left-3 sm:top-4 sm:left-4 z-10 text-[10.5px] sm:text-[12px] font-bold px-3 py-1 rounded-full tracking-wide shadow-sm flex items-center gap-1.5 ${
-                !isOutOfStock
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-rose-600 text-white'
-              }`}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              {!isOutOfStock
-                ? currentStock <= 3
-                  ? `Only ${currentStock} left`
-                  : `● In Stock (${currentStock})`
-                : 'Out of Stock'}
-            </span>
+        {/* Left Column: Gallery (Side Rail on Desktop) & Product Description Underneath */}
+        <div className="lg:col-span-6 space-y-5 sm:space-y-6">
+          <div className="flex flex-col-reverse lg:flex-row gap-3 items-start">
+            {/* Multi-Image Thumbnail Rail (Left side on desktop, bottom swipe on mobile) */}
+            {galleryImages.length > 1 && (
+              <div className="flex lg:flex-col items-center gap-2 sm:gap-2.5 overflow-x-auto lg:overflow-y-auto w-full lg:w-20 shrink-0 py-0.5 [scrollbar-width:none]">
+                {galleryImages.map((img, idx) => {
+                  const isActive = (activeImage || product?.image) === img;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setActiveImage(img)}
+                      className={`relative w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 shrink-0 rounded-xl border-2 p-0.5 bg-white overflow-hidden transition-all cursor-pointer ${
+                        isActive
+                          ? 'border-[#111344] shadow-sm ring-2 ring-[#111344]/20'
+                          : 'border-[#e5e7eb] hover:border-gray-400 opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img
+                        src={img}
+                        alt={`${product?.title} angle ${idx + 1}`}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-            {/* Top-Right: Condition Badge */}
-            <span className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 bg-[#111344] text-white text-[10.5px] sm:text-[12px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm border border-white/20">
-              {displayCondition}
-            </span>
+            {/* Main Image Box */}
+            <div className="relative flex-1 w-full h-[250px] sm:h-[320px] md:h-[380px] lg:h-auto lg:aspect-square rounded-2xl sm:rounded-3xl bg-white border border-[#e5e7eb] flex items-center justify-center p-0 sm:p-6 lg:p-8 overflow-hidden group shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
+              {/* Top-Left: Stock Badge (Reduced on mobile, single pulse dot, NO bullet) */}
+              <span
+                className={`absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-10 text-[9.5px] sm:text-[11.5px] font-bold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full tracking-wide shadow-sm flex items-center gap-1.5 ${
+                  !isOutOfStock
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-rose-600 text-white'
+                }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                {!isOutOfStock
+                  ? currentStock <= 3
+                    ? `Only ${currentStock} left`
+                    : `In Stock (${currentStock})`
+                  : 'Out of Stock'}
+              </span>
 
-            <motion.img
-              key={activeImage}
-              src={activeImage || product?.image}
-              alt={product?.title}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2 }}
-              className="w-full h-full object-cover sm:object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
-            />
+              {/* Top-Right: Condition Badge (Reduced on mobile) */}
+              <span className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 z-10 bg-[#111344] text-white text-[9px] sm:text-[11px] font-extrabold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-wider shadow-sm border border-white/20">
+                {displayCondition}
+              </span>
+
+              <motion.img
+                key={activeImage}
+                src={activeImage || product?.image}
+                alt={product?.title}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2 }}
+                className="w-full h-full object-cover sm:object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
+              />
+            </div>
           </div>
 
-          {/* Multi-Image Thumbnail Gallery */}
-          {galleryImages.length > 1 && (
-            <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto py-0.5 [scrollbar-width:none]">
-              {galleryImages.map((img, idx) => {
-                const isActive = (activeImage || product?.image) === img;
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setActiveImage(img)}
-                    className={`relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 shrink-0 rounded-xl border-2 p-0.5 bg-white overflow-hidden transition-all cursor-pointer ${
-                      isActive
-                        ? 'border-[#111344] shadow-sm ring-2 ring-[#111344]/20'
-                        : 'border-[#e5e7eb] hover:border-gray-400 opacity-70 hover:opacity-100'
-                    }`}
-                  >
-                    <img
-                      src={img}
-                      alt={`${product?.title} angle ${idx + 1}`}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  </button>
-                );
-              })}
+          {/* Product Description - Moved under the main image gallery! */}
+          {product?.description && (
+            <div className="space-y-2 pt-2 border-t border-[#e5e7eb]">
+              <h3 className="font-manrope text-[13px] font-bold text-[#111344] uppercase tracking-wider">
+                Product Description
+              </h3>
+              <p className="font-manrope text-[13px] sm:text-[14px] text-[#4b5563] leading-relaxed whitespace-pre-line font-medium">
+                {product.description}
+              </p>
             </div>
           )}
         </div>
@@ -717,17 +733,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
             </a>
           </div>
 
-          {/* Product Description */}
-          {product?.description && (
-            <div className="space-y-2 pt-2">
-              <h3 className="font-manrope text-[13px] font-bold text-[#111344] uppercase tracking-wider">
-                Product Description
-              </h3>
-              <p className="font-manrope text-[13px] sm:text-[14px] text-[#4b5563] leading-relaxed whitespace-pre-line font-medium">
-                {product.description}
-              </p>
-            </div>
-          )}
+
         </div>
       </div>
 

@@ -5,7 +5,7 @@ import { resolveColorName } from '@/lib/color-resolver';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, X, Sparkles } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 
 const COMMON_STORAGE_PRESETS = ['128GB', '256GB', '512GB', '1TB'];
 const COMMON_RAM_PRESETS = ['8GB', '16GB', '18GB', '24GB', '32GB', '36GB', '64GB'];
@@ -144,9 +144,28 @@ export default function ProductVariantsManager({ formData, setFormData }) {
     });
   };
 
+  const hasCategory = Boolean(formData.category);
   const isPhoneOrTablet =
     formData.category === 'smartphones' || formData.category === 'tablets';
   const isLaptop = formData.category === 'laptops';
+
+  if (!hasCategory) {
+    return (
+      <div className="pt-4 border-t border-gray-200">
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 flex items-center gap-3">
+          <div className="w-7 h-7 rounded-full bg-[#111344]/10 text-[#111344] flex items-center justify-center shrink-0 font-bold text-xs">
+            i
+          </div>
+          <div className="text-xs">
+            <p className="font-bold text-gray-900">Select a Category Above</p>
+            <p className="text-gray-500 mt-0.5">
+              Choose a product category (e.g. Smartphones or Laptops) above to configure hardware variants, storage, and colors.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pt-4 border-t border-gray-200">
@@ -219,7 +238,7 @@ export default function ProductVariantsManager({ formData, setFormData }) {
         {/* Quick Suggestion Pills */}
         <div className="flex items-center gap-1.5 flex-wrap pt-1">
           <span className="text-[11px] font-semibold text-gray-500 flex items-center gap-1">
-            <Sparkles size={11} className="text-amber-500" /> Quick Add:
+            Quick Add:
           </span>
           {POPULAR_COLOR_SUGGESTIONS.map((preset) => (
             <button

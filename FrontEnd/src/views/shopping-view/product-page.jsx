@@ -114,23 +114,31 @@ export default function ProductPageView() {
     router.push(`/shop/product/${id}`);
   }
 
-  const isMatchingProduct =
-    productDetails &&
-    (String(productDetails._id) === String(productId) ||
-      String(productDetails.id) === String(productId));
+  const activeProduct =
+    (productDetails &&
+      (String(productDetails._id) === String(productId) ||
+        String(productDetails.id) === String(productId)))
+      ? productDetails
+      : productList?.find(
+          (p) => String(p._id) === String(productId) || String(p.id) === String(productId)
+        );
 
-  if (isLoading || (!isMatchingProduct && productId)) {
+  if (!activeProduct && isLoading) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-[#111344]" />
-        <p className="font-manrope text-sm font-semibold text-[#62665d]">
-          Loading product specifications...
-        </p>
+      <div className="bg-white min-h-[60vh] py-6 sm:py-10 animate-pulse">
+        <div className="mx-auto w-[min(1220px,calc(100%-32px))] grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-6 h-[340px] bg-gray-100 rounded-3xl" />
+          <div className="lg:col-span-6 space-y-4">
+            <div className="h-6 w-3/4 bg-gray-100 rounded" />
+            <div className="h-8 w-1/3 bg-gray-100 rounded" />
+            <div className="h-24 bg-gray-100 rounded" />
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (!productDetails && !isLoading) {
+  if (!activeProduct && !isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
         <h2 className="font-manrope text-2xl font-bold text-[#111344] mb-2">
@@ -164,7 +172,7 @@ export default function ProductPageView() {
         </button>
 
         {/* Main Product Detail Content */}
-        <ProductDetailView product={productDetails} />
+        <ProductDetailView product={activeProduct} />
 
         {/* Related Products / Recommendations */}
         {relatedProducts.length > 0 && (

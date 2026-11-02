@@ -52,7 +52,7 @@ function ShoppingProductTile({
 
   const handleCardClick = () => {
     if (targetId && handleGetProductDetails) {
-      handleGetProductDetails(targetId);
+      handleGetProductDetails(targetId, product);
     }
   };
 
@@ -75,12 +75,7 @@ function ShoppingProductTile({
           loading="lazy"
         />
 
-        {/* Discount tag in top-left if applicable */}
-        {hasValidDiscount && (
-          <div className="absolute top-2.5 left-2.5 bg-[#DF5E00] text-white text-[8px] font-semibold tracking-[0.8px] uppercase px-2 py-[2px] rounded-[2px]">
-            -{discountPercentage}%
-          </div>
-        )}
+        
 
         {/* Quick Add-to-Cart button in top-right (when inventory item is in stock) */}
         {targetId &&

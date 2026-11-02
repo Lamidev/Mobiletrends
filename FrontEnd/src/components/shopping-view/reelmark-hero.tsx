@@ -430,7 +430,6 @@ export default function ReelmarkHero({
               ref={(el) => {
                 cardRefs.current[idx] = el;
               }}
-              onClick={handleCardClick}
               className="group absolute top-0 left-0 overflow-hidden bg-[#E5E8F0] will-change-transform"
             >
               {/* Cover-fitted Stock Gadget Image */}
@@ -441,18 +440,7 @@ export default function ReelmarkHero({
                 className="w-full h-full object-cover object-center pointer-events-none transition-transform duration-700 group-hover:scale-105"
               />
 
-              {/* Frosted round play icon at bottom-left matching Reelmark spec */}
-              <div className="pointer-events-none absolute bottom-3.5 left-3.5 flex items-center gap-2">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/35 backdrop-blur-md border border-white/40 text-white shadow-sm group-hover:bg-[#111344] group-hover:border-[#111344] transition-colors">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="w-3.5 h-3.5 translate-x-[0.5px]"
-                  >
-                    <polygon points="7,5 19,12 7,19" />
-                  </svg>
-                </div>
-              </div>
+              
             </div>
           ))}
         </div>

@@ -175,7 +175,8 @@ function ShoppingListing() {
     });
   }
 
-  function handleGetProductDetails(getCurrentProductId) {
+  function handleGetProductDetails(getCurrentProductId, productItem) {
+    if (productItem) dispatch(setProductDetails(productItem));
     navigate(`/shop/product/${getCurrentProductId}`);
   }
 

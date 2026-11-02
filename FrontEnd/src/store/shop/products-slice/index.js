@@ -88,9 +88,13 @@ const shoppingProductSlice = createSlice({
   name: "shoppingProducts",
   initialState,
   reducers: {
-    setProductDetails: (state) => {
-      state.productDetails = null;
-      safeLocalStorage.removeItem("productDetails");
+    setProductDetails: (state, action) => {
+      state.productDetails = action.payload || null;
+      if (action.payload) {
+        safeLocalStorage.setItem("productDetails", JSON.stringify(action.payload));
+      } else {
+        safeLocalStorage.removeItem("productDetails");
+      }
     },
   },
   extraReducers: (builder) => {
