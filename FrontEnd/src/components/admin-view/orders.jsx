@@ -27,16 +27,15 @@ import {
   Search,
   ShoppingBag,
   CheckCircle2,
-  Clock,
+  Truck,
+  PackageCheck,
   Eye,
   Trash2,
   ChevronLeft,
   ChevronRight,
-  PackageCheck,
   Calendar,
   User,
   Phone,
-  MapPin,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -81,50 +80,25 @@ function formatOrderDate(dateStr) {
 
 // Clean soft badge styles matching the uploaded UI/UX screenshot
 function getStatusBadgeStyle(status) {
-  const s = (status || "pending").toLowerCase();
-  if (s.includes("confirm") || s.includes("paid") || s === "success") {
-    return "bg-emerald-50 text-emerald-700 border-emerald-200/70";
-  }
+  const s = (status || "confirmed").toLowerCase();
   if (s.includes("deliver")) {
     return "bg-indigo-50 text-indigo-700 border-indigo-200/70";
   }
   if (s.includes("ship")) {
     return "bg-purple-50 text-purple-700 border-purple-200/70";
   }
-  if (s.includes("process")) {
-    return "bg-blue-50 text-blue-700 border-blue-200/70";
-  }
   if (s.includes("cancel") || s.includes("reject")) {
     return "bg-rose-50 text-rose-700 border-rose-200/70";
   }
-  return "bg-amber-50 text-amber-700 border-amber-200/70";
+  return "bg-emerald-50 text-emerald-700 border-emerald-200/70";
 }
 
 function normalizeStatusLabel(status) {
-  const s = (status || "pending").toLowerCase();
-  if (s.includes("confirm")) return "Confirmed";
+  const s = (status || "confirmed").toLowerCase();
   if (s.includes("deliver")) return "Delivered";
-  if (s.includes("ship")) return "In Shipping";
-  if (s.includes("process")) return "In Process";
+  if (s.includes("ship")) return "Shipped";
   if (s.includes("cancel") || s.includes("reject")) return "Cancelled";
-  return "Pending";
-}
-
-function getFulfilmentBadgeStyle(status) {
-  const s = (status || "").toLowerCase();
-  if (s.includes("deliver")) {
-    return "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-  }
-  if (s.includes("ship")) {
-    return "bg-purple-50 text-purple-700 border-purple-200/60";
-  }
-  if (s.includes("process")) {
-    return "bg-blue-50 text-blue-700 border-blue-200/60";
-  }
-  if (s.includes("cancel") || s.includes("reject")) {
-    return "bg-rose-50 text-rose-700 border-rose-200/60";
-  }
-  return "bg-gray-100 text-gray-700 border-gray-200/60";
+  return "Confirmed";
 }
 
 function AdminOrdersView() {
@@ -196,16 +170,16 @@ function AdminOrdersView() {
     const list = orderList || [];
     let revenue = 0;
     let confirmedCount = 0;
-    let pendingCount = 0;
+    let deliveredCount = 0;
 
     list.forEach((ord) => {
       const amt = Number(ord?.totalAmount) || 0;
       revenue += amt;
       const s = (ord?.orderStatus || "").toLowerCase();
-      if (s.includes("confirm") || s.includes("paid")) {
+      if (s.includes("deliver")) {
+        deliveredCount++;
+      } else if (!s.includes("cancel") && !s.includes("reject")) {
         confirmedCount++;
-      } else if (s.includes("pending")) {
-        pendingCount++;
       }
     });
 
@@ -213,7 +187,7 @@ function AdminOrdersView() {
       totalOrders: list.length,
       revenue,
       confirmedCount,
-      pendingCount,
+      deliveredCount,
     };
   }, [orderList]);
 
@@ -222,8 +196,6 @@ function AdminOrdersView() {
     const counts = {
       all: 0,
       confirmed: 0,
-      pending: 0,
-      inProcess: 0,
       shipping: 0,
       delivered: 0,
       cancelled: 0,
@@ -232,12 +204,10 @@ function AdminOrdersView() {
     (orderList || []).forEach((ord) => {
       counts.all++;
       const s = (ord?.orderStatus || "").toLowerCase();
-      if (s.includes("confirm") || s.includes("paid")) counts.confirmed++;
-      else if (s.includes("pending")) counts.pending++;
-      else if (s.includes("process")) counts.inProcess++;
+      if (s.includes("deliver")) counts.delivered++;
       else if (s.includes("ship")) counts.shipping++;
-      else if (s.includes("deliver")) counts.delivered++;
       else if (s.includes("cancel") || s.includes("reject")) counts.cancelled++;
+      else counts.confirmed++;
     });
 
     return counts;
@@ -247,12 +217,10 @@ function AdminOrdersView() {
   const filteredOrders = useMemo(() => {
     if (!orderList || orderList.length === 0) return [];
     return orderList.filter((ord) => {
-      const s = (ord?.orderStatus || "pending").toLowerCase();
+      const s = (ord?.orderStatus || "confirmed").toLowerCase();
       const matchesStatus =
         statusFilter === "all" ||
-        (statusFilter === "confirmed" && (s.includes("confirm") || s.includes("paid"))) ||
-        (statusFilter === "pending" && s.includes("pending")) ||
-        (statusFilter === "inProcess" && s.includes("process")) ||
+        (statusFilter === "confirmed" && !s.includes("deliver") && !s.includes("ship") && !s.includes("cancel") && !s.includes("reject")) ||
         (statusFilter === "shipping" && s.includes("ship")) ||
         (statusFilter === "delivered" && s.includes("deliver")) ||
         (statusFilter === "cancelled" && (s.includes("cancel") || s.includes("reject")));
@@ -365,29 +333,29 @@ function AdminOrdersView() {
                 {metrics.confirmedCount}
               </h3>
               <p className="text-[10px] sm:text-[11.5px] font-medium text-gray-400 mt-0.5 line-clamp-1">
-                Paid & verified
+                Paid & being prepared
               </p>
             </div>
           </Card>
         </motion.div>
 
-        {/* Pending Orders */}
+        {/* Delivered Orders */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.15 }}>
           <Card className="rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white p-3.5 sm:p-5 space-y-2 sm:space-y-3">
             <div className="flex items-center justify-between gap-1">
               <span className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider truncate">
-                Pending
+                Delivered
               </span>
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                <Clock size={15} />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <Truck size={15} />
               </div>
             </div>
             <div>
               <h3 className="text-lg sm:text-2xl lg:text-3xl font-black text-gray-900 tracking-tight truncate">
-                {metrics.pendingCount}
+                {metrics.deliveredCount}
               </h3>
               <p className="text-[10px] sm:text-[11.5px] font-medium text-gray-400 mt-0.5 line-clamp-1">
-                Awaiting processing
+                Fulfilled & completed
               </p>
             </div>
           </Card>
@@ -399,7 +367,7 @@ function AdminOrdersView() {
         {/* Toolbar: Status Filter Pills (Horizontal scrollable) & Search */}
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            {/* Status Pills */}
+            {/* 4 Clean Status Pills */}
             <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar">
               <button
                 type="button"
@@ -427,30 +395,6 @@ function AdminOrdersView() {
 
               <button
                 type="button"
-                onClick={() => setStatusFilter("pending")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all shrink-0 cursor-pointer ${
-                  statusFilter === "pending"
-                    ? "bg-amber-600 text-white shadow-xs"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                Pending ({tabCounts.pending})
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setStatusFilter("inProcess")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all shrink-0 cursor-pointer ${
-                  statusFilter === "inProcess"
-                    ? "bg-blue-600 text-white shadow-xs"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                In Process ({tabCounts.inProcess})
-              </button>
-
-              <button
-                type="button"
                 onClick={() => setStatusFilter("shipping")}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all shrink-0 cursor-pointer ${
                   statusFilter === "shipping"
@@ -458,7 +402,7 @@ function AdminOrdersView() {
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
-                In Shipping ({tabCounts.shipping})
+                Shipped ({tabCounts.shipping})
               </button>
 
               <button
@@ -509,7 +453,7 @@ function AdminOrdersView() {
               placeholder="Search by order ID, customer name, or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-10 bg-gray-50/70 border-gray-200 rounded-xl text-xs sm:text-sm font-medium focus:bg-white transition-all w-full"
+              className="pl-10 h-10 bg-gray-50/70 border-gray-200 rounded-xl text-base sm:text-xs font-medium focus:bg-white transition-all w-full"
             />
           </div>
         </div>
@@ -531,9 +475,6 @@ function AdminOrdersView() {
                 <TableHead className="text-[11px] font-bold text-gray-500 uppercase tracking-wider py-3.5">
                   Status
                 </TableHead>
-                <TableHead className="text-[11px] font-bold text-gray-500 uppercase tracking-wider py-3.5">
-                  Fulfilment
-                </TableHead>
                 <TableHead className="text-[11px] font-bold text-gray-500 uppercase tracking-wider py-3.5 text-right">
                   Total
                 </TableHead>
@@ -547,7 +488,6 @@ function AdminOrdersView() {
                 currentOrders.map((ord) => {
                   const statusLabel = normalizeStatusLabel(ord?.orderStatus);
                   const statusStyle = getStatusBadgeStyle(ord?.orderStatus);
-                  const fulfilmentStyle = getFulfilmentBadgeStyle(ord?.orderStatus);
 
                   return (
                     <TableRow key={ord?._id} className="border-b border-gray-50 hover:bg-gray-50/60 transition-colors">
@@ -564,7 +504,7 @@ function AdminOrdersView() {
                       {/* Customer */}
                       <TableCell className="py-4">
                         <div className="font-bold text-xs text-gray-900">
-                          {ord?.addressInfo?.fullName || ord?.userName || "Guest Customer"}
+                          {ord?.addressInfo?.fullName || ord?.userName || "Customer"}
                         </div>
                         {ord?.addressInfo?.phone && (
                           <div className="text-[11px] text-gray-500 font-medium mt-0.5">
@@ -577,13 +517,6 @@ function AdminOrdersView() {
                       <TableCell className="py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border ${statusStyle}`}>
                           {statusLabel}
-                        </span>
-                      </TableCell>
-
-                      {/* Fulfilment */}
-                      <TableCell className="py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border ${fulfilmentStyle}`}>
-                          {statusLabel === "Cancelled" ? "Cancelled" : statusLabel === "Delivered" ? "Delivered" : statusLabel === "In Shipping" ? "In Transit" : "Placed"}
                         </span>
                       </TableCell>
 
@@ -621,7 +554,7 @@ function AdminOrdersView() {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-gray-400">
+                  <TableCell colSpan={6} className="text-center py-12 text-gray-400">
                     <PackageCheck size={36} className="mx-auto mb-2 text-gray-300" />
                     <p className="text-sm font-semibold text-gray-600">No orders found</p>
                     <p className="text-xs text-gray-400 mt-0.5">Try adjusting your filters or search terms</p>
@@ -632,7 +565,7 @@ function AdminOrdersView() {
           </Table>
         </div>
 
-        {/* Mobile Cards View (Replaced GadgetGrid layout with clean Mobiletrends design) */}
+        {/* Mobile Cards View */}
         <div className="lg:hidden space-y-3">
           {currentOrders.length > 0 ? (
             currentOrders.map((ord) => {
@@ -660,7 +593,7 @@ function AdminOrdersView() {
                   <div className="text-xs space-y-1">
                     <div className="flex items-center gap-1.5 text-gray-800 font-bold">
                       <User size={13} className="text-gray-400 shrink-0" />
-                      <span className="truncate">{ord?.addressInfo?.fullName || ord?.userName || "Guest Customer"}</span>
+                      <span className="truncate">{ord?.addressInfo?.fullName || ord?.userName || "Customer"}</span>
                     </div>
 
                     {ord?.addressInfo?.phone && (
@@ -758,7 +691,7 @@ function AdminOrdersView() {
         )}
       </Card>
 
-      {/* Order Details Dialog (uses modernized AdminOrderDetailsView) */}
+      {/* Order Details Dialog */}
       <Dialog
         open={openDetailsDialog}
         onOpenChange={(open) => {

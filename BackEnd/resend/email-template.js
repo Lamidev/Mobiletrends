@@ -201,6 +201,47 @@ const ADMIN_NEWSLETTER_NOTIFICATION_TEMPLATE = `
 </html>
 `;
 
+const ORDER_STATUS_UPDATE_TEMPLATE = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mobiletrends Order Update</title>
+</head>
+<body style="font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; color: #20231e; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fafaf8;">
+  <div style="background-color: ${THEME_COLOR}; padding: 26px 24px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Order Update: {statusTitle}</h1>
+    <p style="color: #cbd5e1; margin: 6px 0 0; font-size: 13px;">Order #{orderId}</p>
+  </div>
+  <div style="background-color: #ffffff; padding: 28px 24px; border: 1px solid #daddd4; border-top: none; border-radius: 0 0 8px 8px;">
+    <p style="margin-top: 0;">Hello <strong>{userName}</strong>,</p>
+    <p>{statusMessage}</p>
+
+    <div style="background-color: #f4f5f7; padding: 16px 18px; border-radius: 6px; margin: 20px 0; font-size: 14px;">
+      <p style="margin: 4px 0;"><strong>Order ID:</strong> #{orderId}</p>
+      <p style="margin: 4px 0;"><strong>Current Status:</strong> <span style="display: inline-block; padding: 3px 10px; border-radius: 12px; font-weight: bold; font-size: 12px; background-color: {statusBadgeBg}; color: {statusBadgeColor};">{statusLabel}</span></p>
+      <p style="margin: 4px 0;"><strong>Total Paid:</strong> {totalAmount}</p>
+    </div>
+
+    <h3 style="font-size: 15px; margin-bottom: 8px; color: #20231e;">Purchased Items</h3>
+    <ul style="padding-left: 20px; margin-top: 0; font-size: 14px; color: #374151;">{cartItems}</ul>
+
+    <h3 style="font-size: 15px; margin-bottom: 6px; color: #20231e;">Delivery Address</h3>
+    <p style="margin-top: 0; font-size: 13.5px; color: #62665d;">{addressInfo}</p>
+
+    <div style="margin-top: 22px; padding: 16px; background-color: #fafaf8; border-radius: 6px; border: 1px solid #daddd4; font-size: 13px; color: #62665d;">
+      <h4 style="color: #20231e; margin: 0 0 6px; font-size: 14px;">Need Assistance?</h4>
+      <p style="margin: 0 0 6px;">Same-day delivery within Akure · <strong>1–2 Business Days</strong> for nationwide waybill.</p>
+      <p style="margin: 0;">Questions? Contact us at <strong>Admin@mobiletrends.ng</strong> or WhatsApp/Call <strong>08034378180 / 08142528191</strong>.</p>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+    <p style="margin: 0; font-size: 12.5px; color: #62665d;">Best regards,<br><strong style="color: #20231e;">Mobiletrends Systems Limited</strong></p>
+  </div>
+</body>
+</html>
+`;
+
 module.exports = {
   THEME_COLOR,
   ACCENT_COLOR,
@@ -209,6 +250,7 @@ module.exports = {
   PASSWORD_RESET_SUCCESS_TEMPLATE,
   PASSWORD_RESET_REQUEST_TEMPLATE,
   ORDER_RECEIPT_TEMPLATE,
+  ORDER_STATUS_UPDATE_TEMPLATE,
   NEWSLETTER_SUBSCRIPTION_TEMPLATE,
   ADMIN_NEWSLETTER_NOTIFICATION_TEMPLATE,
 };

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ReduxProvider } from '@/providers/redux-provider';
 import { siteConfig } from '@/config/site';
@@ -31,6 +31,13 @@ export const metadata: Metadata = {
     locale: 'en_NG',
     type: 'website',
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

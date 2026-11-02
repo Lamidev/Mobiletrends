@@ -5,7 +5,7 @@ import { resolveColorName } from '@/lib/color-resolver';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, X, Star, Check } from 'lucide-react';
+import { Plus, Trash2, X, Star, Check, Sparkles } from 'lucide-react';
 
 const COMMON_STORAGE_PRESETS = ['128GB', '256GB', '512GB', '1TB'];
 const COMMON_RAM_PRESETS = ['8GB', '16GB', '18GB', '24GB', '32GB', '64GB'];
@@ -38,6 +38,12 @@ function parseRawNumber(val) {
 export default function ProductVariantsManager({ formData, setFormData }) {
   const [colorInput, setColorInput] = useState('');
   const [customColorPickerHex, setCustomColorPickerHex] = useState('#111344');
+
+  // Compute effective product base price (Sale price if discounted, otherwise Price)
+  const hasSalePrice = Number(formData.salePrice) > 0;
+  const effectiveBasePrice = hasSalePrice
+    ? Number(formData.salePrice)
+    : Number(formData.price) || 0;
 
   // Live preview for current typing color
   const liveColorPreview = resolveColorName(colorInput, customColorPickerHex);
@@ -115,7 +121,6 @@ export default function ProductVariantsManager({ formData, setFormData }) {
     if (field === 'size') {
       updated[index] = { ...current, size: rawValue };
     } else if (field === 'price') {
-      // Store raw input or empty string during typing so user can backspace 0
       const numericVal = parseRawNumber(rawValue);
       updated[index] = {
         ...current,
@@ -133,7 +138,6 @@ export default function ProductVariantsManager({ formData, setFormData }) {
     const updated = (formData.storageVariants || []).filter(
       (_, idx) => idx !== indexToRemove
     );
-    // If we removed the base variant, make the first remaining variant the base
     if (updated.length > 0 && !updated.some((v) => v.isBase)) {
       updated[0].isBase = true;
       updated[0].price = 0;
@@ -158,7 +162,7 @@ export default function ProductVariantsManager({ formData, setFormData }) {
         {
           ram: '16GB',
           storage: '512GB SSD',
-          price: 0, // Additional delta amount (+₦0 for base config)
+          price: 0,
           isBase: isFirst,
         },
       ],
@@ -274,7 +278,7 @@ export default function ProductVariantsManager({ formData, setFormData }) {
           </p>
         )}
 
-        {/* Add Color Input Row */}
+        {/* Add Color Input Row (Uses text-base on mobile to prevent auto-zoom) */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="relative flex-1 min-w-0">
@@ -289,7 +293,7 @@ export default function ProductVariantsManager({ formData, setFormData }) {
                   }
                 }}
                 placeholder="Type color (e.g. burgundy, desert titanium)..."
-                className="h-9 text-xs sm:text-sm bg-white pr-8"
+                className="h-9 text-base sm:text-xs bg-white pr-8"
               />
               {colorInput.trim() && (
                 <div
@@ -369,7 +373,7 @@ export default function ProductVariantsManager({ formData, setFormData }) {
                 Storage Variants & Pricing
               </Label>
               <p className="text-[11px] text-muted-foreground truncate">
-                Set additional price (+₦) per storage upgrade.
+                Base Model auto-populates from product price. Additional upgrades add (+₦).
               </p>
             </div>
             <Button
@@ -393,6 +397,9 @@ export default function ProductVariantsManager({ formData, setFormData }) {
                   ? ''
                   : formatWithCommas(item.price);
 
+                const itemDelta = parseRawNumber(item.price);
+                const calculatedTotal = effectiveBasePrice + (isBase ? 0 : itemDelta);
+
                 return (
                   <div
                     key={idx}
@@ -412,12 +419,12 @@ export default function ProductVariantsManager({ formData, setFormData }) {
                             handleUpdateStorageVariant(idx, 'size', e.target.value)
                           }
                           placeholder="e.g. 128GB"
-                          className="h-8 text-xs font-bold w-24 sm:w-28 bg-white shrink-0"
+                          className="h-8 text-base sm:text-xs font-bold w-24 sm:w-28 bg-white shrink-0"
                         />
                         <button
                           type="button"
                           onClick={() => handleSetBaseStorage(idx)}
-                          className={`text-[11px] font-bold px-2 py-1 rounded-md transition-all flex items-center gap-1 shrink-0 ${
+                          className={`text-[11px] font-bold px-2 py-1 rounded-md transition-all flex items-center gap-1 shrink-0 cursor-pointer ${
                             isBase
                               ? 'bg-[#111344] text-white shadow-xs'
                               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -439,26 +446,46 @@ export default function ProductVariantsManager({ formData, setFormData }) {
                       </button>
                     </div>
 
-                    {/* Bottom Row: Additional Price Input */}
+                    {/* Bottom Row: Additional Price Input with Auto-Populated Total */}
                     <div>
-                      <Label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">
-                        {isBase ? 'Additional Price (Base Included)' : 'Additional Price (+₦ Upgrade)'}
-                      </Label>
+                      <div className="flex items-center justify-between text-[10px] font-bold text-gray-500 uppercase mb-1">
+                        <span>
+                          {isBase ? 'Base Price (Auto-Populated)' : 'Upgrade Additional Price (+₦)'}
+                        </span>
+                        {effectiveBasePrice > 0 && (
+                          <span className="text-emerald-700 font-extrabold normal-case text-[11px]">
+                            {isBase
+                              ? `₦${effectiveBasePrice.toLocaleString('en-NG')} (${hasSalePrice ? 'Sale Price' : 'Base Price'})`
+                              : `Total: ₦${calculatedTotal.toLocaleString('en-NG')}`}
+                          </span>
+                        )}
+                      </div>
+
                       <div className="relative flex items-center">
                         <span className="absolute left-2.5 text-xs font-bold text-gray-500 pointer-events-none">
-                          + ₦
+                          {isBase ? '₦' : '+ ₦'}
                         </span>
                         <Input
                           type="text"
                           inputMode="numeric"
                           disabled={isBase}
-                          value={displayPrice}
+                          value={
+                            isBase
+                              ? (effectiveBasePrice > 0 ? effectiveBasePrice.toLocaleString('en-NG') : '0')
+                              : displayPrice
+                          }
                           onChange={(e) =>
                             handleUpdateStorageVariant(idx, 'price', e.target.value)
                           }
-                          placeholder={isBase ? '0 (Included in Base Price)' : 'e.g. 50,000'}
-                          className={`h-8 text-xs font-semibold pl-8 ${
-                            isBase ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'
+                          placeholder={
+                            isBase
+                              ? (effectiveBasePrice > 0 ? effectiveBasePrice.toLocaleString('en-NG') : '0 (Base Included)')
+                              : 'e.g. 50,000'
+                          }
+                          className={`h-8 text-base sm:text-xs font-semibold pl-8 ${
+                            isBase
+                              ? 'bg-emerald-50/40 text-emerald-900 border-emerald-200 cursor-not-allowed font-bold'
+                              : 'bg-white'
                           }`}
                         />
                       </div>
@@ -495,7 +522,7 @@ export default function ProductVariantsManager({ formData, setFormData }) {
                 Laptop RAM & SSD Configurations
               </Label>
               <p className="text-[11px] text-muted-foreground truncate">
-                Set additional price (+₦) per hardware configuration.
+                Base Config auto-populates from product price. Additional upgrades add (+₦).
               </p>
             </div>
             <Button
@@ -519,6 +546,9 @@ export default function ProductVariantsManager({ formData, setFormData }) {
                   ? ''
                   : formatWithCommas(item.price);
 
+                const itemDelta = parseRawNumber(item.price);
+                const calculatedTotal = effectiveBasePrice + (isBase ? 0 : itemDelta);
+
                 return (
                   <div
                     key={idx}
@@ -538,7 +568,7 @@ export default function ProductVariantsManager({ formData, setFormData }) {
                             handleUpdateLaptopVariant(idx, 'ram', e.target.value)
                           }
                           placeholder="RAM (e.g. 16GB)"
-                          className="h-8 text-xs font-bold w-20 sm:w-24 bg-white shrink-0"
+                          className="h-8 text-base sm:text-xs font-bold w-20 sm:w-24 bg-white shrink-0"
                         />
                         <Input
                           type="text"
@@ -547,12 +577,12 @@ export default function ProductVariantsManager({ formData, setFormData }) {
                             handleUpdateLaptopVariant(idx, 'storage', e.target.value)
                           }
                           placeholder="SSD (e.g. 512GB SSD)"
-                          className="h-8 text-xs font-bold w-28 sm:w-32 bg-white shrink-0"
+                          className="h-8 text-base sm:text-xs font-bold w-28 sm:w-32 bg-white shrink-0"
                         />
                         <button
                           type="button"
                           onClick={() => handleSetBaseLaptop(idx)}
-                          className={`text-[11px] font-bold px-2 py-1 rounded-md transition-all flex items-center gap-1 shrink-0 ${
+                          className={`text-[11px] font-bold px-2 py-1 rounded-md transition-all flex items-center gap-1 shrink-0 cursor-pointer ${
                             isBase
                               ? 'bg-[#111344] text-white shadow-xs'
                               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -576,24 +606,44 @@ export default function ProductVariantsManager({ formData, setFormData }) {
 
                     {/* Bottom Row: Additional Price Input */}
                     <div>
-                      <Label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">
-                        {isBase ? 'Additional Price (Base Included)' : 'Additional Price (+₦ Upgrade)'}
-                      </Label>
+                      <div className="flex items-center justify-between text-[10px] font-bold text-gray-500 uppercase mb-1">
+                        <span>
+                          {isBase ? 'Base Price (Auto-Populated)' : 'Upgrade Additional Price (+₦)'}
+                        </span>
+                        {effectiveBasePrice > 0 && (
+                          <span className="text-emerald-700 font-extrabold normal-case text-[11px]">
+                            {isBase
+                              ? `₦${effectiveBasePrice.toLocaleString('en-NG')} (${hasSalePrice ? 'Sale Price' : 'Base Price'})`
+                              : `Total: ₦${calculatedTotal.toLocaleString('en-NG')}`}
+                          </span>
+                        )}
+                      </div>
+
                       <div className="relative flex items-center">
                         <span className="absolute left-2.5 text-xs font-bold text-gray-500 pointer-events-none">
-                          + ₦
+                          {isBase ? '₦' : '+ ₦'}
                         </span>
                         <Input
                           type="text"
                           inputMode="numeric"
                           disabled={isBase}
-                          value={displayPrice}
+                          value={
+                            isBase
+                              ? (effectiveBasePrice > 0 ? effectiveBasePrice.toLocaleString('en-NG') : '0')
+                              : displayPrice
+                          }
                           onChange={(e) =>
                             handleUpdateLaptopVariant(idx, 'price', e.target.value)
                           }
-                          placeholder={isBase ? '0 (Included in Base Price)' : 'e.g. 100,000'}
-                          className={`h-8 text-xs font-semibold pl-8 ${
-                            isBase ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'
+                          placeholder={
+                            isBase
+                              ? (effectiveBasePrice > 0 ? effectiveBasePrice.toLocaleString('en-NG') : '0 (Base Included)')
+                              : 'e.g. 100,000'
+                          }
+                          className={`h-8 text-base sm:text-xs font-semibold pl-8 ${
+                            isBase
+                              ? 'bg-emerald-50/40 text-emerald-900 border-emerald-200 cursor-not-allowed font-bold'
+                              : 'bg-white'
                           }`}
                         />
                       </div>

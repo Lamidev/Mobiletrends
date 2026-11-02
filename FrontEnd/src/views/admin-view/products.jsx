@@ -11,7 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { addProductFormElements } from "@/config";
+import { addProductFormElements, filterOptions } from "@/config";
 import { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -21,7 +21,7 @@ import {
   deleteProduct,
 } from "@/store/admin/products-slice";
 import ProductVariantsManager from "@/components/admin-view/product-variants-manager";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Select,
   SelectContent,
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import {
   Plus,
+  Minus,
   Search,
   Filter,
   ArrowUpDown,
@@ -41,6 +42,7 @@ import {
   X,
   RotateCcw,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const initialFormData = {
   image: "",
@@ -58,21 +60,6 @@ const initialFormData = {
   laptopVariants: [],
 };
 
-const CATEGORY_FILTER_OPTIONS = [
-  { id: "all", label: "All Categories" },
-  { id: "smartphones", label: "Smartphones" },
-  { id: "laptops", label: "Laptops" },
-  { id: "tablets", label: "Tablets" },
-  { id: "accessories", label: "Accessories" },
-  { id: "speaker", label: "Speakers" },
-];
-
-const CONDITION_FILTER_OPTIONS = [
-  { id: "all", label: "All Conditions" },
-  { id: "Brand New", label: "Brand New" },
-  { id: "UK-Used", label: "UK-Used" },
-];
-
 function AdminProducts() {
   const [openCreateProductsDialog, setOpenCreateProductsDialog] = useState(false);
   const [openFilterSheet, setOpenFilterSheet] = useState(false);
@@ -87,11 +74,24 @@ function AdminProducts() {
 
   // Search, Filter, Sort & Pagination
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedCondition, setSelectedCondition] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Filter state matching userfront (all sections closed by default)
+  const [filters, setFilters] = useState({
+    category: [],
+    brand: [],
+    condition: [],
+  });
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(5000000);
+  const [openSections, setOpenSections] = useState({
+    price: false,
+    condition: false,
+    category: false,
+    brand: false,
+  });
 
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
@@ -111,6 +111,37 @@ function AdminProducts() {
     }
   }, [openCreateProductsDialog]);
 
+  const toggleSection = (sectionKey) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey],
+    }));
+  };
+
+  const handleFilterToggle = (section, optionId, checked) => {
+    setFilters((prev) => {
+      const list = prev[section] || [];
+      const updated = checked
+        ? [...list, optionId]
+        : list.filter((id) => id !== optionId);
+      return { ...prev, [section]: updated };
+    });
+    setCurrentPage(1);
+  };
+
+  const handleResetFilters = () => {
+    setFilters({ category: [], brand: [], condition: [] });
+    setMinPrice(0);
+    setMaxPrice(5000000);
+    setCurrentPage(1);
+  };
+
+  const activeFiltersCount =
+    filters.category.length +
+    filters.brand.length +
+    filters.condition.length +
+    (minPrice > 0 || maxPrice < 5000000 ? 1 : 0);
+
   // Filtered & Sorted Products
   const filteredProducts = useMemo(() => {
     if (!productList) return [];
@@ -127,14 +158,36 @@ function AdminProducts() {
       );
     }
 
-    // Category filter
-    if (selectedCategory !== "all") {
-      list = list.filter((p) => p.category?.toLowerCase() === selectedCategory.toLowerCase());
+    // Category filter (multi-select)
+    if (filters.category.length > 0) {
+      list = list.filter((p) =>
+        filters.category.includes((p.category || "").toLowerCase())
+      );
     }
 
-    // Condition filter
-    if (selectedCondition !== "all") {
-      list = list.filter((p) => p.condition === selectedCondition);
+    // Brand filter (multi-select)
+    if (filters.brand.length > 0) {
+      list = list.filter((p) =>
+        filters.brand.includes((p.brand || "").toLowerCase())
+      );
+    }
+
+    // Condition filter (multi-select)
+    if (filters.condition.length > 0) {
+      list = list.filter((p) =>
+        filters.condition.some((c) =>
+          (p.condition || "").toLowerCase().includes(c.toLowerCase())
+        )
+      );
+    }
+
+    // Price range filter
+    if (minPrice > 0 || maxPrice < 5000000) {
+      list = list.filter((p) => {
+        const effPrice =
+          Number(p.salePrice) > 0 ? Number(p.salePrice) : Number(p.price) || 0;
+        return effPrice >= minPrice && effPrice <= maxPrice;
+      });
     }
 
     // Sorting
@@ -150,7 +203,7 @@ function AdminProducts() {
     }
 
     return list;
-  }, [productList, searchQuery, selectedCategory, selectedCondition, sortBy]);
+  }, [productList, searchQuery, filters, minPrice, maxPrice, sortBy]);
 
   const totalItems = filteredProducts.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
@@ -202,96 +255,73 @@ function AdminProducts() {
           setFormData(initialFormData);
           setOpenCreateProductsDialog(false);
           setCurrentEditedId(null);
-          toast({ title: "Product updated successfully" });
+          toast({
+            title: "Product updated successfully",
+          });
         }
       });
     } else {
-      dispatch(addNewProduct(submitData)).then((data) => {
+      dispatch(
+        addNewProduct({
+          ...submitData,
+        })
+      ).then((data) => {
         if (data?.payload?.success) {
           dispatch(fetchAllProducts());
-          setFormData(initialFormData);
           setOpenCreateProductsDialog(false);
-          toast({ title: "Product added successfully" });
+          setImageFile(null);
+          setFormData(initialFormData);
+          toast({
+            title: "Product added successfully",
+          });
         }
       });
     }
   }
 
-  function handleDelete(productId) {
+  function handleDelete(getCurrentProductId) {
     setIsDeleting(true);
-    dispatch(deleteProduct(productId)).then((data) => {
+    dispatch(deleteProduct(getCurrentProductId)).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchAllProducts());
-        toast({ title: "Product deleted successfully" });
+        toast({
+          title: "Product deleted successfully",
+        });
       }
       setIsDeleting(false);
     });
   }
 
-  function handleEditProduct(product) {
-    setOpenCreateProductsDialog(true);
-    setCurrentEditedId(product?._id);
-    const existingImages =
-      Array.isArray(product.images) && product.images.length > 0
-        ? product.images
-        : product.image
-        ? [product.image]
-        : [];
-
-    setFormData({
-      ...product,
-      image: product.image || "",
-      images: existingImages,
-      colors: Array.isArray(product.colors) ? product.colors : [],
-      storageVariants: Array.isArray(product.storageVariants) ? product.storageVariants : [],
-      laptopVariants: Array.isArray(product.laptopVariants) ? product.laptopVariants : [],
-      condition:
-        product.condition === "Premium Used"
-          ? "UK-Used"
-          : product.condition || "Brand New",
-    });
-    setUploadedImages(existingImages);
-    setUploadedImageUrl(existingImages[0] || "");
-    setImageFile(null);
-  }
-
   function isFormValid() {
-    const hasValidImage =
-      uploadedImages.length > 0 ||
-      (currentEditedId !== null ? formData.image || uploadedImageUrl : uploadedImageUrl);
-
-    const requiredFields = {
-      title: formData.title?.trim(),
-      description: formData.description?.trim(),
-      category: formData.category?.trim(),
-      brand: formData.brand?.trim(),
-      price: formData.price?.toString().trim(),
-      totalStock: formData.totalStock?.toString().trim(),
-    };
-
-    const hasRequiredFields = Object.values(requiredFields).every(
-      (value) => value !== "" && value !== undefined && value !== null
-    );
-
-    return hasValidImage && hasRequiredFields;
+    return Object.keys(formData)
+      .filter((currentKey) =>
+        ![
+          "averageReview",
+          "salePrice",
+          "colors",
+          "storageVariants",
+          "laptopVariants",
+          "image",
+          "condition",
+        ].includes(currentKey)
+      )
+      .map((key) => formData[key] !== "")
+      .every((item) => item);
   }
-
-  const activeFiltersCount = (selectedCategory !== "all" ? 1 : 0) + (selectedCondition !== "all" ? 1 : 0);
 
   return (
-    <div className="font-manrope space-y-5 px-1.5 py-3 sm:p-6 lg:p-8 max-w-7xl mx-auto bg-[#FBFBFC] min-h-screen">
-      {/* Top Header: Title with compact New Product button opposite */}
+    <div className="font-manrope space-y-5 p-2 sm:p-6 lg:p-8 max-w-7xl mx-auto bg-[#FBFBFC] min-h-screen">
+      {/* Top Header: Products Title & Compact Add Button */}
       <div className="flex items-center justify-between gap-3 pb-1">
         <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#111344] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111344] tracking-tight">
             Products
           </h1>
-          <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5">
-            Manage device inventory, variants, specifications, and pricing.
+          <p className="text-xs sm:text-sm text-gray-500 font-medium mt-0.5">
+            Manage your hardware inventory, pricing tiers, and hardware variants
           </p>
         </div>
 
-        {/* Compact New Product button */}
         <Button
           type="button"
           onClick={() => {
@@ -299,35 +329,35 @@ function AdminProducts() {
             setFormData(initialFormData);
             setOpenCreateProductsDialog(true);
           }}
-          className="h-8 px-3 bg-[#111344] hover:bg-[#0C1172] text-white text-xs font-semibold rounded-lg gap-1.5 shadow-xs cursor-pointer shrink-0"
+          className="h-8 sm:h-9 px-3 sm:px-4 bg-[#111344] hover:bg-[#0C1172] text-white font-bold text-xs rounded-xl gap-1.5 shadow-sm cursor-pointer shrink-0"
         >
-          <Plus size={14} />
+          <Plus size={15} />
           <span>New product</span>
         </Button>
       </div>
 
-      {/* Toolbar (Redesigned):
-          Row 1: All on the left; Filter & Sort opposite on the right.
-          Row 2: Full-width Search bar underneath.
+      {/* Toolbar:
+          Row 1: All (count) on left, Filter & Sort on right opposite All
+          Row 2: Search products bar underneath
       */}
-      <div className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 sm:border-gray-200/80 shadow-xs space-y-3">
-        {/* Row 1: Left = All count badge; Right = Filter + Sort buttons */}
-        <div className="flex items-center justify-between gap-2">
-          {/* Left: All count badge */}
+      <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 sm:border-gray-200/80 p-3 sm:p-4 shadow-xs space-y-3">
+        {/* Row 1 */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          {/* Left: All (count) */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-[#111344] text-white shadow-xs">
+            <span className="font-extrabold text-xs sm:text-sm text-[#111344] bg-gray-100/80 px-3 py-1.5 rounded-lg">
               All ({productList?.length || 0})
             </span>
           </div>
 
           {/* Right: Filter & Sort */}
           <div className="flex items-center gap-2">
-            {/* Filter Button (Opens slide-in drawer from the left) */}
+            {/* Filter Button */}
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpenFilterSheet(true)}
-              className={`h-9 px-3 text-xs font-semibold rounded-xl gap-1.5 border-gray-200 hover:bg-gray-100 ${
+              className={`h-9 px-3 text-xs font-semibold rounded-xl gap-1.5 border-gray-200 hover:bg-gray-100 cursor-pointer ${
                 activeFiltersCount > 0 ? "border-[#111344] text-[#111344] bg-blue-50/50" : "text-gray-700"
               }`}
             >
@@ -368,7 +398,7 @@ function AdminProducts() {
         <div className="relative w-full">
           <Search
             size={14}
-            className="absolute left-3 top-2.5 text-gray-400 pointer-events-none"
+            className="absolute left-3 top-3 text-gray-400 pointer-events-none"
           />
           <Input
             type="text"
@@ -378,93 +408,286 @@ function AdminProducts() {
               setCurrentPage(1);
             }}
             placeholder="Search products..."
-            className="h-9 pl-9 text-xs bg-[#FAFBFD] border-gray-200 rounded-xl w-full"
+            className="h-10 pl-9 text-base sm:text-xs bg-[#FAFBFD] border-gray-200 rounded-xl w-full"
           />
         </div>
       </div>
 
-      {/* Slide-in Filter Drawer (Left) */}
+      {/* Slide-in Filter Drawer (Left) - Same structure as userfront, closed by default, clean header */}
       <Sheet open={openFilterSheet} onOpenChange={setOpenFilterSheet}>
-        <SheetContent side="left" className="w-72 sm:w-80 p-5 overflow-y-auto">
-          <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-            <h3 className="font-manrope text-base font-bold text-[#111344] flex items-center gap-2">
+        <SheetContent side="left" hideClose={true} className="w-72 sm:w-80 p-0 flex flex-col h-full bg-white font-manrope">
+          {/* Header with Title and Reset/Close side-by-side with no overlap */}
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
+            <h2 className="text-base sm:text-lg font-extrabold text-[#111344] flex items-center gap-2">
               <Filter size={16} />
-              <span>Filter Catalog</span>
-            </h3>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedCategory("all");
-                setSelectedCondition("all");
-              }}
-              className="text-[11px] font-semibold text-gray-400 hover:text-gray-700 flex items-center gap-1"
-            >
-              <RotateCcw size={12} />
-              Reset
-            </button>
-          </div>
+              <span>Filter</span>
+            </h2>
 
-          <div className="py-4 space-y-5">
-            {/* Category Section */}
-            <div>
-              <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block mb-2">
-                Category
-              </label>
-              <div className="space-y-1">
-                {CATEGORY_FILTER_OPTIONS.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCategory(cat.id);
-                      setCurrentPage(1);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                      selectedCategory === cat.id
-                        ? "bg-[#111344] text-white font-bold"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Condition Section */}
-            <div>
-              <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block mb-2">
-                Condition
-              </label>
-              <div className="space-y-1">
-                {CONDITION_FILTER_OPTIONS.map((cond) => (
-                  <button
-                    key={cond.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCondition(cond.id);
-                      setCurrentPage(1);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                      selectedCondition === cond.id
-                        ? "bg-[#111344] text-white font-bold"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {cond.label}
-                  </button>
-                ))}
-              </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleResetFilters}
+                className="text-xs font-semibold text-gray-500 hover:text-red-600 transition-colors h-8 px-2 cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5 mr-1" />
+                Reset
+              </Button>
+              <button
+                type="button"
+                onClick={() => setOpenFilterSheet(false)}
+                className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors cursor-pointer"
+                title="Close filter"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-gray-200">
+          {/* Filter Sections (Ordered: 1. Price, 2. Condition, 3. Category, 4. Brand) - All Closed by default */}
+          <div className="flex-1 overflow-y-auto px-4 py-2 divide-y divide-gray-200">
+            {/* 1. PRICE RANGE */}
+            <div className="py-2">
+              <button
+                type="button"
+                onClick={() => toggleSection("price")}
+                className="w-full flex items-center justify-between py-3 text-left text-xs font-bold text-[#141619] tracking-wider uppercase hover:text-[#0C1172] cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <span>PRICE RANGE</span>
+                  {(minPrice > 0 || maxPrice < 5000000) && (
+                    <span className="h-2 w-2 rounded-full bg-[#111344]" />
+                  )}
+                </span>
+                <span className="flex items-center justify-center w-5 h-5 text-gray-700">
+                  {openSections.price ? <Minus size={14} /> : <Plus size={14} />}
+                </span>
+              </button>
+
+              <AnimatePresence initial={false}>
+                {openSections.price && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden pb-3 pt-1 space-y-3"
+                  >
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <span className="text-[10px] text-gray-500 font-bold uppercase">
+                          Min (₦)
+                        </span>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={minPrice === 0 ? "" : minPrice}
+                          onChange={(e) =>
+                            setMinPrice(e.target.value === "" ? 0 : parseInt(e.target.value))
+                          }
+                          className="h-8 text-xs border-gray-200"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] text-gray-500 font-bold uppercase">
+                          Max (₦)
+                        </span>
+                        <Input
+                          type="number"
+                          placeholder="5,000,000"
+                          value={maxPrice === 5000000 || maxPrice === 0 ? "" : maxPrice}
+                          onChange={(e) =>
+                            setMaxPrice(e.target.value === "" ? 5000000 : parseInt(e.target.value))
+                          }
+                          className="h-8 text-xs border-gray-200"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 pt-1">
+                      <input
+                        type="range"
+                        min="0"
+                        max="5000000"
+                        step="50000"
+                        value={maxPrice || 5000000}
+                        onChange={(e) => setMaxPrice(parseInt(e.target.value))}
+                        className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#111344]"
+                      />
+                      <div className="flex justify-between text-[10px] text-gray-400 font-bold">
+                        <span>₦0</span>
+                        <span>₦5,000,000+</span>
+                      </div>
+                      <div className="text-center text-[11px] font-bold text-[#111344] bg-gray-100/70 py-1 rounded">
+                        ₦{(minPrice || 0).toLocaleString("en-NG")} — ₦{(maxPrice || 5000000).toLocaleString("en-NG")}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* 2. CONDITION */}
+            <div className="py-2">
+              <button
+                type="button"
+                onClick={() => toggleSection("condition")}
+                className="w-full flex items-center justify-between py-3 text-left text-xs font-bold text-[#141619] tracking-wider uppercase hover:text-[#0C1172] cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <span>CONDITION</span>
+                  {filters.condition.length > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#111344] text-white leading-none">
+                      {filters.condition.length}
+                    </span>
+                  )}
+                </span>
+                <span className="flex items-center justify-center w-5 h-5 text-gray-700">
+                  {openSections.condition ? <Minus size={14} /> : <Plus size={14} />}
+                </span>
+              </button>
+
+              <AnimatePresence initial={false}>
+                {openSections.condition && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden pb-3 pt-0.5 space-y-1"
+                  >
+                    {(filterOptions.condition || []).map((opt) => (
+                      <label
+                        key={opt.id}
+                        className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        <Checkbox
+                          checked={filters.condition.includes(opt.id)}
+                          onCheckedChange={(checked) =>
+                            handleFilterToggle("condition", opt.id, checked)
+                          }
+                          className="data-[state=checked]:bg-[#111344] data-[state=checked]:border-[#111344] border-gray-300 rounded-sm"
+                        />
+                        <span className="text-xs font-medium text-gray-700">
+                          {opt.label}
+                        </span>
+                      </label>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* 3. CATEGORY */}
+            <div className="py-2">
+              <button
+                type="button"
+                onClick={() => toggleSection("category")}
+                className="w-full flex items-center justify-between py-3 text-left text-xs font-bold text-[#141619] tracking-wider uppercase hover:text-[#0C1172] cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <span>CATEGORY</span>
+                  {filters.category.length > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#111344] text-white leading-none">
+                      {filters.category.length}
+                    </span>
+                  )}
+                </span>
+                <span className="flex items-center justify-center w-5 h-5 text-gray-700">
+                  {openSections.category ? <Minus size={14} /> : <Plus size={14} />}
+                </span>
+              </button>
+
+              <AnimatePresence initial={false}>
+                {openSections.category && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden pb-3 pt-0.5 space-y-1"
+                  >
+                    {(filterOptions.category || []).map((opt) => (
+                      <label
+                        key={opt.id}
+                        className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        <Checkbox
+                          checked={filters.category.includes(opt.id)}
+                          onCheckedChange={(checked) =>
+                            handleFilterToggle("category", opt.id, checked)
+                          }
+                          className="data-[state=checked]:bg-[#111344] data-[state=checked]:border-[#111344] border-gray-300 rounded-sm"
+                        />
+                        <span className="text-xs font-medium text-gray-700">
+                          {opt.label}
+                        </span>
+                      </label>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* 4. BRAND */}
+            <div className="py-2">
+              <button
+                type="button"
+                onClick={() => toggleSection("brand")}
+                className="w-full flex items-center justify-between py-3 text-left text-xs font-bold text-[#141619] tracking-wider uppercase hover:text-[#0C1172] cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <span>BRAND</span>
+                  {filters.brand.length > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#111344] text-white leading-none">
+                      {filters.brand.length}
+                    </span>
+                  )}
+                </span>
+                <span className="flex items-center justify-center w-5 h-5 text-gray-700">
+                  {openSections.brand ? <Minus size={14} /> : <Plus size={14} />}
+                </span>
+              </button>
+
+              <AnimatePresence initial={false}>
+                {openSections.brand && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden pb-3 pt-0.5 space-y-1 max-h-60 overflow-y-auto"
+                  >
+                    {(filterOptions.brand || []).map((opt) => (
+                      <label
+                        key={opt.id}
+                        className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        <Checkbox
+                          checked={filters.brand.includes(opt.id)}
+                          onCheckedChange={(checked) =>
+                            handleFilterToggle("brand", opt.id, checked)
+                          }
+                          className="data-[state=checked]:bg-[#111344] data-[state=checked]:border-[#111344] border-gray-300 rounded-sm"
+                        />
+                        <span className="text-xs font-medium text-gray-700">
+                          {opt.label}
+                        </span>
+                      </label>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          <div className="p-4 border-t border-gray-200">
             <Button
               type="button"
               onClick={() => setOpenFilterSheet(false)}
-              className="w-full h-9 bg-[#111344] hover:bg-[#0C1172] text-white font-bold text-xs rounded-xl"
+              className="w-full h-9 bg-[#111344] hover:bg-[#0C1172] text-white font-bold text-xs rounded-xl cursor-pointer"
             >
-              Apply Filters
+              Apply & Close
             </Button>
           </div>
         </SheetContent>
@@ -479,133 +702,144 @@ function AdminProducts() {
                 <th className="py-3 px-3 sm:px-4 w-9">
                   <input type="checkbox" className="rounded border-gray-300 text-[#111344] focus:ring-0" />
                 </th>
-                <th className="py-3 px-3 sm:px-4 font-bold min-w-[240px]">Product</th>
-                <th className="py-3 px-3 sm:px-4 font-bold">Status</th>
-                <th className="py-3 px-3 sm:px-4 font-bold">Price</th>
-                <th className="py-3 px-3 sm:px-4 font-bold">Inventory</th>
-                <th className="py-3 px-3 sm:px-4 font-bold">Category</th>
-                <th className="py-3 px-3 sm:px-4 font-bold text-right">Action</th>
+                <th className="py-3 px-2 sm:px-4 font-bold min-w-[200px]">Product</th>
+                <th className="py-3 px-2 sm:px-4 font-bold">Status</th>
+                <th className="py-3 px-2 sm:px-4 font-bold">Price</th>
+                <th className="py-3 px-2 sm:px-4 font-bold">Inventory</th>
+                <th className="py-3 px-2 sm:px-4 font-bold">Category</th>
+                <th className="py-3 px-3 sm:px-4 text-right font-bold">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 font-medium text-gray-700">
-              {currentProducts.length > 0 ? (
-                currentProducts.map((product) => {
-                  const stockNum = Number(product.totalStock) || 0;
-                  const inStock = stockNum > 0;
+              {currentProducts && currentProducts.length > 0 ? (
+                currentProducts.map((productItem) => {
+                  const hasDiscount =
+                    Number(productItem?.salePrice) > 0 &&
+                    Number(productItem?.salePrice) < Number(productItem?.price);
 
-                  // Price calculations
-                  const basePrice = Number(product.price) || 0;
-                  const salePrice = Number(product.salePrice) || 0;
-                  const hasDiscount = salePrice > 0 && salePrice < basePrice;
                   const discountPct = hasDiscount
-                    ? Math.round(((basePrice - salePrice) / basePrice) * 100)
+                    ? Math.round(
+                        ((Number(productItem.price) - Number(productItem.salePrice)) /
+                          Number(productItem.price)) *
+                          100
+                      )
                     : 0;
 
-                  const imageCount = Array.isArray(product.images) ? product.images.length : (product.image ? 1 : 0);
-                  const displayImage = (product.images && product.images[0]) || product.image || "/placeholder.png";
+                  const isOutOfStock = Number(productItem?.totalStock || 0) <= 0;
 
                   return (
-                    <tr key={product._id} className="hover:bg-gray-50/70 transition-colors">
-                      {/* Checkbox */}
+                    <tr
+                      key={productItem?._id}
+                      className="hover:bg-gray-50/70 transition-colors"
+                    >
                       <td className="py-3 px-3 sm:px-4">
-                        <input type="checkbox" className="rounded border-gray-300 text-[#111344] focus:ring-0" />
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300 text-[#111344] focus:ring-0"
+                        />
                       </td>
 
-                      {/* Product Thumbnail + Title */}
-                      <td className="py-3 px-3 sm:px-4">
-                        <div className="flex items-center gap-2.5 sm:gap-3">
-                          <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-gray-50 border border-gray-200 shrink-0 overflow-hidden flex items-center justify-center">
-                            <img
-                              src={displayImage}
-                              alt={product.title}
-                              className="w-full h-full object-contain p-1"
-                              onError={(e) => {
-                                e.target.src = "/placeholder.png";
-                              }}
-                            />
-                            {imageCount > 1 && (
-                              <span className="absolute bottom-0.5 right-0.5 bg-black/75 text-white text-[9px] font-bold px-1 rounded">
-                                +{imageCount}
-                              </span>
+                      <td className="py-3 px-2 sm:px-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 shrink-0">
+                            {productItem?.image ? (
+                              <img
+                                src={productItem.image}
+                                alt={productItem.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">
+                                No img
+                              </div>
                             )}
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-gray-900 line-clamp-1 text-xs sm:text-[13px]">
-                              {product.title}
+                          <div className="min-w-0 max-w-[220px] sm:max-w-xs">
+                            <p className="font-semibold text-gray-900 truncate text-xs sm:text-[13px]">
+                              {productItem?.title}
                             </p>
-                            <p className="text-[10.5px] sm:text-[11px] text-gray-400 capitalize">
-                              {product.brand} • {product.condition || "Brand New"}
+                            <p className="text-[11px] text-gray-400 capitalize">
+                              {productItem?.brand || "Brand"} · {productItem?.condition || "Brand New"}
                             </p>
                           </div>
                         </div>
                       </td>
 
-                      {/* Status Badge */}
-                      <td className="py-3 px-3 sm:px-4">
-                        <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] sm:text-[10.5px] font-bold ${
-                            inStock
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-rose-50 text-rose-600"
-                          }`}
-                        >
-                          {inStock ? "Active" : "Out of Stock"}
+                      <td className="py-3 px-2 sm:px-4">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          Active
                         </span>
                       </td>
 
-                      {/* Price */}
-                      <td className="py-3 px-3 sm:px-4 whitespace-nowrap">
+                      <td className="py-3 px-2 sm:px-4 whitespace-nowrap">
                         {hasDiscount ? (
-                          <div>
+                          <div className="space-y-0.5">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-black text-rose-600 text-xs sm:text-[13px]">
-                                ₦{salePrice.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                              <span className="font-bold text-rose-600 text-xs sm:text-[13px]">
+                                ₦{Number(productItem.salePrice).toLocaleString("en-NG")}
                               </span>
-                              <span className="text-[10px] font-bold px-1.5 py-0.2 bg-rose-50 text-rose-600 rounded">
+                              <span className="text-[10px] font-bold bg-rose-50 text-rose-600 px-1 py-0.2 rounded">
                                 -{discountPct}%
                               </span>
                             </div>
-                            <span className="text-[10.5px] sm:text-[11px] text-gray-400 line-through">
-                              ₦{basePrice.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                            <span className="line-through text-gray-400 text-[11px] block">
+                              ₦{Number(productItem.price).toLocaleString("en-NG")}
                             </span>
                           </div>
                         ) : (
-                          <span className="font-black text-gray-900 text-xs sm:text-[13px]">
-                            ₦{basePrice.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                          <span className="font-bold text-gray-900 text-xs sm:text-[13px]">
+                            ₦{Number(productItem?.price || 0).toLocaleString("en-NG")}
                           </span>
                         )}
                       </td>
 
-                      {/* Inventory */}
-                      <td className="py-3 px-3 sm:px-4 whitespace-nowrap">
-                        <span className={`font-semibold ${inStock ? "text-gray-700" : "text-rose-600 font-bold"}`}>
-                          {stockNum} in stock
+                      <td className="py-3 px-2 sm:px-4 whitespace-nowrap">
+                        <span
+                          className={`text-xs font-semibold ${
+                            isOutOfStock ? "text-rose-600 font-bold" : "text-gray-700"
+                          }`}
+                        >
+                          {productItem?.totalStock || 0} in stock
                         </span>
                       </td>
 
-                      {/* Category */}
-                      <td className="py-3 px-3 sm:px-4 capitalize font-semibold text-gray-600 whitespace-nowrap">
-                        {product.category || "Gadget"}
+                      <td className="py-3 px-2 sm:px-4 capitalize whitespace-nowrap text-gray-600">
+                        {productItem?.category || "—"}
                       </td>
 
-                      {/* Action */}
                       <td className="py-3 px-3 sm:px-4 text-right whitespace-nowrap">
-                        <div className="inline-flex items-center gap-1 justify-end">
+                        <div className="inline-flex items-center gap-1 sm:gap-1.5 justify-end">
                           <button
                             type="button"
-                            onClick={() => handleEditProduct(product)}
-                            className="p-1.5 text-gray-500 hover:text-[#111344] hover:bg-gray-100 rounded-md transition-colors"
-                            title="Edit Product"
+                            onClick={() => {
+                              setCurrentEditedId(productItem?._id);
+                              setFormData({
+                                ...productItem,
+                                price: productItem?.price !== undefined ? String(productItem.price) : "",
+                                salePrice: productItem?.salePrice !== undefined ? String(productItem.salePrice) : "",
+                                totalStock: productItem?.totalStock !== undefined ? String(productItem.totalStock) : "",
+                                colors: productItem?.colors || [],
+                                storageVariants: productItem?.storageVariants || [],
+                                laptopVariants: productItem?.laptopVariants || [],
+                              });
+                              setUploadedImages(productItem?.images || (productItem?.image ? [productItem.image] : []));
+                              setUploadedImageUrl(productItem?.image || "");
+                              setOpenCreateProductsDialog(true);
+                            }}
+                            className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            title="Edit"
                           >
-                            <Edit2 size={14} />
+                            <Edit2 size={13} />
                           </button>
+
                           <button
                             type="button"
-                            onClick={() => handleDelete(product._id)}
-                            className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
-                            title="Delete Product"
+                            onClick={() => handleDelete(productItem?._id)}
+                            disabled={isDeleting}
+                            className="p-1.5 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title="Delete"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={13} />
                           </button>
                         </div>
                       </td>
@@ -615,7 +849,7 @@ function AdminProducts() {
               ) : (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-gray-400 font-medium">
-                    No products found matching your filters.
+                    No products found matching your search or filters.
                   </td>
                 </tr>
               )}
@@ -623,29 +857,34 @@ function AdminProducts() {
           </table>
         </div>
 
-        {/* Pagination Toolbar */}
-        {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-100 bg-[#FAFBFD]">
-            <span className="text-xs text-gray-500 font-medium">
-              Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} products
+        {/* Pagination Footer */}
+        {totalItems > 0 && (
+          <div className="p-3 sm:p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 font-medium">
+            <span>
+              Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} products
             </span>
-            <div className="flex items-center gap-1">
+
+            <div className="flex items-center gap-1.5">
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
                 className="h-8 px-2.5 text-xs font-semibold rounded-lg"
               >
                 <ChevronLeft size={14} className="mr-1" /> Prev
               </Button>
-              <span className="text-xs font-bold text-gray-700 px-2">
-                Page {currentPage} of {totalPages}
+
+              <span className="px-2 text-xs font-bold text-gray-700">
+                {currentPage} / {totalPages}
               </span>
+
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
                 className="h-8 px-2.5 text-xs font-semibold rounded-lg"
               >
@@ -656,11 +895,11 @@ function AdminProducts() {
         )}
       </div>
 
-      {/* Slide-out Sheet for Add / Edit Product (Full mobile width & responsive with visible Close and Cancel buttons) */}
+      {/* Slide-out Sheet for Add / Edit Product (Single clean X close button, no duplicate) */}
       <Sheet
         open={openCreateProductsDialog}
-        onOpenChange={() => {
-          setOpenCreateProductsDialog(false);
+        onOpenChange={(open) => {
+          setOpenCreateProductsDialog(open);
         }}
       >
         <SheetContent
@@ -672,21 +911,11 @@ function AdminProducts() {
           exit={{ x: "100%" }}
           transition={{ type: "spring", stiffness: 200, damping: 30 }}
         >
-          {/* Header with explicit close icon button */}
-          <SheetHeader className="sticky top-0 bg-background z-20 pb-3 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="font-manrope text-lg sm:text-xl font-bold tracking-tight text-[#111344]">
-                {currentEditedId !== null ? "Edit Product" : "Add New Product"}
-              </SheetTitle>
-              <button
-                type="button"
-                onClick={() => setOpenCreateProductsDialog(false)}
-                className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                title="Close"
-              >
-                <X size={18} />
-              </button>
-            </div>
+          {/* Header with single built-in SheetContent close button */}
+          <SheetHeader className="sticky top-0 bg-background z-20 pb-3 border-b border-gray-100 pr-10 text-left">
+            <SheetTitle className="font-manrope text-lg sm:text-xl font-bold tracking-tight text-[#111344]">
+              {currentEditedId !== null ? "Edit Product" : "Add New Product"}
+            </SheetTitle>
           </SheetHeader>
 
           <div className="space-y-6 pt-4 pb-8">

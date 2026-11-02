@@ -6,6 +6,7 @@ const {
   VERIFICATION_EMAIL_TEMPLATE,
   WELCOME_EMAIL_TEMPLATE,
   ORDER_RECEIPT_TEMPLATE,
+  ORDER_STATUS_UPDATE_TEMPLATE,
   NEWSLETTER_SUBSCRIPTION_TEMPLATE,
   ADMIN_NEWSLETTER_NOTIFICATION_TEMPLATE,
 } = require("./email-template.js");
@@ -194,4 +195,93 @@ exports.sendNewsletterAdminNotification = async (subscriberEmail) => {
     },
     "Error sending newsletter admin notification"
   );
+};
+
+// 8. Send Order Status Update Email
+exports.sendOrderStatusUpdateEmail = async (email, order, newStatus) => {
+  try {
+    const s = (newStatus || "").toLowerCase();
+    let statusTitle = "Order Updated";
+    let statusLabel = "Updated";
+    let statusMessage = "There has been an update to your order.";
+    let statusBadgeBg = "#f1f5f9";
+    let statusBadgeColor = "#334155";
+    let subject = `Order #${formatOrderId(order._id)} Update - Mobiletrends`;
+
+    if (s.includes("confirm")) {
+      statusTitle = "Order Confirmed";
+      statusLabel = "Confirmed";
+      statusMessage = "Your payment has been reconciled and your order has been confirmed! Our warehouse team is now packaging and quality-testing your device for dispatch.";
+      statusBadgeBg = "#dcfce7";
+      statusBadgeColor = "#166534";
+      subject = `Your Mobiletrends Order #${formatOrderId(order._id)} is Confirmed`;
+    } else if (s.includes("ship")) {
+      statusTitle = "Order Dispatched & Shipped";
+      statusLabel = "In Transit";
+      statusMessage = "Great news! Your package has been dispatched and is currently on its way with our trusted logistics courier/rider.";
+      statusBadgeBg = "#f3e8ff";
+      statusBadgeColor = "#6b21a8";
+      subject = `Your Mobiletrends Order #${formatOrderId(order._id)} is On Its Way!`;
+    } else if (s.includes("deliver")) {
+      statusTitle = "Order Delivered";
+      statusLabel = "Delivered";
+      statusMessage = "Your order has been successfully delivered. Thank you for choosing Mobiletrends Systems Limited! If you have any questions or feedback, we would love to hear from you.";
+      statusBadgeBg = "#e0e7ff";
+      statusBadgeColor = "#3730a3";
+      subject = `Your Mobiletrends Order #${formatOrderId(order._id)} Has Been Delivered!`;
+    } else if (s.includes("cancel") || s.includes("reject")) {
+      statusTitle = "Order Cancelled";
+      statusLabel = "Cancelled";
+      statusMessage = "Your order has been cancelled. If you believe this is an error or would like to discuss a refund or re-order, please reply to this email or call our team.";
+      statusBadgeBg = "#fee2e2";
+      statusBadgeColor = "#991b1b";
+      subject = `Mobiletrends Order #${formatOrderId(order._id)} - Cancelled`;
+    }
+
+    const cartItemsHTML = (order.cartItems || [])
+      .map((item) => {
+        const variants = [
+          item.selectedCondition,
+          item.selectedStorage,
+          item.selectedRam ? `${item.selectedRam} RAM` : null,
+          item.selectedColor,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+
+        return `<li><strong>${item.title}</strong>${variants ? ` (${variants})` : ""} — ${formatNaira(item.price)} × ${item.quantity} = <strong>${formatNaira((Number(item.price) || 0) * (Number(item.quantity) || 1))}</strong></li>`;
+      })
+      .join("");
+
+    const addressInfo = `
+      ${order.addressInfo?.fullName || ""}<br>
+      ${order.addressInfo?.address || ""}<br>
+      ${order.addressInfo?.lga || ""}${order.addressInfo?.lga && order.addressInfo?.state ? ", " : ""}${order.addressInfo?.state || ""}<br>
+      ${order.addressInfo?.phone || ""}
+    `;
+
+    const html = ORDER_STATUS_UPDATE_TEMPLATE
+      .replace(/{userName}/g, order.addressInfo?.fullName || order.payerId || "Valued Customer")
+      .replace(/{statusTitle}/g, statusTitle)
+      .replace(/{statusLabel}/g, statusLabel)
+      .replace(/{statusMessage}/g, statusMessage)
+      .replace(/{statusBadgeBg}/g, statusBadgeBg)
+      .replace(/{statusBadgeColor}/g, statusBadgeColor)
+      .replace(/{orderId}/g, formatOrderId(order._id))
+      .replace(/{totalAmount}/g, formatNaira(order.totalAmount || 0))
+      .replace(/{cartItems}/g, cartItemsHTML || "<li>1x Device</li>")
+      .replace(/{addressInfo}/g, addressInfo);
+
+    return sendWithResend(
+      {
+        to: email,
+        subject,
+        html,
+      },
+      "Error sending order status update email"
+    );
+  } catch (error) {
+    console.error("[Resend] Error building order status update email:", error);
+    return false;
+  }
 };

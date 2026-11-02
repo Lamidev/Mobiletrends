@@ -53,7 +53,7 @@ function formatOrderDate(dateStr) {
 }
 
 function getStatusBadgeStyle(status) {
-  const s = (status || "pending").toLowerCase();
+  const s = (status || "confirmed").toLowerCase();
   if (s.includes("confirm") || s.includes("paid") || s === "success") {
     return "bg-emerald-50 text-emerald-700 border-emerald-200/70";
   }
@@ -63,23 +63,18 @@ function getStatusBadgeStyle(status) {
   if (s.includes("ship")) {
     return "bg-purple-50 text-purple-700 border-purple-200/70";
   }
-  if (s.includes("process")) {
-    return "bg-blue-50 text-blue-700 border-blue-200/70";
-  }
   if (s.includes("cancel") || s.includes("reject")) {
     return "bg-rose-50 text-rose-700 border-rose-200/70";
   }
-  return "bg-amber-50 text-amber-700 border-amber-200/70";
+  return "bg-emerald-50 text-emerald-700 border-emerald-200/70";
 }
 
 function normalizeStatusLabel(status) {
-  const s = (status || "pending").toLowerCase();
-  if (s.includes("confirm")) return "Confirmed";
+  const s = (status || "confirmed").toLowerCase();
   if (s.includes("deliver")) return "Delivered";
-  if (s.includes("ship")) return "In Shipping";
-  if (s.includes("process")) return "In Process";
+  if (s.includes("ship")) return "Shipped";
   if (s.includes("cancel") || s.includes("reject")) return "Cancelled";
-  return "Pending";
+  return "Confirmed";
 }
 
 function AdminOrderDetailsView({ orderDetails, onClose }) {
@@ -106,8 +101,8 @@ function AdminOrderDetailsView({ orderDetails, onClose }) {
           dispatch(getAllOrdersForAdmin());
           setSelectedStatus("");
           toast({
-            title: "Status updated",
-            description: data?.payload?.message || "Order status has been updated successfully",
+            title: "Status updated & email sent",
+            description: "Order status has been updated and an automated notification was emailed to the customer.",
           });
         } else {
           toast({
@@ -201,7 +196,7 @@ function AdminOrderDetailsView({ orderDetails, onClose }) {
             </div>
             <div className="text-xs space-y-1 text-gray-600">
               <p className="font-bold text-gray-900 text-sm">
-                {orderDetails?.addressInfo?.fullName || orderDetails?.userName || "Guest Customer"}
+                {orderDetails?.addressInfo?.fullName || orderDetails?.userName || "Customer"}
               </p>
               {orderDetails?.addressInfo?.phone && (
                 <p className="flex items-center gap-1.5 font-medium">
@@ -209,13 +204,13 @@ function AdminOrderDetailsView({ orderDetails, onClose }) {
                   <span>{orderDetails.addressInfo.phone}</span>
                 </p>
               )}
-              {orderDetails?.addressInfo?.email && (
+              {(orderDetails?.payerId || orderDetails?.addressInfo?.email) && (
                 <p className="text-gray-500 text-[11px] font-medium">
-                  {orderDetails.addressInfo.email}
+                  {orderDetails.payerId || orderDetails.addressInfo.email}
                 </p>
               )}
               <div className="pt-1 text-[11px] text-gray-500 font-medium">
-                Payment: <span className="font-bold text-gray-700 capitalize">{orderDetails?.paymentMethod || "Online Transfer"}</span> · Status: <span className="font-bold text-emerald-700 capitalize">{orderDetails?.paymentStatus || "Paid"}</span>
+                Payment: <span className="font-bold text-gray-700 capitalize">{orderDetails?.paymentMethod || "Online Checkout"}</span> · Status: <span className="font-bold text-emerald-700 capitalize">{orderDetails?.paymentStatus || "Paid"}</span>
               </div>
             </div>
           </div>
@@ -335,9 +330,14 @@ function AdminOrderDetailsView({ orderDetails, onClose }) {
 
         {/* Update Status Bar */}
         <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-3">
-          <Label className="text-xs font-bold text-gray-800">
-            Update Order Status
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold text-gray-800">
+              Update Order Status
+            </Label>
+            <span className="text-[11px] text-gray-500 font-medium">
+              Customer automatically notified by email
+            </span>
+          </div>
 
           <form onSubmit={handleUpdateStatus} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <select
@@ -346,12 +346,10 @@ function AdminOrderDetailsView({ orderDetails, onClose }) {
               className="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#111344]"
             >
               <option value="">Select new status...</option>
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="inProcess">In Process</option>
-              <option value="shipping">In Shipping</option>
-              <option value="delivered">Delivered</option>
-              <option value="rejected">Cancelled / Rejected</option>
+              <option value="confirmed">Confirmed (Packaging & Testing)</option>
+              <option value="shipping">Shipped (Dispatched to Courier / Rider)</option>
+              <option value="delivered">Delivered (Handed over to Customer)</option>
+              <option value="rejected">Cancelled (Voided / Refunded)</option>
             </select>
 
             <Button
@@ -360,7 +358,7 @@ function AdminOrderDetailsView({ orderDetails, onClose }) {
               className="h-9 px-4 bg-[#111344] hover:bg-[#0C1172] text-white text-xs font-bold rounded-xl gap-2 cursor-pointer shadow-xs shrink-0 disabled:opacity-40"
             >
               {isLoading ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
-              <span>Update Status</span>
+              <span>Update & Send Email</span>
             </Button>
           </form>
         </div>
