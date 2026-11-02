@@ -11,15 +11,11 @@ import {
   LogOut,
   ArrowLeft,
   ChevronRight,
-  ShieldCheck,
   LayoutDashboard,
   Trash2,
-  MapPin,
   ShoppingCart,
   Plus,
-  X,
   Loader2,
-  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -360,13 +356,504 @@ function ShoppingAccount() {
       })
     : "October 2026";
 
+  // Active tab on desktop (defaults to profile if activeView is main)
+  const currentDesktopTab = activeView === "main" ? "profile" : activeView;
+
+  // ========================================================
+  // REUSABLE TAB CONTENT RENDERERS (USED BY DESKTOP & MOBILE)
+  // ========================================================
+
+  const renderProfileContent = (isDesktop = false) => (
+    <div className="space-y-5">
+      {/* Return Button (Mobile only) */}
+      {!isDesktop && (
+        <button
+          type="button"
+          onClick={() => handleSelectView("main")}
+          className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors cursor-pointer group py-1"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>Back to Account Settings</span>
+        </button>
+      )}
+
+      {/* Welcome Message Header requested by user */}
+      <div className="pb-1">
+        <h1 className="text-[21px] sm:text-[25px] font-bold text-[#0f172a] tracking-tight leading-snug">
+          Hi {user?.userName || "there"}, welcome to Mobiletrends
+        </h1>
+        <p className="text-[13px] text-[#64748b] mt-1 font-medium">
+          Joined {formattedJoinDate}
+        </p>
+      </div>
+
+      {/* Card 1: My Profile (Image 1 replica) */}
+      <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-6">
+        <h2 className="text-[20px] font-bold text-[#0f172a]">
+          My Profile
+        </h2>
+
+        {/* Name Row */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <span className="block text-[13px] font-medium text-[#64748b]">
+              Name
+            </span>
+            <span className="block text-[15px] sm:text-[16px] font-semibold text-[#0f172a] mt-0.5">
+              {user?.userName || "Not set"}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={openNameModal}
+            className="text-black hover:text-black/70 font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
+          >
+            Edit
+          </button>
+        </div>
+
+        {/* Email Row */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <span className="block text-[13px] font-medium text-[#64748b]">
+              Email
+            </span>
+            <span className="block text-[15px] sm:text-[16px] font-semibold text-[#0f172a] mt-0.5 underline decoration-gray-300 truncate">
+              {user?.email || "Not set"}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={openEmailModal}
+            className="text-black hover:text-black/70 font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
+          >
+            Edit
+          </button>
+        </div>
+
+        {/* Password Row */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <span className="block text-[13px] font-medium text-[#64748b]">
+              Password
+            </span>
+            <span className="block text-[15px] font-semibold text-[#0f172a] mt-0.5 tracking-[3px]">
+              ••••••••••••••••
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={openPasswordModal}
+            className="text-black hover:text-black/70 font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
+          >
+            Edit
+          </button>
+        </div>
+      </div>
+
+      {/* Card 2: Delivery Address (Image 1 replica) */}
+      <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
+        {/* Header Row */}
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-[20px] font-bold text-[#0f172a]">
+            Delivery Address
+          </h2>
+          <button
+            type="button"
+            onClick={openAddAddressModal}
+            className="text-[#0f172a] hover:text-[#111344] font-bold text-[13.5px] flex items-center gap-1 cursor-pointer transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{addressList && addressList.length > 0 ? "Update address" : "Add address"}</span>
+          </button>
+        </div>
+
+        {/* Address Listing */}
+        {addressLoading ? (
+          <div className="py-6 flex items-center justify-center text-sm text-[#64748b]">
+            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+            <span>Loading addresses...</span>
+          </div>
+        ) : addressList && addressList.length > 0 ? (
+          <div className="space-y-4 pt-1">
+            {addressList.map((addr, idx) => (
+              <div
+                key={addr._id || idx}
+                className="pt-3 border-t border-gray-100 first:border-t-0 first:pt-0"
+              >
+                <span className="block text-[12px] font-medium text-[#94a3b8] mb-1">
+                  {idx === 0 ? "Primary Shipping Destination" : `Destination ${idx + 1}`}
+                </span>
+
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-[15px] sm:text-[16px] text-[#0f172a] leading-snug">
+                      {addr.address}
+                    </p>
+                    <p className="text-[14px] text-[#64748b]">
+                      {addr.lga}, {addr.state}, Nigeria
+                    </p>
+                    {addr.phone && (
+                      <p className="text-[12px] text-[#94a3b8]">
+                        Contact: {addr.phone}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => openEditAddressModal(addr)}
+                      className="text-black hover:text-black/70 font-bold text-[14px] cursor-pointer hover:underline transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteAddress(addr._id)}
+                      className="text-gray-300 hover:text-red-600 transition-colors cursor-pointer p-1"
+                      title="Delete address"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="pt-2 text-left">
+            <p className="text-[12px] font-medium text-[#94a3b8] mb-1">
+              Primary Shipping Destination
+            </p>
+            <p className="text-[14px] text-[#64748b] mb-3">
+              No delivery address saved yet.
+            </p>
+            <Button
+              onClick={openAddAddressModal}
+              variant="outline"
+              className="rounded-[6px] text-xs h-8 font-semibold border-gray-200"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" /> Add Address
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderOrdersContent = (isDesktop = false) => (
+    <div className="space-y-4">
+      {/* Return Button (Mobile only) */}
+      {!isDesktop && (
+        <button
+          type="button"
+          onClick={() => handleSelectView("main")}
+          className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors cursor-pointer group py-1"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>Back to Account Settings</span>
+        </button>
+      )}
+
+      <div className="pb-1">
+        <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0f172a] tracking-tight">
+          My Orders
+        </h1>
+        <p className="text-[13px] text-[#64748b] mt-0.5">
+          Track delivery status, review previous gadget purchases, and download receipts
+        </p>
+      </div>
+
+      <div className="w-full">
+        <ShoppingOrders />
+      </div>
+    </div>
+  );
+
+  const renderWishlistContent = (isDesktop = false) => (
+    <div className="space-y-4">
+      {/* Return Button (Mobile only) */}
+      {!isDesktop && (
+        <button
+          type="button"
+          onClick={() => handleSelectView("main")}
+          className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors cursor-pointer group py-1"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>Back to Account Settings</span>
+        </button>
+      )}
+
+      <div className="flex items-center justify-between flex-wrap gap-2 pb-1">
+        <div>
+          <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0f172a] tracking-tight">
+            Wishlist
+          </h1>
+          <p className="text-[13px] text-[#64748b] mt-0.5">
+            Saved devices and accessories you want to buy
+          </p>
+        </div>
+        {wishlistItems.length > 0 && (
+          <span className="text-[11px] font-semibold text-[#64748b] bg-white border border-[#e5e7eb] px-3 py-1 rounded-[6px]">
+            {wishlistItems.length} {wishlistItems.length === 1 ? "gadget" : "gadgets"}
+          </span>
+        )}
+      </div>
+
+      {wishlistItems.length === 0 ? (
+        <div className="bg-white rounded-[20px] border border-[#e5e7eb] p-8 sm:p-12 text-center shadow-sm max-w-md mx-auto">
+          <div className="w-14 h-14 rounded-full bg-[#f8fafc] border border-[#e5e7eb] flex items-center justify-center mx-auto mb-3 text-[#94a3b8]">
+            <Heart className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-bold text-[#0f172a] mb-1">
+            Your wishlist is empty
+          </h3>
+          <p className="text-xs text-[#64748b] max-w-xs mx-auto mb-5">
+            Tap the heart icon on any gadget while browsing to save it to your wishlist.
+          </p>
+          <Button
+            onClick={() => navigate("/shop/listing")}
+            className="bg-[#111344] hover:bg-[#0C1172] text-white px-5 h-10 rounded-[6px] font-semibold text-xs transition-all"
+          >
+            Browse Gadgets
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          {wishlistItems.map((item) => {
+            const itemId = item._id || item.id;
+            return (
+              <div
+                key={itemId}
+                className="bg-white rounded-[16px] border border-[#e5e7eb] p-3.5 flex flex-col justify-between hover:shadow-md transition-shadow group relative"
+              >
+                <div>
+                  <div
+                    onClick={() => navigate(`/shop/product/${itemId}`)}
+                    className="aspect-square w-full rounded-[10px] bg-[#fafaf8] border border-[#f1f5f9] flex items-center justify-center p-3 mb-2.5 overflow-hidden cursor-pointer"
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#111344]">
+                      {item.brand || item.category || "Gadget"}
+                    </span>
+                    <h4
+                      onClick={() => navigate(`/shop/product/${itemId}`)}
+                      className="font-bold text-[13.5px] text-[#0f172a] line-clamp-2 hover:text-[#0C1172] cursor-pointer"
+                    >
+                      {item.title}
+                    </h4>
+                    <div className="flex items-baseline gap-2 pt-0.5">
+                      <span className="text-[14.5px] font-extrabold text-[#111344]">
+                        ₦{Number(item.price || item.salePrice || 0).toLocaleString("en-NG")}
+                      </span>
+                      {item.salePrice && item.salePrice < item.price && (
+                        <span className="text-[11.5px] text-[#94a3b8] line-through">
+                          ₦{Number(item.price).toLocaleString("en-NG")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-3 mt-2 border-t border-gray-100">
+                  <Button
+                    onClick={() => handleAddWishlistToCart(item)}
+                    className="flex-1 bg-[#111344] hover:bg-[#0C1172] text-white rounded-[6px] h-8 text-xs font-semibold gap-1.5"
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5" />
+                    <span>Add to Cart</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => handleRemoveFromWishlist(itemId)}
+                    className="h-8 w-8 p-0 rounded-[6px] text-[#94a3b8] hover:text-red-600 hover:border-red-200"
+                    title="Remove from wishlist"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="font-manrope min-h-screen bg-[#fafaf8] py-4 sm:py-10 px-2.5 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-2xl">
+      {/* ======================================================== */}
+      {/* DESKTOP LAYOUT (lg: and above) -> 2 COLUMN SIDEBAR VIEW  */}
+      {/* ======================================================== */}
+      <div className="hidden lg:grid lg:grid-cols-[290px_1fr] lg:gap-8 items-start mx-auto max-w-6xl">
+        {/* Left End: Account Settings Menu */}
+        <aside className="lg:sticky lg:top-24">
+          <h2 className="text-[24px] font-bold text-[#0f172a] tracking-tight mb-4">
+            Account Settings
+          </h2>
+
+          <div className="bg-white rounded-[22px] border border-[#e5e7eb] shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-3 space-y-1">
+            {/* 1. My Profile */}
+            <button
+              type="button"
+              onClick={() => handleSelectView("profile")}
+              className={`w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] text-left transition-all cursor-pointer ${
+                currentDesktopTab === "profile"
+                  ? "bg-[#111344] text-white shadow-sm"
+                  : "text-[#0f172a] hover:bg-[#fafaf8]"
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <User
+                  className={`w-[19px] h-[19px] stroke-[1.8] shrink-0 ${
+                    currentDesktopTab === "profile" ? "text-white" : "text-[#0f172a]"
+                  }`}
+                />
+                <span className="text-[15px] font-semibold">
+                  My Profile
+                </span>
+              </div>
+              <ChevronRight
+                className={`w-4 h-4 ${
+                  currentDesktopTab === "profile" ? "text-white/70" : "text-[#94a3b8]"
+                }`}
+              />
+            </button>
+
+            {/* 2. My Orders */}
+            <button
+              type="button"
+              onClick={() => handleSelectView("orders")}
+              className={`w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] text-left transition-all cursor-pointer ${
+                currentDesktopTab === "orders"
+                  ? "bg-[#111344] text-white shadow-sm"
+                  : "text-[#0f172a] hover:bg-[#fafaf8]"
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <ShoppingBag
+                  className={`w-[19px] h-[19px] stroke-[1.8] shrink-0 ${
+                    currentDesktopTab === "orders" ? "text-white" : "text-[#0f172a]"
+                  }`}
+                />
+                <span className="text-[15px] font-semibold">
+                  My Orders
+                </span>
+              </div>
+              <ChevronRight
+                className={`w-4 h-4 ${
+                  currentDesktopTab === "orders" ? "text-white/70" : "text-[#94a3b8]"
+                }`}
+              />
+            </button>
+
+            {/* 3. Wishlist */}
+            <button
+              type="button"
+              onClick={() => handleSelectView("wishlist")}
+              className={`w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] text-left transition-all cursor-pointer ${
+                currentDesktopTab === "wishlist"
+                  ? "bg-[#111344] text-white shadow-sm"
+                  : "text-[#0f172a] hover:bg-[#fafaf8]"
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <Heart
+                  className={`w-[19px] h-[19px] stroke-[1.8] shrink-0 ${
+                    currentDesktopTab === "wishlist" ? "text-white" : "text-[#0f172a]"
+                  }`}
+                />
+                <span className="text-[15px] font-semibold">
+                  Wishlist
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {wishlistItems.length > 0 && (
+                  <span
+                    className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                      currentDesktopTab === "wishlist"
+                        ? "bg-white/20 text-white"
+                        : "bg-[#111344]/10 text-[#111344]"
+                    }`}
+                  >
+                    {wishlistItems.length}
+                  </span>
+                )}
+                <ChevronRight
+                  className={`w-4 h-4 ${
+                    currentDesktopTab === "wishlist" ? "text-white/70" : "text-[#94a3b8]"
+                  }`}
+                />
+              </div>
+            </button>
+
+            {/* Admin Dashboard */}
+            {user?.role === "admin" && (
+              <button
+                type="button"
+                onClick={() => navigate("/admin/dashboard")}
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] text-left text-[#0f172a] hover:bg-[#fafaf8] transition-all cursor-pointer"
+              >
+                <div className="flex items-center gap-3.5">
+                  <LayoutDashboard className="w-[19px] h-[19px] text-[#111344] stroke-[1.8] shrink-0" />
+                  <span className="text-[15px] font-semibold">
+                    Admin Dashboard
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-[#111344]/10 text-[#111344] px-2 py-0.5 rounded-[4px]">
+                  Admin
+                </span>
+              </button>
+            )}
+
+            {/* Divider */}
+            <div className="my-2 border-t border-gray-100" />
+
+            {/* 4. Logout */}
+            <button
+              type="button"
+              onClick={() => setIsLogoutDialogOpen(true)}
+              className="w-full flex items-center gap-3.5 px-4 py-3 rounded-[14px] text-left text-[#e11d48] hover:bg-red-50/70 transition-all cursor-pointer font-semibold text-[14.5px]"
+            >
+              <LogOut className="w-[19px] h-[19px] stroke-[1.8] shrink-0" />
+              <span>Logout</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Right Side: Active Option Content */}
+        <main className="flex-1 min-w-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentDesktopTab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18 }}
+            >
+              {currentDesktopTab === "profile" && renderProfileContent(true)}
+              {currentDesktopTab === "orders" && renderOrdersContent(true)}
+              {currentDesktopTab === "wishlist" && renderWishlistContent(true)}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+
+      {/* ======================================================== */}
+      {/* MOBILE LAYOUT (< lg) -> KEPT EXACTLY AS IT IS             */}
+      {/* ======================================================== */}
+      <div className="block lg:hidden mx-auto max-w-2xl">
         <AnimatePresence mode="wait">
-          {/* ======================================================== */}
-          {/* VIEW 1: MAIN ACCOUNT SETTINGS (MATCHES USER IMAGE)       */}
-          {/* ======================================================== */}
+          {/* VIEW 1: MAIN ACCOUNT SETTINGS MENU */}
           {activeView === "main" && (
             <motion.div
               key="main"
@@ -376,12 +863,10 @@ function ShoppingAccount() {
               transition={{ duration: 0.25 }}
               className="w-full max-w-[480px] mx-auto pt-2 sm:pt-6"
             >
-              {/* Heading */}
               <h1 className="text-[25px] sm:text-[30px] font-bold text-[#0f172a] tracking-tight mb-5 sm:mb-7">
                 Account Settings
               </h1>
 
-              {/* White Card Container */}
               <div className="bg-white rounded-[24px] border border-[#e5e7eb] shadow-[0_2px_16px_rgba(0,0,0,0.03)] p-6 sm:p-8 space-y-6 sm:space-y-7">
                 {/* 1. My Profile */}
                 <button
@@ -471,9 +956,7 @@ function ShoppingAccount() {
             </motion.div>
           )}
 
-          {/* ======================================================== */}
-          {/* VIEW 2: MY PROFILE (SAMPLE DESIGN MATCHING USER IMAGE 1)  */}
-          {/* ======================================================== */}
+          {/* VIEW 2: MY PROFILE */}
           {activeView === "profile" && (
             <motion.div
               key="profile"
@@ -481,186 +964,12 @@ function ShoppingAccount() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}
-              className="space-y-5"
             >
-              {/* Return Button */}
-              <button
-                type="button"
-                onClick={() => handleSelectView("main")}
-                className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors cursor-pointer group py-1"
-              >
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                <span>Back to Account Settings</span>
-              </button>
-
-              {/* Welcome Message Header requested by user */}
-              <div className="pb-1">
-                <h1 className="text-[21px] sm:text-[25px] font-bold text-[#0f172a] tracking-tight leading-snug">
-                  Hi {user?.userName || "there"}, welcome to Mobiletrends
-                </h1>
-                <p className="text-[13px] text-[#64748b] mt-1 font-medium">
-                  Joined {formattedJoinDate}
-                </p>
-              </div>
-
-              {/* Card 1: My Profile (Image 1 replica) */}
-              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-6">
-                <h2 className="text-[20px] font-bold text-[#0f172a]">
-                  My Profile
-                </h2>
-
-                {/* Name Row */}
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="block text-[13px] font-medium text-[#64748b]">
-                      Name
-                    </span>
-                    <span className="block text-[15px] sm:text-[16px] font-semibold text-[#0f172a] mt-0.5">
-                      {user?.userName || "Not set"}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={openNameModal}
-                    className="text-black hover:text-black/70 font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
-                  >
-                    Edit
-                  </button>
-                </div>
-
-                {/* Email Row */}
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <span className="block text-[13px] font-medium text-[#64748b]">
-                      Email
-                    </span>
-                    <span className="block text-[15px] sm:text-[16px] font-semibold text-[#0f172a] mt-0.5 underline decoration-gray-300 truncate">
-                      {user?.email || "Not set"}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={openEmailModal}
-                    className="text-black hover:text-black/70 font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
-                  >
-                    Edit
-                  </button>
-                </div>
-
-                {/* Password Row */}
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="block text-[13px] font-medium text-[#64748b]">
-                      Password
-                    </span>
-                    <span className="block text-[15px] font-semibold text-[#0f172a] mt-0.5 tracking-[3px]">
-                      ••••••••••••••••
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={openPasswordModal}
-                    className="text-black hover:text-black/70 font-bold text-[14px] cursor-pointer hover:underline transition-colors shrink-0 pt-0.5"
-                  >
-                    Edit
-                  </button>
-                </div>
-              </div>
-
-              {/* Card 2: Delivery Address (Image 1 replica) */}
-              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
-                {/* Header Row */}
-                <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-[20px] font-bold text-[#0f172a]">
-                    Delivery Address
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={openAddAddressModal}
-                    className="text-[#0f172a] hover:text-[#111344] font-bold text-[13.5px] flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>{addressList && addressList.length > 0 ? "Update address" : "Add address"}</span>
-                  </button>
-                </div>
-
-                {/* Address Listing */}
-                {addressLoading ? (
-                  <div className="py-6 flex items-center justify-center text-sm text-[#64748b]">
-                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                    <span>Loading addresses...</span>
-                  </div>
-                ) : addressList && addressList.length > 0 ? (
-                  <div className="space-y-4 pt-1">
-                    {addressList.map((addr, idx) => (
-                      <div
-                        key={addr._id || idx}
-                        className="pt-3 border-t border-gray-100 first:border-t-0 first:pt-0"
-                      >
-                        <span className="block text-[12px] font-medium text-[#94a3b8] mb-1">
-                          {idx === 0 ? "Primary Shipping Destination" : `Destination ${idx + 1}`}
-                        </span>
-
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="space-y-0.5">
-                            <p className="font-bold text-[15px] sm:text-[16px] text-[#0f172a] leading-snug">
-                              {addr.address}
-                            </p>
-                            <p className="text-[14px] text-[#64748b]">
-                              {addr.lga}, {addr.state}, Nigeria
-                            </p>
-                            {addr.phone && (
-                              <p className="text-[12px] text-[#94a3b8]">
-                                Contact: {addr.phone}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-3 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => openEditAddressModal(addr)}
-                              className="text-black hover:text-black/70 font-bold text-[14px] cursor-pointer hover:underline transition-colors"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteAddress(addr._id)}
-                              className="text-gray-300 hover:text-red-600 transition-colors cursor-pointer p-1"
-                              title="Delete address"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="pt-2 text-left">
-                    <p className="text-[12px] font-medium text-[#94a3b8] mb-1">
-                      Primary Shipping Destination
-                    </p>
-                    <p className="text-[14px] text-[#64748b] mb-3">
-                      No delivery address saved yet.
-                    </p>
-                    <Button
-                      onClick={openAddAddressModal}
-                      variant="outline"
-                      className="rounded-[6px] text-xs h-8 font-semibold border-gray-200"
-                    >
-                      <Plus className="w-3.5 h-3.5 mr-1" /> Add Address
-                    </Button>
-                  </div>
-                )}
-              </div>
+              {renderProfileContent(false)}
             </motion.div>
           )}
 
-          {/* ======================================================== */}
-          {/* VIEW 3: MY ORDERS (CLEAN RESPONSIVE FULL WIDTH ON MOBILE)  */}
-          {/* ======================================================== */}
+          {/* VIEW 3: MY ORDERS */}
           {activeView === "orders" && (
             <motion.div
               key="orders"
@@ -668,37 +977,12 @@ function ShoppingAccount() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}
-              className="space-y-4"
             >
-              {/* Return Button */}
-              <button
-                type="button"
-                onClick={() => handleSelectView("main")}
-                className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors cursor-pointer group py-1"
-              >
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                <span>Back to Account Settings</span>
-              </button>
-
-              <div className="pb-1">
-                <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0f172a] tracking-tight">
-                  My Orders
-                </h1>
-                <p className="text-[13px] text-[#64748b] mt-0.5">
-                  Track delivery status, review previous gadget purchases, and download receipts
-                </p>
-              </div>
-
-              {/* Orders List Container without double-nested shrink on mobile */}
-              <div className="w-full">
-                <ShoppingOrders />
-              </div>
+              {renderOrdersContent(false)}
             </motion.div>
           )}
 
-          {/* ======================================================== */}
-          {/* VIEW 4: WISHLIST                                         */}
-          {/* ======================================================== */}
+          {/* VIEW 4: WISHLIST */}
           {activeView === "wishlist" && (
             <motion.div
               key="wishlist"
@@ -706,116 +990,8 @@ function ShoppingAccount() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}
-              className="space-y-4"
             >
-              {/* Return Button */}
-              <button
-                type="button"
-                onClick={() => handleSelectView("main")}
-                className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors cursor-pointer group py-1"
-              >
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                <span>Back to Account Settings</span>
-              </button>
-
-              <div className="flex items-center justify-between flex-wrap gap-2 pb-1">
-                <div>
-                  <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0f172a] tracking-tight">
-                    Wishlist
-                  </h1>
-                  <p className="text-[13px] text-[#64748b] mt-0.5">
-                    Saved devices and accessories you want to buy
-                  </p>
-                </div>
-                {wishlistItems.length > 0 && (
-                  <span className="text-[11px] font-semibold text-[#64748b] bg-white border border-[#e5e7eb] px-3 py-1 rounded-[6px]">
-                    {wishlistItems.length} {wishlistItems.length === 1 ? "gadget" : "gadgets"}
-                  </span>
-                )}
-              </div>
-
-              {wishlistItems.length === 0 ? (
-                /* Empty Wishlist Card */
-                <div className="bg-white rounded-[20px] border border-[#e5e7eb] p-8 sm:p-12 text-center shadow-sm max-w-md mx-auto">
-                  <div className="w-14 h-14 rounded-full bg-[#f8fafc] border border-[#e5e7eb] flex items-center justify-center mx-auto mb-3 text-[#94a3b8]">
-                    <Heart className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-base font-bold text-[#0f172a] mb-1">
-                    Your wishlist is empty
-                  </h3>
-                  <p className="text-xs text-[#64748b] max-w-xs mx-auto mb-5">
-                    Tap the heart icon on any gadget while browsing to save it to your wishlist.
-                  </p>
-                  <Button
-                    onClick={() => navigate("/shop/listing")}
-                    className="bg-[#111344] hover:bg-[#0C1172] text-white px-5 h-10 rounded-[6px] font-semibold text-xs transition-all"
-                  >
-                    Browse Gadgets
-                  </Button>
-                </div>
-              ) : (
-                /* Wishlist Items Grid */
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  {wishlistItems.map((item) => {
-                    const itemId = item._id || item.id;
-                    return (
-                      <div
-                        key={itemId}
-                        className="bg-white rounded-[16px] border border-[#e5e7eb] p-3.5 flex flex-col justify-between hover:shadow-md transition-shadow group relative"
-                      >
-                        <div>
-                          <div
-                            onClick={() => navigate(`/shop/product/${itemId}`)}
-                            className="aspect-square w-full rounded-[10px] bg-[#fafaf8] border border-[#f1f5f9] flex items-center justify-center p-3 mb-2.5 overflow-hidden cursor-pointer"
-                          >
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
-                            />
-                          </div>
-
-                          <div className="space-y-0.5">
-                            <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#111344]">
-                              {item.brand || item.category || "Gadget"}
-                            </span>
-                            <h4
-                              onClick={() => navigate(`/shop/product/${itemId}`)}
-                              className="font-bold text-[13.5px] text-[#0f172a] line-clamp-2 hover:text-[#0C1172] cursor-pointer"
-                            >
-                              {item.title}
-                            </h4>
-                            <div className="flex items-baseline gap-2 pt-0.5">
-                              <span className="text-[14.5px] font-extrabold text-[#111344]">
-                                ₦{Number(item.price || item.salePrice || 0).toLocaleString("en-NG")}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 pt-3 mt-2 border-t border-[#f1f5f9]">
-                          <Button
-                            onClick={() => handleAddWishlistToCart(item)}
-                            className="flex-1 h-8 rounded-[6px] bg-[#111344] hover:bg-[#0C1172] text-white text-[11.5px] font-semibold gap-1.5"
-                          >
-                            <ShoppingCart className="w-3.5 h-3.5" />
-                            <span>Add to Cart</span>
-                          </Button>
-
-                          <Button
-                            variant="outline"
-                            onClick={() => handleRemoveFromWishlist(itemId)}
-                            className="h-8 w-8 p-0 rounded-[6px] text-[#94a3b8] hover:text-red-600 hover:border-red-200"
-                            title="Remove from wishlist"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              {renderWishlistContent(false)}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1000,7 +1176,7 @@ function ShoppingAccount() {
       </Dialog>
 
       {/* ======================================================== */}
-      {/* POP-UP MODAL 4: EDIT DELIVERY ADDRESS (IMAGE 2 REPLICA)  */}
+      {/* POP-UP MODAL 4: EDIT DELIVERY ADDRESS                    */}
       {/* ======================================================== */}
       <Dialog open={isAddressModalOpen} onOpenChange={setIsAddressModalOpen}>
         <DialogContent className="rounded-[24px] max-w-[92vw] sm:max-w-[460px] p-6 sm:p-7 font-manrope">
@@ -1014,7 +1190,6 @@ function ShoppingAccount() {
           </DialogHeader>
 
           <form onSubmit={handleSaveAddress} className="space-y-4 pt-3">
-            {/* House / Street Address */}
             <div>
               <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
                 House / Street Address
@@ -1029,7 +1204,6 @@ function ShoppingAccount() {
               />
             </div>
 
-            {/* City / LGA and State Grid */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
@@ -1060,7 +1234,6 @@ function ShoppingAccount() {
               </div>
             </div>
 
-            {/* Phone */}
             <div>
               <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
                 Delivery Phone Number
@@ -1074,7 +1247,6 @@ function ShoppingAccount() {
               />
             </div>
 
-            {/* Buttons (exact match to Image 2) */}
             <div className="flex items-center justify-end gap-3 pt-3">
               <Button
                 type="button"
