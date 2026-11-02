@@ -17,6 +17,7 @@ import {
 import { addToCart, fetchCartItems } from '@/store/shop/cart-slice';
 import { useToast } from '../ui/use-toast';
 import { motion } from 'framer-motion';
+import { FaWhatsapp } from 'react-icons/fa';
 
 const STORAGE_OPTIONS = ['128GB', '256GB', '512GB', '1TB'];
 
@@ -204,10 +205,10 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
       {/* Main 2-Column Reebelo Style Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         {/* Left Column: Image Showcase */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="relative aspect-square w-full rounded-2xl sm:rounded-3xl bg-[#fafaf8] border border-[#e5e7eb] flex items-center justify-center p-6 sm:p-10 overflow-hidden group">
+        <div className="lg:col-span-6 space-y-3 sm:space-y-4">
+          <div className="relative w-full h-[250px] sm:h-[320px] md:h-[380px] lg:h-auto lg:aspect-square rounded-2xl sm:rounded-3xl bg-white border border-[#e5e7eb] flex items-center justify-center p-0 sm:p-6 lg:p-8 overflow-hidden group shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
             {discountPercent > 0 && (
-              <span className="absolute top-4 left-4 z-10 bg-[#DF5E00] text-white text-[11px] sm:text-[12px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+              <span className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 bg-[#DF5E00] text-white text-[10px] sm:text-[12px] font-bold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-wider shadow-sm">
                 -{discountPercent}% OFF
               </span>
             )}
@@ -216,16 +217,16 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
               key={activeImage}
               src={activeImage || product?.image}
               alt={product?.title}
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.25 }}
-              className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500 ease-out"
+              transition={{ duration: 0.2 }}
+              className="w-full h-full object-cover sm:object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
             />
           </div>
 
-          {/* Multi-Image Thumbnail Gallery (up to 3 images) */}
+          {/* Multi-Image Thumbnail Gallery (compact horizontal row) */}
           {galleryImages.length > 1 && (
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5">
+            <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto py-0.5 [scrollbar-width:none]">
               {galleryImages.map((img, idx) => {
                 const isActive = (activeImage || product?.image) === img;
                 return (
@@ -233,7 +234,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                     key={idx}
                     type="button"
                     onClick={() => setActiveImage(img)}
-                    className={`relative aspect-square rounded-[6px] border-2 p-2 bg-[#fafaf8] overflow-hidden transition-all cursor-pointer ${
+                    className={`relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 shrink-0 rounded-xl border-2 p-0.5 bg-white overflow-hidden transition-all cursor-pointer ${
                       isActive
                         ? 'border-[#111344] shadow-sm ring-2 ring-[#111344]/20'
                         : 'border-[#e5e7eb] hover:border-gray-400 opacity-70 hover:opacity-100'
@@ -242,7 +243,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                     <img
                       src={img}
                       alt={`${product?.title} angle ${idx + 1}`}
-                      className="w-full h-full object-contain mix-blend-multiply"
+                      className="w-full h-full object-cover rounded-lg"
                     />
                   </button>
                 );
@@ -488,6 +489,19 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                 <Heart size={18} className={isInWishlist ? "fill-red-600 text-red-600" : ""} />
               </button>
             </div>
+
+            {/* WhatsApp Instant Order / Inquire Button (Option 1) */}
+            <a
+              href={`https://wa.me/2348034378180?text=${encodeURIComponent(
+                `Hi Mobiletrends, I would like to order / confirm availability for:\n\n*${product?.title}*\n• Condition: ${selectedCondition}\n• Storage: ${selectedStorage}\n• Price: ₦${totalPrice.toLocaleString('en-NG')}\n\nIs this device available for delivery or pickup?`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full h-11 sm:h-12 rounded-[6px] border border-emerald-500/30 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#166534] font-manrope text-[12px] sm:text-[14px] font-bold flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow cursor-pointer"
+            >
+              <FaWhatsapp className="w-4 h-4 text-[#16a34a]" />
+              <span>Order / Inquire via WhatsApp</span>
+            </a>
           </div>
 
           {/* Product Description */}
@@ -529,6 +543,48 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
           </div>
         </div>
       </div>
+
+      {/* Sticky Mobile Bottom Bar for High Conversions (Option 1) */}
+      {!isDialog && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#e5e7eb] px-4 py-2.5 sm:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <img
+              src={activeImage || product?.image}
+              alt={product?.title}
+              className="w-10 h-10 rounded-lg object-cover border border-[#e5e7eb] shrink-0"
+            />
+            <div className="min-w-0">
+              <p className="font-manrope text-[12px] font-bold text-[#111344] truncate">
+                {product?.title}
+              </p>
+              <p className="font-manrope text-[13px] font-extrabold text-[#111344]">
+                ₦{totalPrice.toLocaleString('en-NG')}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <a
+              href={`https://wa.me/2348034378180?text=${encodeURIComponent(
+                `Hi Mobiletrends, I want to order ${product?.title} (₦${totalPrice.toLocaleString('en-NG')})`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-10 w-10 rounded-[6px] bg-[#F0FDF4] border border-emerald-500/30 text-[#16a34a] flex items-center justify-center shrink-0"
+              title="Order on WhatsApp"
+            >
+              <FaWhatsapp className="w-5 h-5" />
+            </a>
+            <Button
+              type="button"
+              onClick={handleAddToCartClick}
+              disabled={isOutOfStock}
+              className="h-10 px-3.5 rounded-[6px] bg-[#111344] text-white font-manrope text-[12px] font-bold shadow-sm"
+            >
+              {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

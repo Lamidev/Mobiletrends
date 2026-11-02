@@ -16,8 +16,9 @@ import {
 } from "../ui/dropdown-menu";
 import { logoutUser, directLogout } from "@/store/auth-slice";
 import UserCartWrapper from "./cart-wrapper";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { fetchCartItems } from "@/store/shop/cart-slice";
+import { getSearchResults } from "@/store/shop/search-slice";
 import { Label } from "../ui/label";
 import {
   Dialog,
@@ -164,8 +165,48 @@ function HeaderRightContent({ closeSheet }) {
   const [openCartSheet, setOpenCartSheet] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [liveSuggestions, setLiveSuggestions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchContainerRef = useRef(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target)
+      ) {
+        setIsSearchOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (trimmed.length < 2) {
+      setLiveSuggestions([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await dispatch(getSearchResults(trimmed)).unwrap();
+        setLiveSuggestions(res?.data?.slice(0, 5) || []);
+      } catch (err) {
+        setLiveSuggestions([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, dispatch]);
 
   function handleLogout() {
     dispatch(directLogout());
@@ -179,7 +220,8 @@ function HeaderRightContent({ closeSheet }) {
   }
 
   function handleSearchSubmit(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
+    setIsSearchOpen(false);
     const trimmed = searchQuery.trim();
     if (trimmed) {
       navigate(`/shop/search?keyword=${encodeURIComponent(trimmed)}`);
@@ -197,29 +239,94 @@ function HeaderRightContent({ closeSheet }) {
 
   return (
     <div className="flex items-center gap-2.5">
-      {/* Search Pill */}
-      <form
-        onSubmit={handleSearchSubmit}
-        className="flex items-center gap-2 h-11 px-4 rounded-full bg-[#F2F3F7] hover:bg-[#E9EBF2] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0C1172]/20 transition-all duration-200"
-      >
-        <button
-          type="submit"
-          aria-label="Search gadgets"
-          className="text-[#5A606D] hover:text-[#0C1172] transition-colors flex-shrink-0"
+      {/* Search Pill with Instant Predictive Dropdown (Option 4) */}
+      <div ref={searchContainerRef} className="relative">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="flex items-center gap-2 h-11 px-3.5 sm:px-4 rounded-full bg-[#F2F3F7] hover:bg-[#E9EBF2] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0C1172]/20 transition-all duration-200"
         >
-          <SearchIcon className="w-[18px] h-[18px]" />
-        </button>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onClick={() => {
-            if (!searchQuery) navigate("/shop/search");
-          }}
-          placeholder="Search..."
-          className="w-[68px] focus:w-[150px] transition-all duration-300 bg-transparent text-sm font-medium text-gray-900 placeholder:text-[#5A606D] focus:outline-none"
-        />
-      </form>
+          <button
+            type="submit"
+            aria-label="Search gadgets"
+            className="text-[#5A606D] hover:text-[#0C1172] transition-colors flex-shrink-0"
+          >
+            <SearchIcon className="w-[18px] h-[18px]" />
+          </button>
+          <input
+            type="text"
+            value={searchQuery}
+            onFocus={() => setIsSearchOpen(true)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setIsSearchOpen(true);
+            }}
+            placeholder="Search..."
+            className="w-[72px] sm:w-[90px] focus:w-[150px] sm:focus:w-[180px] transition-all duration-300 bg-transparent text-sm font-medium text-gray-900 placeholder:text-[#5A606D] focus:outline-none"
+          />
+        </form>
+
+        {/* Predictive Live Search Dropdown */}
+        {isSearchOpen && searchQuery.trim().length >= 2 && (
+          <div className="absolute right-0 sm:left-0 sm:right-auto mt-2 w-[290px] sm:w-[350px] bg-white rounded-2xl border border-[#e5e7eb] shadow-2xl p-2 z-50 overflow-hidden font-manrope animate-in fade-in zoom-in-95 duration-150">
+            {isSearching ? (
+              <div className="p-4 text-center text-xs font-semibold text-[#64748b]">
+                Searching gadgets...
+              </div>
+            ) : liveSuggestions.length > 0 ? (
+              <div className="space-y-1">
+                <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#94a3b8]">
+                  Matching Gadgets
+                </div>
+                {liveSuggestions.map((item) => (
+                  <button
+                    key={item._id}
+                    type="button"
+                    onClick={() => {
+                      setIsSearchOpen(false);
+                      setSearchQuery("");
+                      navigate(`/shop/product/${item._id}`);
+                      if (closeSheet) closeSheet();
+                    }}
+                    className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-[#f8fafc] transition-colors text-left group cursor-pointer"
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-10 h-10 rounded-lg object-cover border border-[#e5e7eb] shrink-0 bg-[#fafaf8]"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[12.5px] sm:text-[13px] font-bold text-[#111344] group-hover:text-[#0C1172] truncate">
+                        {item.title}
+                      </p>
+                      <div className="flex items-center gap-2 text-[11px] font-medium text-[#64748b]">
+                        <span className="capitalize">{item.brand || item.category}</span>
+                        <span>•</span>
+                        <span className="font-bold text-[#111344]">
+                          ₦{Number(item.salePrice > 0 ? item.salePrice : item.price).toLocaleString("en-NG")}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleSearchSubmit}
+                  className="w-full mt-1 pt-2 pb-1 border-t border-[#f1f5f9] text-center text-[11.5px] font-bold text-[#0C1172] hover:underline cursor-pointer block"
+                >
+                  View all results for "{searchQuery}" →
+                </button>
+              </div>
+            ) : (
+              <div className="p-4 text-center">
+                <p className="text-[13px] font-semibold text-[#1e293b]">No gadgets found</p>
+                <p className="text-[11px] text-[#64748b] mt-0.5">
+                  Try searching with another keyword
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Heart / Saved Items Circle Button */}
       <button
