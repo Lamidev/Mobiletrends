@@ -1,15 +1,26 @@
 'use client';
 
+import { useState, Fragment } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   BadgeCheck,
   LayoutDashboard,
   ShoppingBasket,
   Users,
   Store,
+  LogOut,
 } from "lucide-react";
-import { Fragment } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { logoutUser } from "@/store/auth-slice";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
+import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../ui/dialog";
 
 const adminSidebarMenuItems = [
   {
@@ -89,20 +100,85 @@ function MenuItems({ setOpen }) {
           </div>
         );
       })}
-
-      <div className="pt-4 mt-4 border-t border-gray-200">
-        <div
-          onClick={() => {
-            navigate("/shop/home");
-            if (setOpen) setOpen(false);
-          }}
-          className="flex cursor-pointer text-[13px] font-bold items-center gap-3 rounded-xl px-3.5 py-2.5 text-gray-500 hover:bg-orange-50 hover:text-[#DF5E00] transition-all"
-        >
-          <Store className="w-5 h-5 shrink-0" />
-          <span>View Storefront</span>
-        </div>
-      </div>
     </nav>
+  );
+}
+
+function BottomActions({ setOpen }) {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+
+  function handleGoToStorefront() {
+    if (setOpen) setOpen(false);
+    dispatch(logoutUser()).then(() => {
+      window.location.href = "/shop/home";
+    });
+  }
+
+  function handleLogout() {
+    if (setOpen) setOpen(false);
+    dispatch(logoutUser()).then(() => {
+      window.location.href = "/shop/home";
+    });
+    setIsLogoutDialogOpen(false);
+  }
+
+  return (
+    <div className="pt-4 border-t border-gray-200 space-y-1 mt-auto font-manrope">
+      {/* 1-Click Storefront Switch */}
+      <button
+        type="button"
+        onClick={handleGoToStorefront}
+        className="w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-bold text-gray-700 hover:bg-gray-100 hover:text-[#111344] transition-all cursor-pointer text-left"
+        title="Sign out of admin and switch to customer view"
+      >
+        <Store className="w-5 h-5 shrink-0 text-[#111344]" />
+        <span>View Storefront</span>
+      </button>
+
+      {/* Log Out Button */}
+      <button
+        type="button"
+        onClick={() => setIsLogoutDialogOpen(true)}
+        className="w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-bold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-all cursor-pointer text-left"
+      >
+        <LogOut className="w-5 h-5 shrink-0" />
+        <span>Log Out</span>
+      </button>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+        <DialogContent className="max-w-md rounded-2xl p-6">
+          <DialogHeader>
+            <DialogTitle className="font-manrope text-lg font-bold text-gray-900">
+              Confirm Log Out
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-500 py-2">
+            Are you sure you want to log out from the Mobiletrends Management Console?
+          </p>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsLogoutDialogOpen(false)}
+              className="rounded-lg font-semibold"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleLogout}
+              className="rounded-lg font-semibold"
+            >
+              Log Out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 
@@ -114,28 +190,36 @@ function AdminSideBar({ open, setOpen }) {
       {/* Mobile Drawer */}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="w-72 p-6 bg-white">
-          <div className="flex flex-col h-full">
-            <SheetHeader className="border-b pb-4">
-              <SheetTitle asChild>
-                <BrandHeader
-                  onClick={() => {
-                    navigate("/admin/dashboard");
-                    setOpen(false);
-                  }}
-                />
-              </SheetTitle>
-            </SheetHeader>
-            <MenuItems setOpen={setOpen} />
+          <div className="flex flex-col h-full justify-between">
+            <div>
+              <SheetHeader className="border-b pb-4">
+                <SheetTitle asChild>
+                  <BrandHeader
+                    onClick={() => {
+                      navigate("/admin/dashboard");
+                      setOpen(false);
+                    }}
+                  />
+                </SheetTitle>
+              </SheetHeader>
+              <MenuItems setOpen={setOpen} />
+            </div>
+
+            <BottomActions setOpen={setOpen} />
           </div>
         </SheetContent>
       </Sheet>
 
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden w-64 lg:w-72 flex-col border-r border-gray-200 bg-white p-6 lg:flex shrink-0">
-        <div className="border-b border-gray-100 pb-5">
-          <BrandHeader onClick={() => navigate("/admin/dashboard")} />
+      <aside className="hidden w-64 lg:w-72 flex-col justify-between border-r border-gray-200 bg-white p-6 lg:flex shrink-0 min-h-screen">
+        <div>
+          <div className="border-b border-gray-100 pb-5">
+            <BrandHeader onClick={() => navigate("/admin/dashboard")} />
+          </div>
+          <MenuItems />
         </div>
-        <MenuItems />
+
+        <BottomActions />
       </aside>
     </Fragment>
   );

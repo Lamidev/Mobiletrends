@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
-import { AlignJustify, LogOut, UserCircle, Store } from "lucide-react";
+import { AlignJustify, LogOut, UserCircle } from "lucide-react";
 import { logoutUser } from "@/store/auth-slice";
 import {
   Dialog,
@@ -25,12 +25,6 @@ function AdminHeader({ setOpen }) {
       navigate("/shop/home");
     });
     setIsLogoutDialogOpen(false);
-  }
-
-  function handleGoToStorefront() {
-    dispatch(logoutUser()).then(() => {
-      window.location.href = "/shop/home";
-    });
   }
 
   return (
@@ -60,19 +54,7 @@ function AdminHeader({ setOpen }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Go to Customer Storefront (1-click auto logout & redirect) */}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleGoToStorefront}
-          className="inline-flex gap-1.5 items-center px-3 py-1.5 text-xs font-bold text-[#111344] border-gray-300 hover:bg-[#111344]/5 hover:border-[#111344] rounded-lg transition-colors"
-          title="Sign out of admin and switch to customer view"
-        >
-          <Store size={14} className="text-[#DF5E00]" />
-          <span>View Storefront</span>
-        </Button>
-
+      <div className="flex items-center gap-3">
         {/* Admin User Info */}
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs">
           <UserCircle className="w-4 h-4 text-[#111344]" />
@@ -81,15 +63,15 @@ function AdminHeader({ setOpen }) {
           </span>
         </div>
 
-        {/* Logout Button */}
+        {/* Log Out Button */}
         <Button
           type="button"
           variant="ghost"
           onClick={() => setIsLogoutDialogOpen(true)}
-          className="inline-flex gap-1.5 items-center px-3.5 py-1.5 text-xs font-bold text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          className="inline-flex gap-1.5 items-center px-3.5 py-1.5 text-xs font-bold text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
         >
           <LogOut size={15} />
-          <span>Sign Out</span>
+          <span>Log Out</span>
         </Button>
       </div>
 
@@ -98,11 +80,11 @@ function AdminHeader({ setOpen }) {
         <DialogContent className="max-w-md rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle className="font-manrope text-lg font-bold text-gray-900">
-              Confirm Logout
+              Confirm Log Out
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-gray-500 py-2">
-            Are you sure you want to sign out from the Mobiletrends Management Console?
+            Are you sure you want to log out from the Mobiletrends Management Console?
           </p>
           <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-2">
             <Button
@@ -117,9 +99,9 @@ function AdminHeader({ setOpen }) {
               type="button"
               variant="destructive"
               onClick={handleLogout}
-              className="rounded-lg font-semibold bg-red-600 hover:bg-red-700"
+              className="rounded-lg font-semibold"
             >
-              Sign Out
+              Log Out
             </Button>
           </DialogFooter>
         </DialogContent>
