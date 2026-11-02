@@ -137,13 +137,32 @@ function AdminProducts() {
   function onSubmit(event) {
     event.preventDefault();
 
+    const cleanedStorageVariants = (formData.storageVariants || [])
+      .filter((v) => v.size && v.size.trim() !== "")
+      .map((v) => ({
+        size: v.size.trim(),
+        price: v.price === "" || v.price === undefined || v.price === null ? 0 : Number(v.price) || 0,
+        isBase: Boolean(v.isBase),
+      }));
+
+    const cleanedLaptopVariants = (formData.laptopVariants || [])
+      .filter((v) => v.ram && v.storage)
+      .map((v) => ({
+        ram: v.ram.trim(),
+        storage: v.storage.trim(),
+        price: v.price === "" || v.price === undefined || v.price === null ? 0 : Number(v.price) || 0,
+        isBase: Boolean(v.isBase),
+      }));
+
+    const cleanedColors = (formData.colors || []).filter((c) => c.name && c.hex);
+
     const submitData = {
       ...formData,
       image: (uploadedImages && uploadedImages[0]) || uploadedImageUrl || formData.image,
       images: uploadedImages,
-      colors: formData.colors || [],
-      storageVariants: formData.storageVariants || [],
-      laptopVariants: formData.laptopVariants || [],
+      colors: cleanedColors,
+      storageVariants: cleanedStorageVariants,
+      laptopVariants: cleanedLaptopVariants,
       condition: formData.condition || "Brand New",
     };
 

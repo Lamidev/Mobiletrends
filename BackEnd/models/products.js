@@ -11,9 +11,10 @@ const ColorSchema = new mongoose.Schema(
 const StorageVariantSchema = new mongoose.Schema(
   {
     size: { type: String, required: true },
-    price: { type: Number, required: true },
+    price: { type: Number, default: 0 },
     salePrice: { type: Number, default: 0 },
     stock: { type: Number, default: 0 },
+    isBase: { type: Boolean, default: false },
   },
   { _id: false }
 );
@@ -22,9 +23,10 @@ const LaptopVariantSchema = new mongoose.Schema(
   {
     ram: { type: String, required: true },
     storage: { type: String, required: true },
-    price: { type: Number, required: true },
+    price: { type: Number, default: 0 },
     salePrice: { type: Number, default: 0 },
     stock: { type: Number, default: 0 },
+    isBase: { type: Boolean, default: false },
   },
   { _id: false }
 );
