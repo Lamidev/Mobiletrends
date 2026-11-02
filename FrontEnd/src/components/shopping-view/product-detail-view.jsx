@@ -394,15 +394,14 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
 
             {/* Main Image Box */}
             <div className="relative flex-1 w-full h-[250px] sm:h-[320px] md:h-[380px] lg:h-auto lg:aspect-square rounded-2xl sm:rounded-3xl bg-white border border-[#e5e7eb] flex items-center justify-center p-0 sm:p-6 lg:p-8 overflow-hidden group shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
-              {/* Top-Left: Stock Badge (Reduced on mobile, single pulse dot, NO bullet) */}
+              {/* Top-Left: Stock Badge (Reduced on mobile, NO glowing dot, NO bullet) */}
               <span
-                className={`absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-10 text-[9.5px] sm:text-[11.5px] font-bold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full tracking-wide shadow-sm flex items-center gap-1.5 ${
+                className={`absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-10 text-[9.5px] sm:text-[11.5px] font-bold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full tracking-wide shadow-sm flex items-center ${
                   !isOutOfStock
                     ? 'bg-emerald-600 text-white'
                     : 'bg-rose-600 text-white'
                 }`}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                 {!isOutOfStock
                   ? currentStock <= 3
                     ? `Only ${currentStock} left`
@@ -561,7 +560,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-[12px] sm:text-[13px] font-bold text-[#111344] uppercase tracking-wide">
-                  Storage Capacity
+                  Storage
                 </span>
                 <span className="text-[11px] font-semibold text-[#62665d]">
                   Selected: {selectedStorage}
@@ -607,7 +606,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-[12px] sm:text-[13px] font-bold text-[#111344] uppercase tracking-wide">
-                  Color Finish
+                  Color
                 </span>
                 <span className="text-[11px] font-semibold text-[#62665d] capitalize">
                   {selectedColor}
