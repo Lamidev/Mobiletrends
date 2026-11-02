@@ -12,7 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { addProductFormElements } from "@/config";
-import { Fragment, useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addNewProduct,
@@ -21,7 +21,7 @@ import {
   deleteProduct,
 } from "@/store/admin/products-slice";
 import ProductVariantsManager from "@/components/admin-view/product-variants-manager";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Select,
   SelectContent,
@@ -38,7 +38,8 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  Package,
+  X,
+  RotateCcw,
 } from "lucide-react";
 
 const initialFormData = {
@@ -57,8 +58,25 @@ const initialFormData = {
   laptopVariants: [],
 };
 
+const CATEGORY_FILTER_OPTIONS = [
+  { id: "all", label: "All Categories" },
+  { id: "smartphones", label: "Smartphones" },
+  { id: "laptops", label: "Laptops" },
+  { id: "tablets", label: "Tablets" },
+  { id: "accessories", label: "Accessories" },
+  { id: "speaker", label: "Speakers" },
+];
+
+const CONDITION_FILTER_OPTIONS = [
+  { id: "all", label: "All Conditions" },
+  { id: "Brand New", label: "Brand New" },
+  { id: "UK-Used", label: "UK-Used" },
+];
+
 function AdminProducts() {
   const [openCreateProductsDialog, setOpenCreateProductsDialog] = useState(false);
+  const [openFilterSheet, setOpenFilterSheet] = useState(false);
+
   const [formData, setFormData] = useState(initialFormData);
   const [imageFile, setImageFile] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
@@ -70,6 +88,7 @@ function AdminProducts() {
   // Search, Filter, Sort & Pagination
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCondition, setSelectedCondition] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -113,6 +132,11 @@ function AdminProducts() {
       list = list.filter((p) => p.category?.toLowerCase() === selectedCategory.toLowerCase());
     }
 
+    // Condition filter
+    if (selectedCondition !== "all") {
+      list = list.filter((p) => p.condition === selectedCondition);
+    }
+
     // Sorting
     if (sortBy === "price-low") {
       list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
@@ -126,7 +150,7 @@ function AdminProducts() {
     }
 
     return list;
-  }, [productList, searchQuery, selectedCategory, sortBy]);
+  }, [productList, searchQuery, selectedCategory, selectedCondition, sortBy]);
 
   const totalItems = filteredProducts.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
@@ -252,19 +276,22 @@ function AdminProducts() {
     return hasValidImage && hasRequiredFields;
   }
 
+  const activeFiltersCount = (selectedCategory !== "all" ? 1 : 0) + (selectedCondition !== "all" ? 1 : 0);
+
   return (
-    <div className="font-manrope space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto bg-[#FBFBFC] min-h-screen">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+    <div className="font-manrope space-y-5 px-1.5 py-3 sm:p-6 lg:p-8 max-w-7xl mx-auto bg-[#FBFBFC] min-h-screen">
+      {/* Top Header: Title with compact New Product button opposite */}
+      <div className="flex items-center justify-between gap-3 pb-1">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111344] tracking-tight">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#111344] tracking-tight">
             Products
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+          <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5">
             Manage device inventory, variants, specifications, and pricing.
           </p>
         </div>
 
+        {/* Compact New Product button */}
         <Button
           type="button"
           onClick={() => {
@@ -272,104 +299,192 @@ function AdminProducts() {
             setFormData(initialFormData);
             setOpenCreateProductsDialog(true);
           }}
-          className="h-10 px-4 bg-[#111344] hover:bg-[#0C1172] text-white text-xs sm:text-sm font-bold rounded-xl gap-2 shadow-xs cursor-pointer shrink-0"
+          className="h-8 px-3 bg-[#111344] hover:bg-[#0C1172] text-white text-xs font-semibold rounded-lg gap-1.5 shadow-xs cursor-pointer shrink-0"
         >
-          <Plus size={16} />
+          <Plus size={14} />
           <span>New product</span>
         </Button>
       </div>
 
-      {/* Toolbar: Category Tabs + Search + Filter + Sort */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
-        {/* Left: All count badge */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-[#111344] text-white shadow-xs">
-            All ({productList?.length || 0})
-          </span>
+      {/* Toolbar (Redesigned):
+          Row 1: All on the left; Filter & Sort opposite on the right.
+          Row 2: Full-width Search bar underneath.
+      */}
+      <div className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 sm:border-gray-200/80 shadow-xs space-y-3">
+        {/* Row 1: Left = All count badge; Right = Filter + Sort buttons */}
+        <div className="flex items-center justify-between gap-2">
+          {/* Left: All count badge */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-[#111344] text-white shadow-xs">
+              All ({productList?.length || 0})
+            </span>
+          </div>
+
+          {/* Right: Filter & Sort */}
+          <div className="flex items-center gap-2">
+            {/* Filter Button (Opens slide-in drawer from the left) */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpenFilterSheet(true)}
+              className={`h-9 px-3 text-xs font-semibold rounded-xl gap-1.5 border-gray-200 hover:bg-gray-100 ${
+                activeFiltersCount > 0 ? "border-[#111344] text-[#111344] bg-blue-50/50" : "text-gray-700"
+              }`}
+            >
+              <Filter size={13} className="text-gray-500" />
+              <span>Filter</span>
+              {activeFiltersCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-[#111344] text-white text-[10px] font-bold flex items-center justify-center">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </Button>
+
+            {/* Sort Dropdown */}
+            <div className="w-36 sm:w-40">
+              <Select
+                value={sortBy}
+                onValueChange={(val) => {
+                  setSortBy(val);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="h-9 text-xs bg-[#FAFBFD] border-gray-200 rounded-xl font-semibold">
+                  <ArrowUpDown size={13} className="mr-1 text-gray-500" />
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">New Arrivals</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="title-az">Alphabetical (A-Z)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
-        {/* Right: Search, Category Filter, Sort Dropdown */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 flex-1 lg:justify-end">
-          {/* Search */}
-          <div className="relative flex-1 sm:w-64 min-w-[200px]">
-            <Search
-              size={14}
-              className="absolute left-3 top-2.5 text-gray-400 pointer-events-none"
-            />
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search products..."
-              className="h-9 pl-9 text-xs bg-[#FAFBFD] border-gray-200 rounded-xl"
-            />
-          </div>
-
-          {/* Category Filter */}
-          <div className="w-36">
-            <Select
-              value={selectedCategory}
-              onValueChange={(val) => {
-                setSelectedCategory(val);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-9 text-xs bg-[#FAFBFD] border-gray-200 rounded-xl font-semibold">
-                <Filter size={13} className="mr-1.5 text-gray-500" />
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="smartphones">Smartphones</SelectItem>
-                <SelectItem value="laptops">Laptops</SelectItem>
-                <SelectItem value="tablets">Tablets</SelectItem>
-                <SelectItem value="accessories">Accessories</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Sort Dropdown */}
-          <div className="w-40">
-            <Select
-              value={sortBy}
-              onValueChange={(val) => {
-                setSortBy(val);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-9 text-xs bg-[#FAFBFD] border-gray-200 rounded-xl font-semibold">
-                <ArrowUpDown size={13} className="mr-1.5 text-gray-500" />
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">New Arrivals</SelectItem>
-                <SelectItem value="price-low">Price: Low to High</SelectItem>
-                <SelectItem value="price-high">Price: High to Low</SelectItem>
-                <SelectItem value="title-az">Alphabetical (A-Z)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Row 2: Search input underneath */}
+        <div className="relative w-full">
+          <Search
+            size={14}
+            className="absolute left-3 top-2.5 text-gray-400 pointer-events-none"
+          />
+          <Input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search products..."
+            className="h-9 pl-9 text-xs bg-[#FAFBFD] border-gray-200 rounded-xl w-full"
+          />
         </div>
       </div>
 
-      {/* Products Table (matching Image 2) */}
-      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
+      {/* Slide-in Filter Drawer (Left) */}
+      <Sheet open={openFilterSheet} onOpenChange={setOpenFilterSheet}>
+        <SheetContent side="left" className="w-72 sm:w-80 p-5 overflow-y-auto">
+          <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+            <h3 className="font-manrope text-base font-bold text-[#111344] flex items-center gap-2">
+              <Filter size={16} />
+              <span>Filter Catalog</span>
+            </h3>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCategory("all");
+                setSelectedCondition("all");
+              }}
+              className="text-[11px] font-semibold text-gray-400 hover:text-gray-700 flex items-center gap-1"
+            >
+              <RotateCcw size={12} />
+              Reset
+            </button>
+          </div>
+
+          <div className="py-4 space-y-5">
+            {/* Category Section */}
+            <div>
+              <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block mb-2">
+                Category
+              </label>
+              <div className="space-y-1">
+                {CATEGORY_FILTER_OPTIONS.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedCategory(cat.id);
+                      setCurrentPage(1);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                      selectedCategory === cat.id
+                        ? "bg-[#111344] text-white font-bold"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Condition Section */}
+            <div>
+              <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block mb-2">
+                Condition
+              </label>
+              <div className="space-y-1">
+                {CONDITION_FILTER_OPTIONS.map((cond) => (
+                  <button
+                    key={cond.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedCondition(cond.id);
+                      setCurrentPage(1);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                      selectedCondition === cond.id
+                        ? "bg-[#111344] text-white font-bold"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {cond.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-gray-200">
+            <Button
+              type="button"
+              onClick={() => setOpenFilterSheet(false)}
+              className="w-full h-9 bg-[#111344] hover:bg-[#0C1172] text-white font-bold text-xs rounded-xl"
+            >
+              Apply Filters
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Products Table (Extended to the ends on mobile) */}
+      <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 sm:border-gray-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#FAFBFD] text-gray-500 uppercase font-bold text-[10.5px] tracking-wider border-b border-gray-100">
+            <thead className="bg-[#FAFBFD] text-gray-500 uppercase font-bold text-[10px] sm:text-[10.5px] tracking-wider border-b border-gray-100">
               <tr>
-                <th className="py-3.5 px-4 w-10">
+                <th className="py-3 px-3 sm:px-4 w-9">
                   <input type="checkbox" className="rounded border-gray-300 text-[#111344] focus:ring-0" />
                 </th>
-                <th className="py-3.5 px-4 font-bold min-w-[260px]">Product</th>
-                <th className="py-3.5 px-4 font-bold">Status</th>
-                <th className="py-3.5 px-4 font-bold">Price</th>
-                <th className="py-3.5 px-4 font-bold">Inventory</th>
-                <th className="py-3.5 px-4 font-bold">Category</th>
-                <th className="py-3.5 px-4 font-bold text-right">Action</th>
+                <th className="py-3 px-3 sm:px-4 font-bold min-w-[240px]">Product</th>
+                <th className="py-3 px-3 sm:px-4 font-bold">Status</th>
+                <th className="py-3 px-3 sm:px-4 font-bold">Price</th>
+                <th className="py-3 px-3 sm:px-4 font-bold">Inventory</th>
+                <th className="py-3 px-3 sm:px-4 font-bold">Category</th>
+                <th className="py-3 px-3 sm:px-4 font-bold text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 font-medium text-gray-700">
@@ -392,14 +507,14 @@ function AdminProducts() {
                   return (
                     <tr key={product._id} className="hover:bg-gray-50/70 transition-colors">
                       {/* Checkbox */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-3 sm:px-4">
                         <input type="checkbox" className="rounded border-gray-300 text-[#111344] focus:ring-0" />
                       </td>
 
                       {/* Product Thumbnail + Title */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="relative w-11 h-11 rounded-lg bg-gray-100 border border-gray-200 shrink-0 overflow-hidden flex items-center justify-center">
+                      <td className="py-3 px-3 sm:px-4">
+                        <div className="flex items-center gap-2.5 sm:gap-3">
+                          <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-gray-50 border border-gray-200 shrink-0 overflow-hidden flex items-center justify-center">
                             <img
                               src={displayImage}
                               alt={product.title}
@@ -418,7 +533,7 @@ function AdminProducts() {
                             <p className="font-bold text-gray-900 line-clamp-1 text-xs sm:text-[13px]">
                               {product.title}
                             </p>
-                            <p className="text-[11px] text-gray-400 capitalize">
+                            <p className="text-[10.5px] sm:text-[11px] text-gray-400 capitalize">
                               {product.brand} • {product.condition || "Brand New"}
                             </p>
                           </div>
@@ -426,9 +541,9 @@ function AdminProducts() {
                       </td>
 
                       {/* Status Badge */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-3 sm:px-4">
                         <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10.5px] font-bold ${
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] sm:text-[10.5px] font-bold ${
                             inStock
                               ? "bg-emerald-50 text-emerald-700"
                               : "bg-rose-50 text-rose-600"
@@ -439,7 +554,7 @@ function AdminProducts() {
                       </td>
 
                       {/* Price */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
+                      <td className="py-3 px-3 sm:px-4 whitespace-nowrap">
                         {hasDiscount ? (
                           <div>
                             <div className="flex items-center gap-1.5">
@@ -450,7 +565,7 @@ function AdminProducts() {
                                 -{discountPct}%
                               </span>
                             </div>
-                            <span className="text-[11px] text-gray-400 line-through">
+                            <span className="text-[10.5px] sm:text-[11px] text-gray-400 line-through">
                               ₦{basePrice.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                             </span>
                           </div>
@@ -462,19 +577,19 @@ function AdminProducts() {
                       </td>
 
                       {/* Inventory */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
+                      <td className="py-3 px-3 sm:px-4 whitespace-nowrap">
                         <span className={`font-semibold ${inStock ? "text-gray-700" : "text-rose-600 font-bold"}`}>
                           {stockNum} in stock
                         </span>
                       </td>
 
                       {/* Category */}
-                      <td className="py-3.5 px-4 capitalize font-semibold text-gray-600 whitespace-nowrap">
+                      <td className="py-3 px-3 sm:px-4 capitalize font-semibold text-gray-600 whitespace-nowrap">
                         {product.category || "Gadget"}
                       </td>
 
                       {/* Action */}
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                      <td className="py-3 px-3 sm:px-4 text-right whitespace-nowrap">
                         <div className="inline-flex items-center gap-1 justify-end">
                           <button
                             type="button"
@@ -541,7 +656,7 @@ function AdminProducts() {
         )}
       </div>
 
-      {/* Slide-out Sheet for Add / Edit Product (Full mobile width & responsive) */}
+      {/* Slide-out Sheet for Add / Edit Product (Full mobile width & responsive with visible Close and Cancel buttons) */}
       <Sheet
         open={openCreateProductsDialog}
         onOpenChange={() => {
@@ -557,12 +672,21 @@ function AdminProducts() {
           exit={{ x: "100%" }}
           transition={{ type: "spring", stiffness: 200, damping: 30 }}
         >
-          <SheetHeader className="sticky top-0 bg-background z-10 pb-4 border-b border-gray-100">
-            <SheetTitle>
-              <h2 className="font-manrope text-xl font-bold tracking-tight text-[#111344]">
+          {/* Header with explicit close icon button */}
+          <SheetHeader className="sticky top-0 bg-background z-20 pb-3 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="font-manrope text-lg sm:text-xl font-bold tracking-tight text-[#111344]">
                 {currentEditedId !== null ? "Edit Product" : "Add New Product"}
-              </h2>
-            </SheetTitle>
+              </SheetTitle>
+              <button
+                type="button"
+                onClick={() => setOpenCreateProductsDialog(false)}
+                className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                title="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </SheetHeader>
 
           <div className="space-y-6 pt-4 pb-8">
@@ -583,6 +707,7 @@ function AdminProducts() {
               buttonText={currentEditedId !== null ? "Update Product" : "Save Product"}
               formControls={addProductFormElements}
               isBtnDisabled={!isFormValid() || imageLoadingState}
+              onCancel={() => setOpenCreateProductsDialog(false)}
             >
               <ProductVariantsManager
                 formData={formData}

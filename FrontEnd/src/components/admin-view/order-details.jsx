@@ -1,512 +1,370 @@
 'use client';
 
-
-// import { useState } from "react";
-// import { motion } from "framer-motion";
-// import CommonForm from "../common/form";
-// import { DialogContent, DialogTitle } from "../ui/dialog";
-// import { Label } from "../ui/label";
-// import { Separator } from "../ui/separator";
-// import { Badge } from "../ui/badge";
-// import { useDispatch, useSelector } from "react-redux";
-// import { updateOrderStatus, getOrderDetailsForAdmin, getAllOrdersForAdmin } from "@/store/admin/order-slice";
-// import { useToast } from "../ui/use-toast";
-// import { Loader2 } from "lucide-react"; // Correct icon for loading
-
-// const initialFormData = {
-//   status: "",
-// };
-
-// function AdminOrderDetailsView({ orderDetails }) {
-//   const [formData, setFormData] = useState(initialFormData);
-//   const [isLoading, setIsLoading] = useState(false); // For loading state
-//   const { user } = useSelector((state) => state.auth);
-//   const dispatch = useDispatch();
-//   const { toast } = useToast();
-
-//   // Handle the order status update
-//   function handleUpdateStatus(event) {
-//     event.preventDefault();
-//     const { status } = formData;
-//     setIsLoading(true); // Show loader
-
-//     dispatch(updateOrderStatus({ id: orderDetails?._id, orderStatus: status }))
-//       .then((data) => {
-//         if (data?.payload?.success) {
-//           dispatch(getOrderDetailsForAdmin(orderDetails?._id));
-//           dispatch(getAllOrdersForAdmin());
-//           setFormData(initialFormData);
-//           toast({
-//             title: data?.payload?.message,
-//           });
-//         }
-//       })
-//       .finally(() => {
-//         setIsLoading(false); // Hide loader
-//       });
-//   }
-
-//   return (
-//     <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-//       <DialogTitle>Order Details</DialogTitle>
-//       <motion.div
-//         initial={{ opacity: 0, scale: 0.95 }}
-//         animate={{ opacity: 1, scale: 1 }}
-//         exit={{ opacity: 0, scale: 0.95 }}
-//         transition={{ duration: 0.3 }}
-//         className="grid gap-6"
-//       >
-//         {/* Order Details Section */}
-//         <div className="grid gap-1">
-//           <div className="flex mt-6 items-center justify-between">
-//             <p className="font-medium">Order ID</p>
-//             <Label>{orderDetails?._id}</Label>
-//           </div>
-//           <div className="flex mt-2 items-center justify-between">
-//             <p className="font-medium">Order Date</p>
-//             <Label>{orderDetails?.orderDate.split("T")[0]}</Label>
-//           </div>
-//           <div className="flex mt-2 items-center justify-between">
-//             <p className="font-medium">Order Price</p>
-//             <Label>₦{orderDetails?.totalAmount - orderDetails?.deliveryPrice}</Label>
-//           </div>
-//           <div className="flex mt-2 items-center justify-between">
-//             <p className="font-medium">Delivery Price</p>
-//             <Label>₦{orderDetails?.deliveryPrice}</Label>
-//           </div>
-//           <div className="flex mt-2 items-center justify-between">
-//             <p className="font-medium">Total Amount with Delivery</p>
-//             <Label>₦{orderDetails?.totalAmount}</Label>
-//           </div>
-//           <div className="flex mt-2 items-center justify-between">
-//             <p className="font-medium">Payment method</p>
-//             <Label>{orderDetails?.paymentMethod}</Label>
-//           </div>
-//           <div className="flex mt-2 items-center justify-between">
-//             <p className="font-medium">Payment Status</p>
-//             <Label>{orderDetails?.paymentStatus}</Label>
-//           </div>
-//           <div className="flex mt-2 items-center justify-between">
-//             <p className="font-medium">Order Status</p>
-//             <Label>
-//               <Badge
-//                 className={`py-1 px-3 ${
-//                   orderDetails?.orderStatus === "confirmed"
-//                     ? "bg-green-500"
-//                     : orderDetails?.orderStatus === "rejected"
-//                     ? "bg-red-600"
-//                     : "bg-black"
-//                 }`}
-//                 as={motion.div}
-//                 animate={{ opacity: 1 }}
-//                 initial={{ opacity: 0 }}
-//                 transition={{ duration: 0.3 }}
-//               >
-//                 {orderDetails?.orderStatus}
-//               </Badge>
-//             </Label>
-//           </div>
-//         </div>
-//         <Separator />
-
-//         {/* Order Items */}
-//         <div className="grid gap-4">
-//           <div className="grid gap-2">
-//             <div className="font-medium">Order Details</div>
-//             <ul className="grid gap-3">
-//               {orderDetails?.cartItems && orderDetails?.cartItems.length > 0
-//                 ? orderDetails?.cartItems.map((item) => (
-//                     <motion.li
-//                       key={item._id}
-//                       className="flex items-center justify-between"
-//                       initial={{ opacity: 0 }}
-//                       animate={{ opacity: 1 }}
-//                       exit={{ opacity: 0 }}
-//                       transition={{ duration: 0.3 }}
-//                     >
-//                       <span>Title: {item.title}</span>
-//                       <span>Quantity: {item.quantity}</span>
-//                       <span>Price: ₦{item.price}</span>
-//                     </motion.li>
-//                   ))
-//                 : null}
-//             </ul>
-//           </div>
-//         </div>
-
-//         {/* Shipping Info */}
-//         <div className="grid gap-4">
-//           <div className="grid gap-2">
-//             <div className="font-medium">Shipping Info</div>
-//             <div className="grid gap-0.5 text-muted-foreground">
-//               <span>{orderDetails?.addressInfo?.fullName}</span>
-//               <span>{orderDetails?.addressInfo?.address}</span>
-//               <span>{orderDetails?.addressInfo?.lga}</span>
-//               <span>{orderDetails?.addressInfo?.state}</span>
-//               {/* <span>{orderDetails?.addressInfo?.pincode}</span> */}
-//               <span>{orderDetails?.addressInfo?.phone}</span>
-//               <span>{orderDetails?.addressInfo?.notes}</span>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Order Status Update Form */}
-//         <motion.div
-//           initial={{ opacity: 0 }}
-//           animate={{ opacity: 1 }}
-//           transition={{ duration: 0.3 }}
-//         >
-//           <CommonForm
-//             formControls={[
-//               {
-//                 label: "Order Status",
-//                 name: "status",
-//                 componentType: "select",
-//                 options: [
-//                   { id: "pending", label: "pending" },
-//                   { id: "in process", label: "in process" },
-//                   { id: "inShipping", label: "inShipping" },
-//                   { id: "rejected", label: "rejected" },
-//                   { id: "delivered", label: "delivered" },
-//                 ],
-//               },
-//             ]}
-//             formData={formData}
-//             setFormData={setFormData}
-//             buttonText={"Update Order Status"}
-//             onSubmit={handleUpdateStatus}
-//           />
-//         </motion.div>
-
-//         {/* Loading Indicator */}
-//         {isLoading && (
-//           <motion.div
-//             initial={{ opacity: 0 }}
-//             animate={{ opacity: 1 }}
-//             transition={{ duration: 0.3 }}
-//             className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50"
-//           >
-//             <Loader2 className="animate-spin text-white" size={48} />
-//           </motion.div>
-//         )}
-//       </motion.div>
-//     </DialogContent>
-//   );
-// }
-
-// export default AdminOrderDetailsView;
-
 import { useState } from "react";
 import { motion } from "framer-motion";
-import CommonForm from "../common/form";
-import { DialogContent, DialogTitle } from "../ui/dialog";
+import { DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
-import { Badge } from "../ui/badge";
-import { useDispatch, useSelector } from "react-redux";
+import { Button } from "../ui/button";
+import { useDispatch } from "react-redux";
 import { updateOrderStatus, getOrderDetailsForAdmin, getAllOrdersForAdmin } from "@/store/admin/order-slice";
 import { useToast } from "../ui/use-toast";
-import { Loader2, Package, Calendar, Truck, MapPin, User, Phone, FileText, CreditCard, ShoppingCart } from "lucide-react";
+import {
+  Loader2,
+  Package,
+  Calendar,
+  Truck,
+  MapPin,
+  User,
+  Phone,
+  FileText,
+  CreditCard,
+  CheckCircle2,
+  AlertCircle,
+  X,
+} from "lucide-react";
 
-const initialFormData = {
-  status: "",
-};
+function formatFullNaira(num) {
+  if (num === undefined || num === null || isNaN(num)) return "₦0.00";
+  return `₦${Number(num).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 
-function AdminOrderDetailsView({ orderDetails }) {
-  const [formData, setFormData] = useState(initialFormData);
+function formatOrderId(id) {
+  if (!id) return "ORD-00000000";
+  const raw = id.toString().replace(/[^a-zA-Z0-9]/g, "");
+  return `ORD-${raw.slice(-8).toUpperCase()}`;
+}
+
+function formatOrderDate(dateStr) {
+  if (!dateStr) return "N/A";
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch {
+    return "N/A";
+  }
+}
+
+function getStatusBadgeStyle(status) {
+  const s = (status || "pending").toLowerCase();
+  if (s.includes("confirm") || s.includes("paid") || s === "success") {
+    return "bg-emerald-50 text-emerald-700 border-emerald-200/70";
+  }
+  if (s.includes("deliver")) {
+    return "bg-indigo-50 text-indigo-700 border-indigo-200/70";
+  }
+  if (s.includes("ship")) {
+    return "bg-purple-50 text-purple-700 border-purple-200/70";
+  }
+  if (s.includes("process")) {
+    return "bg-blue-50 text-blue-700 border-blue-200/70";
+  }
+  if (s.includes("cancel") || s.includes("reject")) {
+    return "bg-rose-50 text-rose-700 border-rose-200/70";
+  }
+  return "bg-amber-50 text-amber-700 border-amber-200/70";
+}
+
+function normalizeStatusLabel(status) {
+  const s = (status || "pending").toLowerCase();
+  if (s.includes("confirm")) return "Confirmed";
+  if (s.includes("deliver")) return "Delivered";
+  if (s.includes("ship")) return "In Shipping";
+  if (s.includes("process")) return "In Process";
+  if (s.includes("cancel") || s.includes("reject")) return "Cancelled";
+  return "Pending";
+}
+
+function AdminOrderDetailsView({ orderDetails, onClose }) {
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  function handleUpdateStatus(event) {
-    event.preventDefault();
-    const { status } = formData;
-    if (!status) {
+  const handleUpdateStatus = (e) => {
+    e.preventDefault();
+    if (!selectedStatus) {
       toast({
-        title: "Error",
-        description: "Please select a status",
+        title: "Please select a status",
         variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
-
-    dispatch(updateOrderStatus({ id: orderDetails?._id, orderStatus: status }))
+    dispatch(updateOrderStatus({ id: orderDetails?._id, orderStatus: selectedStatus }))
       .then((data) => {
         if (data?.payload?.success) {
           dispatch(getOrderDetailsForAdmin(orderDetails?._id));
           dispatch(getAllOrdersForAdmin());
-          setFormData(initialFormData);
+          setSelectedStatus("");
           toast({
-            title: "Status Updated",
-            description: data?.payload?.message,
-            variant: "default",
+            title: "Status updated",
+            description: data?.payload?.message || "Order status has been updated successfully",
+          });
+        } else {
+          toast({
+            title: "Update failed",
+            description: data?.payload?.message || "Could not update status",
+            variant: "destructive",
           });
         }
+      })
+      .catch(() => {
+        toast({
+          title: "Error",
+          description: "Something went wrong while updating the order status.",
+          variant: "destructive",
+        });
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "confirmed":
-      case "delivered":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "rejected":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "in process":
-      case "inProcess":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "inShipping":
-      case "shipping":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
   };
 
-  const formatOrderId = (id) => {
-    if (!id) return "N/A";
-    return `ORD${id.slice(-8).toUpperCase()}`;
-  };
+  const totalItemsCount = orderDetails?.cartItems?.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0) || 0;
+  const itemsSubtotal = orderDetails?.cartItems?.reduce(
+    (sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 1),
+    0
+  ) || 0;
 
-  // Calculate total items and subtotal
-  const totalItems = orderDetails?.cartItems?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-  const itemsSubtotal = orderDetails?.cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+  const currentStatusLabel = normalizeStatusLabel(orderDetails?.orderStatus);
+  const currentStatusStyle = getStatusBadgeStyle(orderDetails?.orderStatus);
 
   return (
-    <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-      <DialogTitle className="flex items-center gap-2">
-        <Package className="h-5 w-5 text-blue-600" />
-        Order Details - {formatOrderId(orderDetails?._id)}
-      </DialogTitle>
-
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.3 }}
-        className="grid gap-6 relative"
-      >
-        {/* Loading Overlay */}
-        {isLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 rounded-lg z-10"
-          >
-            <div className="bg-white rounded-lg p-4 flex items-center gap-3">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-              <span className="font-medium">Updating Status...</span>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Order Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg font-semibold text-blue-800">₦</span>
-              <span className="font-semibold text-blue-800">Order Total</span>
-            </div>
-            <p className="text-2xl font-bold text-blue-900">
-              ₦{orderDetails?.totalAmount?.toLocaleString("en-NG")}
-            </p>
+    <DialogContent className="sm:max-w-[760px] max-h-[92vh] overflow-y-auto p-4 sm:p-7 bg-white rounded-2xl border-none shadow-2xl font-manrope">
+      <DialogHeader className="pb-3 border-b border-gray-100 flex flex-row items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-[#111344]/5 text-[#111344] flex items-center justify-center shrink-0">
+            <Package size={18} />
           </div>
-
-          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-            <div className="flex items-center gap-2 mb-2">
-              <ShoppingCart className="h-4 w-4 text-green-600" />
-              <span className="font-semibold text-green-800">Items</span>
-            </div>
-            <p className="text-2xl font-bold text-green-900">
-              {totalItems}
-            </p>
-            <p className="text-sm text-green-700 mt-1">
-              {orderDetails?.cartItems?.length || 0} products
-            </p>
-          </div>
-
-          <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Truck className="h-4 w-4 text-purple-600" />
-              <span className="font-semibold text-purple-800">Delivery</span>
-            </div>
-            <p className="text-2xl font-bold text-purple-900">
-              ₦{orderDetails?.deliveryPrice?.toLocaleString("en-NG")}
+          <div>
+            <DialogTitle className="text-base sm:text-lg font-black text-[#111344] tracking-tight">
+              Order {formatOrderId(orderDetails?._id)}
+            </DialogTitle>
+            <p className="text-xs text-gray-500 font-medium">
+              Placed on {formatOrderDate(orderDetails?.orderDate || orderDetails?.createdAt)}
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Order Information */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-gray-600" />
-              Order Information
-            </h3>
-            <div className="space-y-3 bg-gray-50 rounded-lg p-4">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Order Date:</span>
-                <Label className="font-medium">
-                  {orderDetails?.orderDate ? new Date(orderDetails.orderDate).toLocaleDateString('en-NG') : 'N/A'}
-                </Label>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Payment Method:</span>
-                <Label className="font-medium capitalize">{orderDetails?.paymentMethod}</Label>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Payment Status:</span>
-                <Badge variant="outline" className="capitalize">
-                  {orderDetails?.paymentStatus}
-                </Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Current Status:</span>
-                <Badge className={`py-2 px-3 ${getStatusColor(orderDetails?.orderStatus)}`}>
-                  {orderDetails?.orderStatus}
-                </Badge>
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${currentStatusStyle}`}>
+          {currentStatusLabel}
+        </span>
+      </DialogHeader>
+
+      <div className="space-y-6 pt-3">
+        {/* Top 3 Metric Tiles */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+              Total Amount
+            </span>
+            <span className="text-sm sm:text-base font-black text-gray-900 font-mono mt-0.5 block">
+              {formatFullNaira(orderDetails?.totalAmount)}
+            </span>
+          </div>
+
+          <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+              Items
+            </span>
+            <span className="text-sm sm:text-base font-black text-gray-900 font-mono mt-0.5 block">
+              {totalItemsCount} {totalItemsCount === 1 ? "unit" : "units"}
+            </span>
+          </div>
+
+          <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+              Delivery
+            </span>
+            <span className="text-sm sm:text-base font-black text-gray-900 font-mono mt-0.5 block">
+              {Number(orderDetails?.deliveryPrice) > 0 ? formatFullNaira(orderDetails.deliveryPrice) : "Free / Included"}
+            </span>
+          </div>
+        </div>
+
+        {/* Customer & Shipping Summary */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Customer Profile */}
+          <div className="rounded-xl border border-gray-100 bg-white p-3.5 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
+              <User size={14} className="text-[#111344]" />
+              <span>Customer Details</span>
+            </div>
+            <div className="text-xs space-y-1 text-gray-600">
+              <p className="font-bold text-gray-900 text-sm">
+                {orderDetails?.addressInfo?.fullName || orderDetails?.userName || "Guest Customer"}
+              </p>
+              {orderDetails?.addressInfo?.phone && (
+                <p className="flex items-center gap-1.5 font-medium">
+                  <Phone size={12} className="text-gray-400" />
+                  <span>{orderDetails.addressInfo.phone}</span>
+                </p>
+              )}
+              {orderDetails?.addressInfo?.email && (
+                <p className="text-gray-500 text-[11px] font-medium">
+                  {orderDetails.addressInfo.email}
+                </p>
+              )}
+              <div className="pt-1 text-[11px] text-gray-500 font-medium">
+                Payment: <span className="font-bold text-gray-700 capitalize">{orderDetails?.paymentMethod || "Online Transfer"}</span> · Status: <span className="font-bold text-emerald-700 capitalize">{orderDetails?.paymentStatus || "Paid"}</span>
               </div>
             </div>
           </div>
 
-          {/* Customer Information */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg flex items-center gap-2">
-              <User className="h-5 w-5 text-gray-600" />
-              Customer Information
-            </h3>
-            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-gray-500" />
-                <span className="font-medium">{orderDetails?.addressInfo?.fullName}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-gray-500" />
-                <span>{orderDetails?.addressInfo?.phone}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
-                <div>
-                  <p>{orderDetails?.addressInfo?.address}</p>
-                  <p className="text-sm text-gray-600">
-                    {orderDetails?.addressInfo?.lga}, {orderDetails?.addressInfo?.state}
-                  </p>
-                </div>
-              </div>
+          {/* Shipping Address */}
+          <div className="rounded-xl border border-gray-100 bg-white p-3.5 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
+              <MapPin size={14} className="text-[#111344]" />
+              <span>Shipping Destination</span>
+            </div>
+            <div className="text-xs text-gray-600 space-y-1">
+              <p className="font-medium text-gray-800">
+                {orderDetails?.addressInfo?.address || "Address not provided"}
+              </p>
+              {(orderDetails?.addressInfo?.city || orderDetails?.addressInfo?.lga || orderDetails?.addressInfo?.state) && (
+                <p className="font-medium text-gray-500 text-[11px]">
+                  {[orderDetails?.addressInfo?.city, orderDetails?.addressInfo?.lga, orderDetails?.addressInfo?.state]
+                    .filter(Boolean)
+                    .join(", ")}
+                </p>
+              )}
               {orderDetails?.addressInfo?.notes && (
-                <div className="flex items-start gap-2 pt-2 border-t border-gray-200">
-                  <FileText className="h-4 w-4 text-gray-500 mt-0.5" />
-                  <div>
-                    <span className="font-medium block mb-1 text-sm">Delivery Notes:</span>
-                    <span className="text-gray-600 text-sm">{orderDetails?.addressInfo?.notes}</span>
-                  </div>
+                <div className="mt-2 p-2 bg-amber-50/60 border border-amber-200/60 rounded-lg text-[11px] text-amber-800 font-medium">
+                  <span className="font-bold block text-[10px] uppercase">Notes:</span>
+                  {orderDetails.addressInfo.notes}
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Order Items */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-lg flex items-center gap-2">
-              <Package className="h-5 w-5 text-gray-600" />
-              Order Items ({orderDetails?.cartItems?.length || 0})
-            </h3>
+        {/* Ordered Items List */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+              Purchased Items ({orderDetails?.cartItems?.length || 0})
+            </h4>
           </div>
-          <div className="border rounded-lg overflow-hidden">
-            {orderDetails?.cartItems?.map((item, index) => (
-              <motion.div
-                key={item._id || index}
-                className={`flex items-center justify-between p-4 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-              >
-                <div className="flex items-center gap-3 flex-1">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-12 h-12 rounded-lg object-cover border"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm line-clamp-2">{item.title}</p>
-                    {(item.selectedStorage || item.selectedRam || item.selectedColor || item.selectedCondition) && (
-                      <p className="text-xs text-orange-600 font-medium">
-                        {[item.selectedCondition, item.selectedStorage, item.selectedRam ? `${item.selectedRam} RAM` : null, item.selectedColor].filter(Boolean).join(' · ')}
-                      </p>
+
+          <div className="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-100">
+            {orderDetails?.cartItems?.map((item, idx) => {
+              const variantTags = [
+                item.selectedCondition,
+                item.selectedStorage,
+                item.selectedRam ? `${item.selectedRam} RAM` : null,
+                item.selectedColor,
+              ].filter(Boolean);
+
+              return (
+                <div key={item._id || idx} className="p-3 sm:p-4 flex items-center justify-between gap-3 bg-white">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-12 h-12 rounded-lg object-cover border border-gray-100 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0">
+                        <Package size={20} />
+                      </div>
                     )}
-                    <p className="text-gray-600 text-xs">Quantity: {item.quantity}</p>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-xs sm:text-sm text-gray-900 truncate">
+                        {item.title}
+                      </p>
+
+                      {variantTags.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                          {variantTags.map((tag, tIdx) => (
+                            <span
+                              key={tIdx}
+                              className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-700"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      <p className="text-[11px] text-gray-400 font-medium mt-0.5">
+                        Qty: {item.quantity} × {formatFullNaira(item.price)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span className="font-black text-xs sm:text-sm text-gray-900 font-mono">
+                      {formatFullNaira((Number(item.price) || 0) * (Number(item.quantity) || 1))}
+                    </span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold">₦{item.price?.toLocaleString("en-NG")}</p>
-                  <p className="text-gray-600 text-xs">
-                    Total: ₦{(item.price * item.quantity)?.toLocaleString("en-NG")}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+              );
+            })}
 
-            {/* Order Summary */}
-            <div className="bg-gray-100 border-t border-gray-200 p-4">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Items Subtotal:</span>
-                <span className="font-semibold">₦{itemsSubtotal?.toLocaleString("en-NG")}</span>
+            {/* Subtotal Breakdown */}
+            <div className="p-3 sm:p-4 bg-gray-50/70 space-y-1.5 text-xs">
+              <div className="flex justify-between text-gray-600 font-medium">
+                <span>Items Subtotal</span>
+                <span className="font-mono">{formatFullNaira(itemsSubtotal)}</span>
               </div>
-              <div className="flex justify-between items-center text-sm mt-1">
-                <span className="text-gray-600">Delivery Fee:</span>
-                <span className="font-semibold">₦{orderDetails?.deliveryPrice?.toLocaleString("en-NG")}</span>
+              <div className="flex justify-between text-gray-600 font-medium">
+                <span>Delivery & Logistics</span>
+                <span className="font-mono">
+                  {Number(orderDetails?.deliveryPrice) > 0 ? formatFullNaira(orderDetails.deliveryPrice) : "₦0.00"}
+                </span>
               </div>
-              <Separator className="my-2" />
-              <div className="flex justify-between items-center text-lg font-bold">
-                <span>Total Amount:</span>
-                <span className="text-orange-600">₦{orderDetails?.totalAmount?.toLocaleString("en-NG")}</span>
+              <Separator className="my-1.5" />
+              <div className="flex justify-between font-black text-sm text-[#111344]">
+                <span>Total Amount Paid</span>
+                <span className="font-mono">{formatFullNaira(orderDetails?.totalAmount)}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Order Status Update Form */}
-        <div className="space-y-4 border-t pt-6">
-          <h3 className="font-semibold text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5 text-gray-600" />
+        {/* Update Status Bar */}
+        <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-3">
+          <Label className="text-xs font-bold text-gray-800">
             Update Order Status
-          </h3>
-          <CommonForm
-            formControls={[
-              {
-                label: "New Order Status",
-                name: "status",
-                componentType: "select",
-                placeholder: "Select status...",
-                options: [
-                  { id: "pending", label: "⏳ Pending" },
-                  { id: "confirmed", label: "✅ Confirmed" },
-                  { id: "inProcess", label: "🔧 In Process" },
-                  { id: "shipping", label: "🚚 In Shipping" },
-                  { id: "delivered", label: "📦 Delivered" },
-                  { id: "rejected", label: "❌ Rejected" },
-                ],
-              },
-            ]}
-            formData={formData}
-            setFormData={setFormData}
-            buttonText={isLoading ? "Updating..." : "Update Status"}
-            onSubmit={handleUpdateStatus}
-            isBtnDisabled={isLoading || !formData.status}
-            className="bg-gray-50 rounded-lg p-4"
-          />
+          </Label>
+
+          <form onSubmit={handleUpdateStatus} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#111344]"
+            >
+              <option value="">Select new status...</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="inProcess">In Process</option>
+              <option value="shipping">In Shipping</option>
+              <option value="delivered">Delivered</option>
+              <option value="rejected">Cancelled / Rejected</option>
+            </select>
+
+            <Button
+              type="submit"
+              disabled={isLoading || !selectedStatus}
+              className="h-9 px-4 bg-[#111344] hover:bg-[#0C1172] text-white text-xs font-bold rounded-xl gap-2 cursor-pointer shadow-xs shrink-0 disabled:opacity-40"
+            >
+              {isLoading ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+              <span>Update Status</span>
+            </Button>
+          </form>
         </div>
-      </motion.div>
+      </div>
     </DialogContent>
   );
 }
