@@ -26,11 +26,9 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchAllFilteredProducts,
-  fetchProductDetails,
 } from "@/store/shop/products-slice";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { useNavigate } from "react-router-dom";
-import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import { useToast } from "@/components/ui/use-toast";
 import { getFeatureImages } from "@/store/common-slice";
@@ -227,12 +225,11 @@ const SWOT_STOCK_PRODUCTS = [
 ];
 
 function ShoppingHome() {
-  const { productList, productDetails } = useSelector(
+  const { productList } = useSelector(
     (state) => state.shopProducts
   );
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
-  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -356,10 +353,6 @@ function ShoppingHome() {
   useEffect(() => {
     dispatch(fetchCartItems());
   }, [dispatch]);
-
-  useEffect(() => {
-    if (productDetails !== null) setOpenDetailsDialog(true);
-  }, [productDetails]);
 
   useEffect(() => {
     if (productList.length > 4) {
@@ -586,12 +579,6 @@ function ShoppingHome() {
 
       {/* SWOT-Style Frequently Asked Questions Section */}
       <FaqSection />
-
-      <ProductDetailsDialog
-        open={openDetailsDialog}
-        setOpen={setOpenDetailsDialog}
-        productDetails={productDetails}
-      />
     </div>
   );
 }

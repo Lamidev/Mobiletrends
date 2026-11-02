@@ -15,11 +15,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import {
   fetchAllFilteredProducts,
-  fetchProductDetails,
 } from "@/store/shop/products-slice";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { useSearchParams } from "react-router-dom";
-import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import { useToast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
@@ -49,7 +47,7 @@ function createSearchParamsHelper(filterParams, minPrice, maxPrice) {
 
 function ShoppingListing() {
   const dispatch = useDispatch();
-  const { productList, productDetails } = useSelector(
+  const { productList } = useSelector(
     (state) => state.shopProducts
   );
   const { cartItems } = useSelector((state) => state.shopCart);
@@ -61,7 +59,6 @@ function ShoppingListing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsString = searchParams.toString();
   const productParam = searchParams.get("product");
-  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const categorySearchParams = searchParams.get("category");
@@ -250,23 +247,12 @@ function ShoppingListing() {
     setCurrentPage(pageNumber);
   };
 
-  // Deep linking: Check for product ID in URL on mount/update
+  // Deep linking: If ?product=id is provided, navigate directly to dedicated product page
   useEffect(() => {
-    if (productParam && (!productDetails || productDetails._id !== productParam)) {
-      dispatch(fetchProductDetails(productParam));
+    if (productParam) {
+      navigate(`/shop/product/${productParam}`, { replace: true });
     }
-  }, [productParam, dispatch, productDetails]);
-
-  // Handle Dialog State and URL Sync
-  function handleDialogChange(isOpen) {
-    setOpenDetailsDialog(isOpen);
-    if (!isOpen) {
-      setSearchParams((prev) => {
-        prev.delete("product");
-        return prev;
-      });
-    }
-  }
+  }, [productParam, navigate]);
 
   useEffect(() => {
     dispatch(fetchCartItems());
@@ -322,10 +308,6 @@ function ShoppingListing() {
       }, 350);
     });
   }, [searchParamsString]);
-
-  useEffect(() => {
-    if (productDetails !== null) setOpenDetailsDialog(true);
-  }, [productDetails]);
 
   // Pagination logic
   const totalItems = productList?.length || 0;
@@ -541,12 +523,6 @@ function ShoppingListing() {
           )}
         </motion.div>
       </div>
-
-      <ProductDetailsDialog
-        open={openDetailsDialog}
-        setOpen={handleDialogChange}
-        productDetails={productDetails}
-      />
     </motion.div>
   );
 }

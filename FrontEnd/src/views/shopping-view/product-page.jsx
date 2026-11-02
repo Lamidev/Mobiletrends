@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   fetchProductDetails,
   fetchAllFilteredProducts,
+  setProductDetails,
 } from '@/store/shop/products-slice';
 import { addToCart, fetchCartItems } from '@/store/shop/cart-slice';
 import ProductDetailView from '@/components/shopping-view/product-detail-view';
@@ -31,6 +32,9 @@ export default function ProductPageView() {
     if (productId) {
       dispatch(fetchProductDetails(productId));
     }
+    return () => {
+      dispatch(setProductDetails());
+    };
   }, [productId, dispatch]);
 
   useEffect(() => {
@@ -113,7 +117,7 @@ export default function ProductPageView() {
   if (isLoading && (!productDetails || productDetails._id !== productId)) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-[#DF5E00]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#111344]" />
         <p className="font-manrope text-sm font-semibold text-[#62665d]">
           Loading product specifications...
         </p>

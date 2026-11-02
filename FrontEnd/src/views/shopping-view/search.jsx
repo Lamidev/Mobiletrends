@@ -5,10 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
-import { fetchProductDetails } from "@/store/shop/products-slice";
 import {
   getSearchResults,
   resetSearchResults,
@@ -177,11 +175,9 @@ function SearchProducts() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialUrlKeyword = searchParams.get("keyword") || "";
   const [keyword, setKeyword] = useState(initialUrlKeyword);
-  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
   const dispatch = useDispatch();
   const { searchResults, isLoading } = useSelector((state) => state.shopSearch);
-  const { productDetails } = useSelector((state) => state.shopProducts);
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
   const { toast } = useToast();
@@ -342,10 +338,6 @@ function SearchProducts() {
   useEffect(() => {
     dispatch(fetchCartItems());
   }, [dispatch]);
-
-  useEffect(() => {
-    if (productDetails !== null) setOpenDetailsDialog(true);
-  }, [productDetails]);
 
   return (
     <div className="font-body container mx-auto md:px-6 px-4 py-8 min-h-screen">
@@ -555,13 +547,6 @@ function SearchProducts() {
           </div>
         )}
       </div>
-
-      {/* Product Details Dialog */}
-      <ProductDetailsDialog
-        open={openDetailsDialog}
-        setOpen={setOpenDetailsDialog}
-        productDetails={productDetails}
-      />
     </div>
   );
 }
