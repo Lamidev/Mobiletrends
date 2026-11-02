@@ -188,6 +188,74 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
   const isOutOfStock = currentStock <= 0;
   const totalPrice = currentPrice * quantity;
   const savings = originalPrice ? originalPrice - currentPrice : 0;
+  // Base price calculation for delta tags (e.g., 256GB +₦1,000)
+  const baseStoragePrice = useMemo(() => {
+    if (!availableStorageVariants || availableStorageVariants.length === 0) {
+      return product?.salePrice > 0 ? product.salePrice : product?.price || 0;
+    }
+    const prices = availableStorageVariants.map((v) => {
+      const sp = Number(v.salePrice) || 0;
+      const bp = Number(v.price) || 0;
+      if (sp > 0) return sp;
+      if (bp > 0) return bp;
+      return product?.salePrice > 0 ? product.salePrice : product?.price || 0;
+    });
+    return Math.min(...prices);
+  }, [availableStorageVariants, product]);
+
+  const getStorageDelta = (size) => {
+    const variant = availableStorageVariants.find((v) => v.size === size);
+    if (!variant) return 0;
+    const sp = Number(variant.salePrice) || 0;
+    const bp = Number(variant.price) || 0;
+    const effective = sp > 0 ? sp : bp > 0 ? bp : product?.salePrice > 0 ? product.salePrice : product?.price || 0;
+    const delta = effective - baseStoragePrice;
+    return delta > 0 ? delta : 0;
+  };
+
+  const baseLaptopPrice = useMemo(() => {
+    if (!availableLaptopVariants || availableLaptopVariants.length === 0) {
+      return product?.salePrice > 0 ? product.salePrice : product?.price || 0;
+    }
+    const prices = availableLaptopVariants.map((v) => {
+      const sp = Number(v.salePrice) || 0;
+      const bp = Number(v.price) || 0;
+      if (sp > 0) return sp;
+      if (bp > 0) return bp;
+      return product?.salePrice > 0 ? product.salePrice : product?.price || 0;
+    });
+    return Math.min(...prices);
+  }, [availableLaptopVariants, product]);
+
+  const getLaptopStorageDelta = (ssd) => {
+    const variant =
+      availableLaptopVariants.find(
+        (v) => v.ram === selectedRam && v.storage === ssd
+      ) || availableLaptopVariants.find((v) => v.storage === ssd);
+    if (!variant) return 0;
+    const sp = Number(variant.salePrice) || 0;
+    const bp = Number(variant.price) || 0;
+    const effective = sp > 0 ? sp : bp > 0 ? bp : product?.salePrice > 0 ? product.salePrice : product?.price || 0;
+    const delta = effective - baseLaptopPrice;
+    return delta > 0 ? delta : 0;
+  };
+
+  const getLaptopRamDelta = (ram) => {
+    const variantsForRam = availableLaptopVariants.filter((v) => v.ram === ram);
+    if (variantsForRam.length === 0) return 0;
+    const minForRam = Math.min(
+      ...variantsForRam.map((v) => {
+        const sp = Number(v.salePrice) || 0;
+        const bp = Number(v.price) || 0;
+        if (sp > 0) return sp;
+        if (bp > 0) return bp;
+        return product?.salePrice > 0 ? product.salePrice : product?.price || 0;
+      })
+    );
+    const delta = minForRam - baseLaptopPrice;
+    return delta > 0 ? delta : 0;
+  };
+
 
   // Wishlist
   const [isInWishlist, setIsInWishlist] = useState(false);
@@ -409,7 +477,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
 
           {/* DYNAMIC VARIANT SELECTORS (CATEGORY-AWARE) */}
 
-          {/* 1. If LAPTOP: RAM Selector */}
+                    {/* 1. If LAPTOP: RAM Selector */}
           {isLaptop && laptopRamOptions.length > 0 && (
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
@@ -423,18 +491,24 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
               <div className="flex items-center gap-2 flex-wrap">
                 {laptopRamOptions.map((ram) => {
                   const isSelected = selectedRam === ram;
+                  const delta = getLaptopRamDelta(ram);
                   return (
                     <button
                       key={ram}
                       type="button"
                       onClick={() => setSelectedRam(ram)}
-                      className={`py-2 px-3 sm:px-4 rounded-[6px] text-center font-manrope text-[12px] sm:text-[13px] font-bold transition-all cursor-pointer ${
+                      className={`py-2 px-3 sm:px-4 rounded-[8px] text-center font-manrope transition-all cursor-pointer flex flex-col items-center justify-center min-w-[70px] ${
                         isSelected
                           ? 'border-2 border-[#111344] bg-[#111344]/[0.05] text-[#111344] shadow-sm'
                           : 'border border-[#e5e7eb] bg-white text-[#20231e] hover:border-[#111344]/30'
                       }`}
                     >
-                      {ram}
+                      <span className="text-[12px] sm:text-[13px] font-bold leading-tight">{ram}</span>
+                      {delta > 0 && (
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-[#DF5E00] leading-tight mt-0.5">
+                          +₦{delta.toLocaleString('en-NG')}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -442,7 +516,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
             </div>
           )}
 
-          {/* 2. If LAPTOP: SSD Storage Selector */}
+                    {/* 2. If LAPTOP: SSD Storage Selector */}
           {isLaptop && laptopStorageOptions.length > 0 && (
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
@@ -456,18 +530,24 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
               <div className="flex items-center gap-2 flex-wrap">
                 {laptopStorageOptions.map((ssd) => {
                   const isSelected = selectedLaptopStorage === ssd;
+                  const delta = getLaptopStorageDelta(ssd);
                   return (
                     <button
                       key={ssd}
                       type="button"
                       onClick={() => setSelectedLaptopStorage(ssd)}
-                      className={`py-2 px-3 sm:px-4 rounded-[6px] text-center font-manrope text-[12px] sm:text-[13px] font-bold transition-all cursor-pointer ${
+                      className={`py-2 px-3 sm:px-4 rounded-[8px] text-center font-manrope transition-all cursor-pointer flex flex-col items-center justify-center min-w-[80px] ${
                         isSelected
                           ? 'border-2 border-[#111344] bg-[#111344]/[0.05] text-[#111344] shadow-sm'
                           : 'border border-[#e5e7eb] bg-white text-[#20231e] hover:border-[#111344]/30'
                       }`}
                     >
-                      {ssd}
+                      <span className="text-[12px] sm:text-[13px] font-bold leading-tight">{ssd}</span>
+                      {delta > 0 && (
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-[#DF5E00] leading-tight mt-0.5">
+                          +₦{delta.toLocaleString('en-NG')}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -475,7 +555,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
             </div>
           )}
 
-          {/* 3. If SMARTPHONES / TABLETS: Storage Selector */}
+                    {/* 3. If SMARTPHONES / TABLETS: Storage Selector */}
           {isPhoneOrTablet && (
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
@@ -486,24 +566,30 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                   Selected: {selectedStorage}
                 </span>
               </div>
-              <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
                 {(availableStorageVariants.length > 0
                   ? availableStorageVariants.map((v) => v.size)
                   : FALLBACK_STORAGE_OPTIONS
                 ).map((size) => {
                   const isSelected = selectedStorage === size;
+                  const delta = getStorageDelta(size);
                   return (
                     <button
                       key={size}
                       type="button"
                       onClick={() => setSelectedStorage(size)}
-                      className={`py-2 sm:py-2.5 px-1 sm:px-2 rounded-[6px] text-center font-manrope text-[12px] sm:text-[13px] font-bold transition-all cursor-pointer ${
+                      className={`py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-[8px] text-center font-manrope transition-all cursor-pointer flex flex-col items-center justify-center min-h-[50px] ${
                         isSelected
                           ? 'border-2 border-[#111344] bg-[#111344]/[0.05] text-[#111344] shadow-sm'
                           : 'border border-[#e5e7eb] bg-white text-[#20231e] hover:border-[#111344]/30'
                       }`}
                     >
-                      {size}
+                      <span className="text-[12px] sm:text-[13px] font-bold leading-tight">{size}</span>
+                      {delta > 0 && (
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-[#DF5E00] leading-tight mt-0.5">
+                          +₦{delta.toLocaleString('en-NG')}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
