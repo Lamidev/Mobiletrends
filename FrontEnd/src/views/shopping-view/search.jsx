@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
+import { setProductDetails } from "@/store/shop/products-slice";
 import {
   getSearchResults,
   resetSearchResults,

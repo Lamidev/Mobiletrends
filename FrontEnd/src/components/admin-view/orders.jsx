@@ -655,25 +655,25 @@ function AdminOrdersView() {
 
         {/* Pagination Footer */}
         {totalItems > 0 && (
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-xs text-gray-500 font-medium">
-            <span>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-100 text-xs text-gray-500 font-medium">
+            <span className="text-[11px] sm:text-xs text-center sm:text-left whitespace-nowrap">
               Showing {startIndex + 1}–{Math.min(endIndex, totalItems)} of {totalItems} orders
             </span>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center justify-center gap-2 shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="h-7 px-2 border-gray-200 text-xs rounded-lg cursor-pointer disabled:opacity-40"
+                className="h-8 px-2.5 text-xs font-semibold rounded-lg shrink-0 cursor-pointer disabled:opacity-40"
               >
-                <ChevronLeft size={13} />
+                <ChevronLeft size={13} className="mr-1" /> Prev
               </Button>
 
-              <span className="px-2 text-xs font-bold text-gray-700">
-                {currentPage} / {totalPages}
+              <span className="px-2.5 text-xs font-bold text-gray-700 whitespace-nowrap shrink-0 select-none">
+                {currentPage}&nbsp;/&nbsp;{totalPages}
               </span>
 
               <Button
@@ -682,9 +682,9 @@ function AdminOrdersView() {
                 size="sm"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="h-7 px-2 border-gray-200 text-xs rounded-lg cursor-pointer disabled:opacity-40"
+                className="h-8 px-2.5 text-xs font-semibold rounded-lg shrink-0 cursor-pointer disabled:opacity-40"
               >
-                <ChevronRight size={13} />
+                Next <ChevronRight size={13} className="ml-1" />
               </Button>
             </div>
           </div>

@@ -857,27 +857,27 @@ function AdminProducts() {
           </table>
         </div>
 
-        {/* Pagination Footer */}
+        {/* Pagination Footer (Responsive on mobile with 1 / 2 on a single line) */}
         {totalItems > 0 && (
-          <div className="p-3 sm:p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 font-medium">
-            <span>
-              Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} products
+          <div className="p-3 sm:p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500 font-medium">
+            <span className="text-[11px] sm:text-xs text-center sm:text-left whitespace-nowrap">
+              Showing {startIndex + 1}–{Math.min(endIndex, totalItems)} of {totalItems} products
             </span>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-center gap-2 shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="h-8 px-2.5 text-xs font-semibold rounded-lg"
+                className="h-8 px-2.5 text-xs font-semibold rounded-lg shrink-0 cursor-pointer disabled:opacity-40"
               >
                 <ChevronLeft size={14} className="mr-1" /> Prev
               </Button>
 
-              <span className="px-2 text-xs font-bold text-gray-700">
-                {currentPage} / {totalPages}
+              <span className="px-2.5 text-xs font-bold text-gray-700 whitespace-nowrap shrink-0 select-none">
+                {currentPage}&nbsp;/&nbsp;{totalPages}
               </span>
 
               <Button
@@ -886,7 +886,7 @@ function AdminProducts() {
                 size="sm"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="h-8 px-2.5 text-xs font-semibold rounded-lg"
+                className="h-8 px-2.5 text-xs font-semibold rounded-lg shrink-0 cursor-pointer disabled:opacity-40"
               >
                 Next <ChevronRight size={14} className="ml-1" />
               </Button>

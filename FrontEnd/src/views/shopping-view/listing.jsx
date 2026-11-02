@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import {
   fetchAllFilteredProducts,
+  setProductDetails,
 } from "@/store/shop/products-slice";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { useSearchParams } from "react-router-dom";
