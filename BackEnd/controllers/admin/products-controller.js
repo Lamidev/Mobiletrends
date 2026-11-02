@@ -34,6 +34,9 @@ const addProduct = async (req, res) => {
       totalStock,
       averageReview,
       condition,
+      colors,
+      storageVariants,
+      laptopVariants,
     } = req.body;
 
     const imgArray = Array.isArray(images) && images.length > 0
@@ -53,6 +56,9 @@ const addProduct = async (req, res) => {
       totalStock,
       averageReview,
       condition,
+      colors: Array.isArray(colors) ? colors : [],
+      storageVariants: Array.isArray(storageVariants) ? storageVariants : [],
+      laptopVariants: Array.isArray(laptopVariants) ? laptopVariants : [],
     });
 
     await newlyCreatedProduct.save();
@@ -84,6 +90,9 @@ const editProduct = async (req, res) => {
       totalStock,
       averageReview,
       condition,
+      colors,
+      storageVariants,
+      laptopVariants,
     } = req.body;
 
     let findProduct = await Product.findById(id);
@@ -113,6 +122,16 @@ const editProduct = async (req, res) => {
 
     findProduct.averageReview = averageReview || findProduct.averageReview;
     findProduct.condition = condition?.trim() || findProduct.condition;
+
+    if (colors !== undefined) {
+      findProduct.colors = Array.isArray(colors) ? colors : [];
+    }
+    if (storageVariants !== undefined) {
+      findProduct.storageVariants = Array.isArray(storageVariants) ? storageVariants : [];
+    }
+    if (laptopVariants !== undefined) {
+      findProduct.laptopVariants = Array.isArray(laptopVariants) ? laptopVariants : [];
+    }
 
     await findProduct.save();
     res.status(200).json({

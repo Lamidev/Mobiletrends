@@ -531,8 +531,8 @@ function ShoppingHeader() {
   const navigate = useNavigate();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-[#e6e8e1] bg-[#fafaf8]/95 backdrop-blur supports-[backdrop-filter]:bg-[#fafaf8]/90 font-body">
-      <div className="flex h-16 items-center justify-between px-3.5 sm:px-6 max-w-7xl mx-auto">
+    <div className="fixed top-2.5 sm:top-4 left-0 right-0 z-50 px-2.5 sm:px-6 pointer-events-none font-body">
+      <header className="pointer-events-auto max-w-6xl mx-auto bg-white/90 backdrop-blur-md border border-[#e5e7eb] rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.06)] px-3.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between transition-all duration-300">
         <div className="flex items-center gap-2 sm:gap-3">
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
@@ -565,15 +565,15 @@ function ShoppingHeader() {
           </Link>
         </div>
 
-        {/* Mobile Right Icons matching the exact style */}
+        {/* Mobile Right Icons matching the floating pill style */}
         <div className="flex items-center gap-1.5 sm:gap-2 lg:hidden">
           <button
             type="button"
             onClick={() => navigate("/shop/search")}
             aria-label="Search"
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[#F2F3F7] text-[#14171F]"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F2F3F7] text-[#14171F]"
           >
-            <SearchIcon className="w-[17px] h-[17px] sm:w-[18px] sm:h-[18px]" />
+            <SearchIcon className="w-[17px] h-[17px]" />
           </button>
 
           <Sheet open={openCartSheet} onOpenChange={setOpenCartSheet}>
@@ -581,9 +581,9 @@ function ShoppingHeader() {
               type="button"
               onClick={() => setOpenCartSheet(true)}
               aria-label="Shopping Bag"
-              className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[#F2F3F7] text-[#14171F]"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#F2F3F7] text-[#14171F]"
             >
-              <ShoppingBagBoxIcon className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
+              <ShoppingBagBoxIcon className="w-[18px] h-[18px]" />
               {cartItems?.length > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-[#DF5E00] text-white text-[10px] font-bold">
                   {cartItems.length}
@@ -600,9 +600,9 @@ function ShoppingHeader() {
             type="button"
             onClick={() => navigate(user?.userName ? "/shop/account" : "/auth/login")}
             aria-label="User Account"
-            className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[#F2F3F7] text-[#14171F]"
+            className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#F2F3F7] text-[#14171F]"
           >
-            <UserOutlineIcon className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
+            <UserOutlineIcon className="w-[18px] h-[18px]" />
             {user?.userName && (
               <span className="absolute bottom-0.5 right-0.5 h-2 w-2 rounded-full bg-[#0C1172] ring-2 ring-white" />
             )}
@@ -616,8 +616,8 @@ function ShoppingHeader() {
         <div className="hidden lg:flex items-center">
           <HeaderRightContent closeSheet={() => setIsSheetOpen(false)} />
         </div>
-      </div>
-    </header>
+      </header>
+    </div>
   );
 }
 

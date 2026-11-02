@@ -109,7 +109,7 @@
 //     componentType: "select",
 //     options: [
 //       { id: "Brand New", label: "Brand New" },
-//       { id: "Premium Used", label: "Premium Used" },
+//       { id: "UK-Used", label: "UK-Used" },
 //     ],
 //   },
 // ];
@@ -199,7 +199,7 @@
 //   condition: [
 //     // New condition filter added
 //     { id: "Brand New", label: "Brand New" },
-//     { id: "Premium Used", label: "Premium Used" },
+//     { id: "UK-Used", label: "UK-Used" },
 //   ],
 // };
 
@@ -384,7 +384,7 @@ export const addProductFormElements = [
     componentType: "select",
     options: [
       { id: "Brand New", label: "Brand New" },
-      { id: "Premium Used", label: "Premium Used" },
+      { id: "UK-Used", label: "UK-Used" },
     ],
   },
 ];
@@ -466,7 +466,7 @@ export const filterOptions = {
   ],
   condition: [
     { id: "Brand New", label: "Brand New" },
-    { id: "Premium Used", label: "Premium Used" },
+    { id: "UK-Used", label: "UK-Used" },
   ],
 };
 

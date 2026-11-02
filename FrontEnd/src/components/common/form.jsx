@@ -193,6 +193,7 @@ function CommonForm({
   onSubmit,
   buttonText,
   isBtnDisabled,
+  children,
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -329,6 +330,7 @@ function CommonForm({
           </div>
         ))}
       </div>
+      {children}
       <Button 
         disabled={isBtnDisabled} 
         type="submit" 

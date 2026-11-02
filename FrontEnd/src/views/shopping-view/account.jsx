@@ -705,6 +705,15 @@ function ShoppingAccount() {
       <div className="hidden lg:grid lg:grid-cols-[290px_1fr] lg:gap-8 items-start mx-auto max-w-6xl">
         {/* Left End: Account Settings Menu */}
         <aside className="lg:sticky lg:top-24">
+          <button
+            type="button"
+            onClick={() => navigate("/shop/home")}
+            className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors cursor-pointer group mb-3 py-1"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span>Back to Store</span>
+          </button>
+
           <h2 className="text-[24px] font-bold text-[#0f172a] tracking-tight mb-4">
             Account Settings
           </h2>
@@ -871,6 +880,15 @@ function ShoppingAccount() {
               transition={{ duration: 0.25 }}
               className="w-full max-w-[480px] mx-auto pt-2 sm:pt-6"
             >
+              <button
+                type="button"
+                onClick={() => navigate("/shop/home")}
+                className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#111344] hover:text-[#0C1172] transition-colors cursor-pointer group mb-3 py-1"
+              >
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                <span>Back to Store</span>
+              </button>
+
               <h1 className="text-[25px] sm:text-[30px] font-bold text-[#0f172a] tracking-tight mb-5 sm:mb-7">
                 Account Settings
               </h1>

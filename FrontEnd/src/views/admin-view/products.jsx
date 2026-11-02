@@ -19,6 +19,7 @@ import {
   deleteProduct,
 } from "@/store/admin/products-slice";
 import AdminProductTile from "@/components/admin-view/product-tile";
+import ProductVariantsManager from "@/components/admin-view/product-variants-manager";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Select,
@@ -40,6 +41,9 @@ const initialFormData = {
   totalStock: "",
   averageReview: 0,
   condition: "Brand New",
+  colors: [],
+  storageVariants: [],
+  laptopVariants: [],
 };
 
 function AdminProducts() {
@@ -86,6 +90,10 @@ function AdminProducts() {
       ...formData,
       image: (uploadedImages && uploadedImages[0]) || uploadedImageUrl || formData.image,
       images: uploadedImages,
+      colors: formData.colors || [],
+      storageVariants: formData.storageVariants || [],
+      laptopVariants: formData.laptopVariants || [],
+      condition: formData.condition || "Brand New",
     };
 
     console.log("Submitting data:", submitData);
@@ -147,6 +155,10 @@ function AdminProducts() {
       ...product,
       image: product.image || "",
       images: existingImages,
+      colors: Array.isArray(product.colors) ? product.colors : [],
+      storageVariants: Array.isArray(product.storageVariants) ? product.storageVariants : [],
+      laptopVariants: Array.isArray(product.laptopVariants) ? product.laptopVariants : [],
+      condition: product.condition === "Premium Used" ? "UK-Used" : (product.condition || "Brand New"),
     });
     setUploadedImages(existingImages);
     setUploadedImageUrl(existingImages[0] || "");
@@ -397,7 +409,12 @@ function AdminProducts() {
               buttonText={currentEditedId !== null ? "Update Product" : "Add Product"}
               formControls={addProductFormElements}
               isBtnDisabled={!isFormValid() || imageLoadingState}
-            />
+            >
+              <ProductVariantsManager
+                formData={formData}
+                setFormData={setFormData}
+              />
+            </CommonForm>
           </div>
         </SheetContent>
       </Sheet>
