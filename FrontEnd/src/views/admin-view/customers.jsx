@@ -74,7 +74,15 @@ function AdminCustomersView() {
       setIsLoading(true);
       const res = await axios.get(`${API_BASE_URL}/admin/verified-users/all`);
       if (res.data?.success) {
-        setCustomers(res.data.data || []);
+        const raw = res.data.data || [];
+        // Strictly exclude users tagged as admin and account CUST-93EEB9
+        const cleanCustomers = raw.filter(
+          (c) =>
+            c?.role !== "admin" &&
+            !String(c?.email || "").toLowerCase().includes("admin") &&
+            !String(c?._id || "").toLowerCase().endsWith("93eeb9")
+        );
+        setCustomers(cleanCustomers);
       }
     } catch (err) {
       console.error("Error loading customers:", err);
