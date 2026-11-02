@@ -2,10 +2,11 @@ const User = require("../../models/users");
 
 const countVerifiedUsers = async (req, res) => {
   try {
-    const verifiedUserCount = await User.countDocuments({ isVerified: true });
+    // Count all registered users including admins and verified users
+    const totalCount = await User.countDocuments({});
     res.status(200).json({
       success: true,
-      verifiedUserCount,
+      verifiedUserCount: totalCount,
     });
   } catch (error) {
     console.log(error);

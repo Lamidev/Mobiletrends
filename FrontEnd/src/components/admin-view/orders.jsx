@@ -439,7 +439,7 @@ function AdminOrdersView() {
               placeholder="Search by order ID, customer name, or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-10 bg-gray-50/70 border-gray-200 rounded-xl text-base sm:text-xs font-medium focus:bg-white transition-all w-full"
+              className="pl-10 h-10 bg-gray-50/70 border-gray-200 rounded-xl text-base sm:text-xs font-medium placeholder:text-[11px] sm:placeholder:text-xs placeholder:text-gray-400 placeholder:font-normal focus:bg-white transition-all w-full"
             />
           </div>
         </div>

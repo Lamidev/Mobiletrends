@@ -405,7 +405,7 @@ export default function ProductDetailView({ product, isDialog = false, onClose }
                 {!isOutOfStock
                   ? currentStock <= 3
                     ? `Only ${currentStock} left`
-                    : `In Stock (${currentStock})`
+                    : `In Stock ${currentStock}`
                   : 'Out of Stock'}
               </span>
 

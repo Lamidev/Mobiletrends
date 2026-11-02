@@ -229,7 +229,7 @@ function AdminDashboard() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search product or customer"
-              className="h-9 pl-9 text-xs bg-white border-gray-200 rounded-xl"
+              className="h-9 pl-9 text-xs placeholder:text-[11px] sm:placeholder:text-xs placeholder:text-gray-400 bg-white border-gray-200 rounded-xl"
             />
           </div>
         </div>

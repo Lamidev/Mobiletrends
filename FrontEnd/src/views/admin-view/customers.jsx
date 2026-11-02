@@ -288,7 +288,7 @@ function AdminCustomersView() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search by name, email, phone, customer code, location..."
-          className="h-10 pl-10 text-base sm:text-xs bg-white border-gray-200 rounded-xl shadow-xs"
+          className="h-10 pl-10 text-base sm:text-xs placeholder:text-[11px] sm:placeholder:text-xs placeholder:text-gray-400 placeholder:font-normal bg-white border-gray-200 rounded-xl shadow-xs"
         />
       </div>
 

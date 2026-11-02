@@ -261,7 +261,7 @@ function HeaderRightContent({ closeSheet }) {
               setIsSearchOpen(true);
             }}
             placeholder="Search..."
-            className="w-[72px] sm:w-[90px] focus:w-[150px] sm:focus:w-[180px] transition-all duration-300 bg-transparent text-sm font-medium text-gray-900 placeholder:text-[#5A606D] focus:outline-none"
+            className="w-[72px] sm:w-[90px] focus:w-[150px] sm:focus:w-[180px] transition-all duration-300 bg-transparent text-sm font-medium text-gray-900 placeholder:text-xs placeholder:text-[#5A606D] focus:outline-none"
           />
         </form>
 

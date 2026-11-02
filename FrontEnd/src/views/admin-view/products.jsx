@@ -408,7 +408,7 @@ function AdminProducts() {
               setCurrentPage(1);
             }}
             placeholder="Search products..."
-            className="h-10 pl-9 text-base sm:text-xs bg-[#FAFBFD] border-gray-200 rounded-xl w-full"
+            className="h-10 pl-9 text-base sm:text-xs placeholder:text-[11px] sm:placeholder:text-xs placeholder:text-gray-400 placeholder:font-normal bg-[#FAFBFD] border-gray-200 rounded-xl w-full"
           />
         </div>
       </div>
@@ -904,18 +904,32 @@ function AdminProducts() {
       >
         <SheetContent
           side="right"
-          className="w-full sm:max-w-md lg:max-w-lg p-4 sm:p-6 overflow-y-auto overflow-x-hidden max-w-full"
+          hideClose={true}
+          className="w-full sm:max-w-md lg:max-w-lg p-4 sm:p-6 overflow-y-auto overflow-x-hidden max-w-full font-manrope bg-white"
           as={motion.div}
           initial={{ x: "100%" }}
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "spring", stiffness: 200, damping: 30 }}
         >
-          {/* Header with single built-in SheetContent close button */}
-          <SheetHeader className="sticky top-0 bg-background z-20 pb-3 border-b border-gray-100 pr-10 text-left">
-            <SheetTitle className="font-manrope text-lg sm:text-xl font-bold tracking-tight text-[#111344]">
-              {currentEditedId !== null ? "Edit Product" : "Add New Product"}
-            </SheetTitle>
+          {/* Header with modern custom cancel X button */}
+          <SheetHeader className="sticky top-0 bg-white z-20 pb-3 border-b border-gray-100 text-left flex flex-row items-center justify-between">
+            <div>
+              <SheetTitle className="font-manrope text-lg sm:text-xl font-bold tracking-tight text-[#111344]">
+                {currentEditedId !== null ? "Edit Product" : "Add New Product"}
+              </SheetTitle>
+              <p className="text-xs text-gray-400 font-medium mt-0.5">
+                {currentEditedId !== null ? "Update catalogue item details and variants" : "Create a new inventory listing"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpenCreateProductsDialog(false)}
+              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-[#111344] flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-xs active:scale-95"
+              aria-label="Close"
+            >
+              <X size={16} />
+            </button>
           </SheetHeader>
 
           <div className="space-y-6 pt-4 pb-8">

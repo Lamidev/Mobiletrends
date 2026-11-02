@@ -361,7 +361,7 @@ function SearchProducts() {
             value={keyword}
             name="keyword"
             onChange={handleSearchInputChange}
-            className="py-6 sm:py-7 pl-12 pr-24 text-[16px] sm:text-lg rounded-2xl border-[#daddd4] bg-white focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all shadow-sm"
+            className="py-6 sm:py-7 pl-12 pr-24 text-[16px] sm:text-lg placeholder:text-xs sm:placeholder:text-sm placeholder:text-gray-400 placeholder:font-normal rounded-2xl border-[#daddd4] bg-white focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all shadow-sm"
             placeholder="Search iPhone, Samsung, MacBook, PS5..."
           />
           <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2">
