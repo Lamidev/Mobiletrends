@@ -113,7 +113,7 @@ function AdminOrdersView() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   useEffect(() => {
     dispatch(getAllOrdersForAdmin());
@@ -428,20 +428,6 @@ function AdminOrdersView() {
               >
                 Cancelled ({tabCounts.cancelled})
               </button>
-            </div>
-
-            {/* Per-page selector */}
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium ml-auto">
-              <span>Show:</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-700 font-bold focus:outline-none"
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
             </div>
           </div>
 

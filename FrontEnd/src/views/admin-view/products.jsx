@@ -76,7 +76,7 @@ function AdminProducts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   // Filter state matching userfront (all sections closed by default)
   const [filters, setFilters] = useState({
