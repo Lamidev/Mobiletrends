@@ -348,13 +348,21 @@ function ShoppingAccount() {
     });
   };
 
-  // Formatted join date (e.g. October 2026)
+  // Formatted join date (e.g. November 2026)
   const formattedJoinDate = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
       })
-    : "October 2026";
+    : new Date().toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      });
+
+  // Extract first name for personal, clean greeting
+  const firstName = user?.userName
+    ? user.userName.trim().split(/\s+/)[0]
+    : "there";
 
   // Active tab on desktop (defaults to profile if activeView is main)
   const currentDesktopTab = activeView === "main" ? "profile" : activeView;
@@ -377,14 +385,16 @@ function ShoppingAccount() {
         </button>
       )}
 
-      {/* Welcome Message Header requested by user */}
-      <div className="pb-1">
-        <h1 className="text-[21px] sm:text-[25px] font-bold text-[#0f172a] tracking-tight leading-snug">
-          Hi {user?.userName || "there"}, welcome to Mobiletrends
+      {/* Welcome Message Header (Option 1 - Clean with no icon) */}
+      <div className="pb-1 space-y-1.5">
+        <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0f172a] tracking-tight leading-snug">
+          Hello, {firstName}
         </h1>
-        <p className="text-[13px] text-[#64748b] mt-1 font-medium">
-          Joined {formattedJoinDate}
-        </p>
+        <div>
+          <span className="inline-flex items-center text-[12px] font-medium text-[#64748b] bg-white border border-[#e5e7eb] px-3 py-0.5 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            Member since {formattedJoinDate}
+          </span>
+        </div>
       </div>
 
       {/* Card 1: My Profile (Image 1 replica) */}
