@@ -133,25 +133,25 @@ function AdminCustomersView() {
         </Button>
       </div>
 
-      {/* 4 Top KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      {/* 4 Top KPI Cards (Stacked in Twos on Mobile) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         {/* Total Customers */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-          <Card className="rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+          <Card className="rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white p-3.5 sm:p-5 space-y-2 sm:space-y-3">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider truncate">
                 Total Customers
               </span>
-              <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                <Users size={16} />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <Users size={15} />
               </div>
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+              <h3 className="text-lg sm:text-2xl lg:text-3xl font-black text-gray-900 tracking-tight truncate">
                 {totalCustomers}
               </h3>
-              <p className="text-[11.5px] font-medium text-gray-400 mt-1">
-                Registered & migrated store accounts
+              <p className="text-[10px] sm:text-[11.5px] font-medium text-gray-400 mt-0.5 line-clamp-1">
+                Registered store accounts
               </p>
             </div>
           </Card>
@@ -159,21 +159,21 @@ function AdminCustomersView() {
 
         {/* Active Buyers */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}>
-          <Card className="rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+          <Card className="rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white p-3.5 sm:p-5 space-y-2 sm:space-y-3">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider truncate">
                 Active Buyers
               </span>
-              <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <ShoppingBag size={16} />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <ShoppingBag size={15} />
               </div>
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+              <h3 className="text-lg sm:text-2xl lg:text-3xl font-black text-gray-900 tracking-tight truncate">
                 {activeBuyersCount}
               </h3>
-              <p className="text-[11.5px] font-medium text-gray-400 mt-1">
-                Customers with completed orders
+              <p className="text-[10px] sm:text-[11.5px] font-medium text-gray-400 mt-0.5 line-clamp-1">
+                Completed purchases
               </p>
             </div>
           </Card>
@@ -181,21 +181,21 @@ function AdminCustomersView() {
 
         {/* Total Customer LTV */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.1 }}>
-          <Card className="rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+          <Card className="rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white p-3.5 sm:p-5 space-y-2 sm:space-y-3">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider truncate">
                 Total Customer LTV
               </span>
-              <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
-                <TrendingUp size={16} />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <TrendingUp size={15} />
               </div>
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+              <h3 className="text-lg sm:text-2xl lg:text-3xl font-black text-gray-900 tracking-tight truncate">
                 {formatCompactNaira(totalLtvAmount)}
               </h3>
-              <p className="text-[11.5px] font-medium text-gray-400 mt-1">
-                Total lifetime order revenue
+              <p className="text-[10px] sm:text-[11.5px] font-medium text-gray-400 mt-0.5 line-clamp-1">
+                Lifetime revenue
               </p>
             </div>
           </Card>
@@ -203,21 +203,21 @@ function AdminCustomersView() {
 
         {/* Repeat Buyers */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.15 }}>
-          <Card className="rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+          <Card className="rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] bg-white p-3.5 sm:p-5 space-y-2 sm:space-y-3">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider truncate">
                 Repeat Buyers
               </span>
-              <div className="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
-                <Award size={16} />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <Award size={15} />
               </div>
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+              <h3 className="text-lg sm:text-2xl lg:text-3xl font-black text-gray-900 tracking-tight truncate">
                 {repeatBuyersCount}
               </h3>
-              <p className="text-[11.5px] font-medium text-gray-400 mt-1">
-                Customers with 2+ completed orders
+              <p className="text-[10px] sm:text-[11.5px] font-medium text-gray-400 mt-0.5 line-clamp-1">
+                2+ orders completed
               </p>
             </div>
           </Card>
