@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { getAllOrdersForAdmin } from "@/store/admin/order-slice";
 import { fetchVerifiedUserCount } from "@/store/admin/verified-users-slice";
 import { fetchAllProducts } from "@/store/admin/products-slice";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -38,7 +38,7 @@ function AdminDashboard() {
   const { orderList } = useSelector((state) => state.adminOrder);
   const { productList } = useSelector((state) => state.adminProducts);
 
-  const [activeTypeTab, setActiveTypeTab] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleRefresh = () => {
@@ -64,49 +64,25 @@ function AdminDashboard() {
   const totalProducts = productList?.length || 0;
   const totalCustomers = verifiedUserCount || 0;
 
-  // Filter orders by Type and Search
+  // Filter orders by Status and Search (no Buy Now/Swap/POD)
   const filteredOrders = useMemo(() => {
     if (!orderList || orderList.length === 0) return [];
     return orderList.filter((order) => {
-      // Determine order type (Buy Now, Swap, POD)
-      const paymentMethod = (order?.paymentMethod || "").toLowerCase();
-      let orderType = "buy-now";
-      if (paymentMethod.includes("swap") || (order?.orderNotes || "").toLowerCase().includes("swap")) {
-        orderType = "swap";
-      } else if (paymentMethod.includes("pod") || paymentMethod.includes("delivery") || (order?.orderNotes || "").toLowerCase().includes("pod")) {
-        orderType = "pod";
-      }
-
-      const matchesType = activeTypeTab === "all" || orderType === activeTypeTab;
+      const status = (order?.orderStatus || "pending").toLowerCase();
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "confirmed" && (status.includes("confirm") || status.includes("paid"))) ||
+        (statusFilter === "pending" && status.includes("pending")) ||
+        (statusFilter === "cancelled" && (status.includes("cancel") || status.includes("reject")));
 
       const q = searchQuery.toLowerCase().trim();
       const customerName = (order?.addressInfo?.fullName || order?.userName || "").toLowerCase();
       const orderId = (order?._id || "").toLowerCase();
       const matchesSearch = !q || customerName.includes(q) || orderId.includes(q);
 
-      return matchesType && matchesSearch;
+      return matchesStatus && matchesSearch;
     });
-  }, [orderList, activeTypeTab, searchQuery]);
-
-  // Order counts for tabs
-  const typeCounts = useMemo(() => {
-    if (!orderList) return { all: 0, "buy-now": 0, swap: 0, pod: 0 };
-    let buyNow = 0;
-    let swap = 0;
-    let pod = 0;
-    orderList.forEach((order) => {
-      const pm = (order?.paymentMethod || "").toLowerCase();
-      const notes = (order?.orderNotes || "").toLowerCase();
-      if (pm.includes("swap") || notes.includes("swap")) {
-        swap++;
-      } else if (pm.includes("pod") || pm.includes("delivery") || notes.includes("pod")) {
-        pod++;
-      } else {
-        buyNow++;
-      }
-    });
-    return { all: orderList.length, "buy-now": buyNow, swap, pod };
-  }, [orderList]);
+  }, [orderList, statusFilter, searchQuery]);
 
   return (
     <div className="font-manrope space-y-7 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto bg-[#FBFBFC] min-h-screen">
@@ -233,32 +209,13 @@ function AdminDashboard() {
           </button>
         </div>
 
-        {/* Filter Tabs & Search Bar */}
+        {/* Filter Toolbar & Search Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Filter Pills */}
+          {/* Status Filters */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-            {[
-              { id: "all", label: `All (${typeCounts.all})` },
-              { id: "buy-now", label: `Buy Now (${typeCounts["buy-now"]})` },
-              { id: "swap", label: `Swap (${typeCounts.swap})` },
-              { id: "pod", label: `POD (${typeCounts.pod})` },
-            ].map((tab) => {
-              const active = activeTypeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTypeTab(tab.id)}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all cursor-pointer whitespace-nowrap ${
-                    active
-                      ? "bg-[#111344] text-white shadow-xs"
-                      : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
+            <span className="text-xs font-bold px-3.5 py-1.5 rounded-full bg-[#111344] text-white shadow-xs">
+              All Orders ({totalOrders})
+            </span>
           </div>
 
           {/* Search Bar */}
@@ -277,7 +234,7 @@ function AdminDashboard() {
           </div>
         </div>
 
-        {/* Orders Table */}
+        {/* Orders Table (Without Buy Now / Swap / POD) */}
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -286,7 +243,6 @@ function AdminDashboard() {
                   <th className="py-3.5 px-4 font-bold">Order ID</th>
                   <th className="py-3.5 px-4 font-bold">Date</th>
                   <th className="py-3.5 px-4 font-bold">Customer</th>
-                  <th className="py-3.5 px-4 font-bold">Type</th>
                   <th className="py-3.5 px-4 font-bold">Status</th>
                   <th className="py-3.5 px-4 font-bold">Fulfilment</th>
                   <th className="py-3.5 px-4 font-bold text-right">Total</th>
@@ -296,24 +252,17 @@ function AdminDashboard() {
                 {filteredOrders.length > 0 ? (
                   filteredOrders.slice(0, 10).map((order) => {
                     const rawDate = order?.orderDate ? new Date(order.orderDate) : new Date();
-                    const formattedDate = rawDate.toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    }) + `, ${rawDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`;
-
-                    // Type calculation
-                    const pm = (order?.paymentMethod || "").toLowerCase();
-                    const notes = (order?.orderNotes || "").toLowerCase();
-                    let typeLabel = "Buy Now";
-                    let typeClass = "bg-slate-100 text-slate-700";
-                    if (pm.includes("swap") || notes.includes("swap")) {
-                      typeLabel = "Swap";
-                      typeClass = "bg-blue-50 text-blue-700 border border-blue-200";
-                    } else if (pm.includes("pod") || pm.includes("delivery") || notes.includes("pod")) {
-                      typeLabel = "POD";
-                      typeClass = "bg-purple-50 text-purple-700 border border-purple-200";
-                    }
+                    const formattedDate =
+                      rawDate.toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      }) +
+                      `, ${rawDate.toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}`;
 
                     // Status badge
                     const status = (order?.orderStatus || "Pending").toLowerCase();
@@ -352,11 +301,6 @@ function AdminDashboard() {
                           {order?.addressInfo?.fullName || order?.userName || "Customer"}
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10.5px] font-bold ${typeClass}`}>
-                            {typeLabel}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4">
                           <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10.5px] font-bold ${statusClass}`}>
                             {statusLabel}
                           </span>
@@ -375,7 +319,7 @@ function AdminDashboard() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="py-10 text-center text-gray-400 font-medium">
+                    <td colSpan={6} className="py-10 text-center text-gray-400 font-medium">
                       No matching orders found.
                     </td>
                   </tr>
