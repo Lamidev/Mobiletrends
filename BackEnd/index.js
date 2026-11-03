@@ -18,7 +18,7 @@ const commonFeaturesRouter = require("./routes/common/features-routes");
 const commonNewsletterRouter = require("./routes/common/newsletter-routes");
 const shopShareRouter = require("./routes/shop/share-routes");
 
-const dbURL = process.env.MONGODB_URL;
+const dbURL = process.env.MONGODB_URL || process.env.MONGO_URI;
 
 // Connect to MongoDB
 mongoose

@@ -1,7 +1,8 @@
 // Quick Environment Variable Checker for Paystack Live Keys
 // Run this in your backend directory: node check-paystack-config.js
 
-require('dotenv').config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 console.log('\n🔍 Paystack Configuration Check\n');
 console.log('================================\n');

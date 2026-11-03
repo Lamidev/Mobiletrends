@@ -7,7 +7,9 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "create-admin": "node scripts/create-admin.js",
-    "seed-products": "node scripts/seed-products.js"
+    "seed-products": "node scripts/seed-products.js",
+    "check-users": "node scripts/check-users.js",
+    "check-paystack": "node scripts/check-paystack-config.js"
   },
   "author": "Lamidev",
   "license": "ISC",
