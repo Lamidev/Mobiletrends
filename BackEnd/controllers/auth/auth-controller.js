@@ -256,7 +256,7 @@ const resetPassword = async (req, res) => {
  * Authentication Middleware
  * Supports both HTTP-only cookies and Bearer Authorization header (for mobile Safari / ITP resilience)
  */
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   let token = req.cookies?.token;
 
   if (!token || token === "undefined" || token === "null") {
@@ -275,7 +275,14 @@ const authMiddleware = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId;
+    const user = await User.findById(decoded.userId).select("-password");
+    if (!user) {
+      return res.status(401).json({ success: false, message: "User not found or account deactivated" });
+    }
+
+    req.userId = user._id.toString();
+    req.user = user;
+    req.userRole = user.role || "user";
     next();
   } catch (error) {
     if (error.name === "TokenExpiredError") {
@@ -286,11 +293,27 @@ const authMiddleware = (req, res, next) => {
 };
 
 /**
+ * Admin Role Authorization Middleware
+ * Enforces authenticated user with role === 'admin'
+ */
+const adminAuthMiddleware = (req, res, next) => {
+  authMiddleware(req, res, () => {
+    if (req.userRole !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: Admin privileges required",
+      });
+    }
+    next();
+  });
+};
+
+/**
  * Check current auth status
  */
 const checkAuth = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("-password");
+    const user = req.user || (await User.findById(req.userId).select("-password"));
     if (!user) {
       return res.status(401).json({ success: false, message: "User not found" });
     }
@@ -392,6 +415,7 @@ module.exports = {
   forgotPassword,
   resetPassword,
   authMiddleware,
+  adminAuthMiddleware,
   checkAuth,
   updateProfile,
   changePassword,

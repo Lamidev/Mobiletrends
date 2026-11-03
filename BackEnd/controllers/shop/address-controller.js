@@ -4,23 +4,29 @@ const addAddress = async (req, res) => {
   try {
     const { userId, fullName, address, lga, state, phone, pincode, country, notes } = req.body;
 
-    if (!userId || !fullName || !address || !lga || !state || !phone
-      //  || !pincode
-      || !country) {
+    const targetUserId = req.userId || userId;
+
+    if (!targetUserId || !fullName || !address || !lga || !state || !phone || !country) {
       return res.status(400).json({
         success: false,
         message: "Invalid data provided!",
       });
     }
 
+    if (userId && req.userId && req.userId !== userId && req.userRole !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: Cannot add address for another user.",
+      });
+    }
+
     const newlyCreatedAddress = new Address({
-      userId,
+      userId: targetUserId,
       fullName,
       address,
       lga,
       state,
       phone,
-      // pincode,
       country,
       notes,
     });
@@ -32,10 +38,10 @@ const addAddress = async (req, res) => {
       data: newlyCreatedAddress,
     });
   } catch (e) {
-    console.log(e);
+    console.error("Add address error:", e);
     res.status(500).json({
       success: false,
-      message: "Error",
+      message: "Error creating address",
     });
   }
 };
@@ -50,6 +56,13 @@ const fetchAllAddress = async (req, res) => {
       });
     }
 
+    if (req.userId !== userId && req.userRole !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: Cannot view another user's addresses.",
+      });
+    }
+
     const addressList = await Address.find({ userId });
 
     res.status(200).json({
@@ -57,14 +70,13 @@ const fetchAllAddress = async (req, res) => {
       data: addressList,
     });
   } catch (e) {
-    console.log(e);
+    console.error("Fetch addresses error:", e);
     res.status(500).json({
       success: false,
-      message: "Error",
+      message: "Error fetching addresses",
     });
   }
 };
-
 
 const editAddress = async (req, res) => {
   try {
@@ -75,6 +87,13 @@ const editAddress = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "User and address id is required!",
+      });
+    }
+
+    if (req.userId !== userId && req.userRole !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: Cannot edit another user's address.",
       });
     }
 
@@ -99,14 +118,13 @@ const editAddress = async (req, res) => {
       data: address,
     });
   } catch (e) {
-    console.log(e);
+    console.error("Edit address error:", e);
     res.status(500).json({
       success: false,
-      message: "Error",
+      message: "Error updating address",
     });
   }
 };
-
 
 const deleteAddress = async (req, res) => {
   try {
@@ -115,6 +133,13 @@ const deleteAddress = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "User and address id is required!",
+      });
+    }
+
+    if (req.userId !== userId && req.userRole !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: Cannot delete another user's address.",
       });
     }
 
@@ -132,10 +157,10 @@ const deleteAddress = async (req, res) => {
       message: "Address deleted successfully",
     });
   } catch (e) {
-    console.log(e);
+    console.error("Delete address error:", e);
     res.status(500).json({
       success: false,
-      message: "Error",
+      message: "Error deleting address",
     });
   }
 };

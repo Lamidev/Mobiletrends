@@ -38,6 +38,19 @@ function clearStoredToken() {
   }
 }
 
+if (typeof window !== "undefined") {
+  axios.interceptors.request.use((config) => {
+    const token = getStoredToken();
+    if (token) {
+      config.headers = config.headers || {};
+      if (!config.headers.Authorization) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  });
+}
+
 const initialState = {
   isAuthenticated: false,
   user: null,

@@ -2,7 +2,7 @@ const { initializeTransaction, verifyTransaction } = require("../../helpers/pays
 const Order = require("../../models/order");
 const Cart = require("../../models/cart");
 const Product = require("../../models/products");
-const { sendReceiptEmail } = require("../../resend/emails")
+const { sendReceiptEmail } = require("../../resend/emails");
 
 const createOrder = async (req, res) => {
   try {
@@ -21,11 +21,82 @@ const createOrder = async (req, res) => {
       cartId,
     } = req.body;
 
-    const callbackUrl = process.env.CLIENT_URL + '/shop/paystack-return';
+    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Cart is empty",
+      });
+    }
+
+    if (!payerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Payer email address is required",
+      });
+    }
+
+    // Authoritative Server-Side Price Calculation (Prevents Price Tampering)
+    let calculatedItemsTotal = 0;
+    const validatedCartItems = [];
+
+    for (const item of cartItems) {
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: `Product ${item.title || item.productId} no longer exists`,
+        });
+      }
+
+      const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
+      let unitPrice = 0;
+
+      // Check variant pricing (laptop RAM/storage or mobile storage)
+      if (item.selectedRam && item.selectedStorage && Array.isArray(product.laptopVariants)) {
+        const matched = product.laptopVariants.find(
+          (v) => v.ram === item.selectedRam && v.storage === item.selectedStorage
+        );
+        if (matched) {
+          unitPrice = matched.salePrice > 0 ? matched.salePrice : matched.price;
+        }
+      } else if (item.selectedStorage && Array.isArray(product.storageVariants)) {
+        const matched = product.storageVariants.find(
+          (v) => v.size === item.selectedStorage
+        );
+        if (matched) {
+          unitPrice = matched.salePrice > 0 ? matched.salePrice : matched.price;
+        }
+      }
+
+      // Fallback to base product pricing
+      if (!unitPrice || unitPrice <= 0) {
+        unitPrice = product.salePrice > 0 ? product.salePrice : product.price;
+      }
+
+      if (!unitPrice || unitPrice <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid price configuration for ${product.title}`,
+        });
+      }
+
+      calculatedItemsTotal += unitPrice * qty;
+
+      validatedCartItems.push({
+        ...item,
+        price: unitPrice.toString(),
+        quantity: qty,
+      });
+    }
+
+    const verifiedDelivery = Math.max(0, Number(deliveryPrice) || 0);
+    const calculatedTotalAmount = calculatedItemsTotal + verifiedDelivery;
+
+    const callbackUrl = process.env.CLIENT_URL + "/shop/paystack-return";
 
     const paystackData = {
       email: payerId,
-      amount: Math.round(totalAmount * 100),
+      amount: Math.round(calculatedTotalAmount * 100),
       currency: "NGN",
       callback_url: callbackUrl,
       metadata: {
@@ -35,9 +106,9 @@ const createOrder = async (req, res) => {
           {
             display_name: "Order Type",
             variable_name: "order_type",
-            value: "E-commerce Purchase"
-          }
-        ]
+            value: "E-commerce Purchase",
+          },
+        ],
       },
     };
 
@@ -47,13 +118,13 @@ const createOrder = async (req, res) => {
       const newOrder = new Order({
         userId,
         cartId: cartId || `cart_${userId}_${Date.now()}`,
-        cartItems,
+        cartItems: validatedCartItems,
         addressInfo,
-        orderStatus,
+        orderStatus: orderStatus || "pending",
         paymentMethod,
-        paymentStatus,
-        totalAmount,
-        deliveryPrice,
+        paymentStatus: paymentStatus || "pending",
+        totalAmount: calculatedTotalAmount,
+        deliveryPrice: verifiedDelivery,
         orderDate,
         orderUpdateDate,
         paymentId: paymentResponse.data.reference,
@@ -71,7 +142,7 @@ const createOrder = async (req, res) => {
     } else {
       res.status(500).json({
         success: false,
-        message: paymentResponse.message || "Failed to initialize Paystack transaction",
+        message: paymentResponse?.message || "Failed to initialize Paystack transaction",
       });
     }
   } catch (error) {
@@ -114,7 +185,16 @@ const capturePayment = async (req, res) => {
     if (!paymentVerification.status || paymentVerification.data.status !== "success") {
       return res.status(400).json({
         success: false,
-        message: paymentVerification.data.message || "Payment verification failed",
+        message: paymentVerification.data?.message || "Payment verification failed",
+      });
+    }
+
+    // Cryptographic & Business Logic Check: Ensure amount paid matches expected order total
+    const expectedAmountInKobo = Math.round(order.totalAmount * 100);
+    if (paymentVerification.data.amount < expectedAmountInKobo) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment amount does not match order total.",
       });
     }
 
@@ -138,9 +218,11 @@ const capturePayment = async (req, res) => {
     }
 
     try {
-      console.log(`Attempting to clear cart for userId: ${order.userId}`);
-      const deletedCart = await Cart.deleteMany({ userId: order.userId });
-      console.log(`Cart deletion result:`, deletedCart);
+      if (order.userId) {
+        console.log(`Attempting to clear cart for userId: ${order.userId}`);
+        const deletedCart = await Cart.deleteMany({ userId: order.userId });
+        console.log(`Cart deletion result:`, deletedCart);
+      }
     } catch (cartError) {
       console.error("Cart deletion error after payment:", cartError);
     }
@@ -172,7 +254,15 @@ const getAllOrdersByUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const orders = await Order.find({ userId });
+    // Prevent IDOR: Only allow users to view their own orders unless they are an admin
+    if (req.userId !== userId && req.userRole !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: You cannot view orders belonging to another user.",
+      });
+    }
+
+    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
 
     if (!orders.length) {
       return res.status(404).json({
@@ -204,6 +294,14 @@ const getOrderDetails = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Order not found!",
+      });
+    }
+
+    // Prevent IDOR: Only allow the order owner or admin to view full order details
+    if (order.userId && order.userId !== req.userId && req.userRole !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: You cannot view details of this order.",
       });
     }
 
@@ -239,6 +337,15 @@ const handlePaystackReturn = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Order not found",
+      });
+    }
+
+    // Verify amount in callback
+    const expectedAmountInKobo = Math.round(order.totalAmount * 100);
+    if (paymentVerification.data.amount < expectedAmountInKobo) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment amount does not match expected order total",
       });
     }
 
@@ -287,7 +394,7 @@ const findOrderByReference = async (req, res) => {
         paymentId: order.paymentId,
         userId: order.userId,
         totalAmount: order.totalAmount,
-        paymentStatus: order.paymentStatus
+        paymentStatus: order.paymentStatus,
       },
     });
   } catch (error) {
@@ -305,5 +412,5 @@ module.exports = {
   getAllOrdersByUser,
   getOrderDetails,
   handlePaystackReturn,
-  findOrderByReference
+  findOrderByReference,
 };

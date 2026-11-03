@@ -2,10 +2,11 @@ const cloudinary = require("cloudinary").v2;
 const multer = require("multer");
 require("dotenv").config();
 
+// Enforce environment variables without hardcoded fallback secrets
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "dz3ofeehd",
-  api_key: process.env.CLOUDINARY_API_KEY || "213145847927284",
-  api_secret: process.env.CLOUDINARY_API_SECRET || "kKXvK5Vgt4itWE_G7nYkl7bsJjc",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 const storage = new multer.memoryStorage();

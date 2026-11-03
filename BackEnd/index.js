@@ -42,10 +42,12 @@ mongoose
       cors({
         origin: function (origin, callback) {
           if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-          } else {
-            callback(null, true); // Permissive in dev to avoid blocking frontend integration
+            return callback(null, true);
           }
+          if (process.env.NODE_ENV !== "production") {
+            return callback(null, true);
+          }
+          return callback(new Error("CORS policy violation: origin not allowed"));
         },
         methods: ["GET", "POST", "PUT", "DELETE"],
         allowedHeaders: [
