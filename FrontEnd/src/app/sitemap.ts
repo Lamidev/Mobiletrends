@@ -3,7 +3,10 @@ import { siteConfig } from '@/config/site';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url || 'https://mobiletrends.ng';
-  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8050/api';
+  const apiBase =
+    process.env.INTERNAL_API_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    'http://localhost:8050/api';
 
   // Core static pages
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -70,3 +73,4 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [...staticRoutes, ...categoryRoutes, ...productRoutes];
 }
+
