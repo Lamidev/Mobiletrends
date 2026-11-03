@@ -42,8 +42,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Category URLs
-  const categories = ['smartphones', 'laptops', 'tablets', 'accessories', 'audio', 'wearables'];
+  // Official store categories matching catalog
+  const categories = [
+    'smartphones',
+    'laptops',
+    'tablets',
+    'smartwatches',
+    'gaming',
+    'accessories',
+    'speaker',
+  ];
   const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
     url: `${baseUrl}/shop/listing?category=${cat}`,
     lastModified: new Date(),
