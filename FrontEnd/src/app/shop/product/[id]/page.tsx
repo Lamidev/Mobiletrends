@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       : `Buy ${product.title} (${product.condition || 'Brand New'}) at ${formattedPrice} with verified warranty from Mobiletrends Systems Limited.`;
 
     const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL || 'https://mobiletrends.com.ng';
+      process.env.NEXT_PUBLIC_SITE_URL || 'https://mobiletrends.ng';
     const imageUrl = product.image?.startsWith('http')
       ? product.image
       : `${siteUrl}${product.image}`;
