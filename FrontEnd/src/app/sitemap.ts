@@ -64,6 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const res = await fetch(`${apiBase}/shop/products/get`, {
       next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(3500),
     });
     if (res.ok) {
       const data = await res.json();

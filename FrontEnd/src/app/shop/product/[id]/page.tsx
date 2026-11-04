@@ -14,6 +14,7 @@ async function getProduct(id: string) {
       'http://localhost:8050/api';
     const res = await fetch(`${apiBase}/shop/products/get/${id}`, {
       next: { revalidate: 60 },
+      signal: AbortSignal.timeout(3500),
     });
     if (!res.ok) return null;
     const data = await res.json();

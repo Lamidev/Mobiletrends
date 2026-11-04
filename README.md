@@ -171,3 +171,4 @@ Mobiletrends/
 - **Structured Data (Schema.org):**
   - **Root Layout:** `Organization` & `WebSite` JSON-LD with official business addresses, phone numbers, and search action links.
   - **Product Pages:** `Product` & `Offer` JSON-LD schemas with pricing in NGN, availability, brand details, and canonical URLs.
+
