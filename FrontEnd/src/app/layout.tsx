@@ -144,15 +144,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className="font-body antialiased bg-[#fafaf8] text-[#20231e] min-h-screen"
-        suppressHydrationWarning
-      >
+    <html lang="en">
+      <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
+      </head>
+      <body className="font-body antialiased bg-[#fafaf8] text-[#20231e] min-h-screen">
         <ReduxProvider>
           {children}
           <Toaster richColors position="top-right" />
