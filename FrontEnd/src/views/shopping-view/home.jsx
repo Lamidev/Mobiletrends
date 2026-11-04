@@ -20,6 +20,9 @@ import {
   ShieldCheck,
   Headphones,
   Award,
+  Gamepad2,
+  Plane,
+  Monitor,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -41,10 +44,14 @@ import BuyingProcessAndReviews from "@/components/shopping-view/buying-process-a
 import FaqSection from "@/components/shopping-view/faq-section";
 
 const categoriesWithIcon = [
-  { id: "smartphones", label: "Smartphones", icon: Smartphone },
+  { id: "smartphones", label: "Phones", icon: Smartphone },
   { id: "laptops", label: "Laptops", icon: Laptop },
+  { id: "gaming", label: "Gaming", icon: Gamepad2 },
+  { id: "drones", label: "Drones", icon: Plane },
   { id: "tablets", label: "Tablets", icon: Tablet },
-  { id: "smartwatches", label: "Smartwatches", icon: Watch },
+  { id: "smartwatches", label: "Watches", icon: Watch },
+  { id: "audio", label: "Audio", icon: Headphones },
+  { id: "monitors", label: "Monitors", icon: Monitor },
   { id: "accessories", label: "Accessories", icon: CloudLightning },
   { id: "products", label: "All Products", icon: ShoppingBag },
 ];
@@ -56,6 +63,8 @@ const brandsWithIcon = [
   { id: "dell", label: "Dell", icon: LaptopMinimal },
   { id: "hp", label: "HP", icon: TabletSmartphone },
   { id: "lenovo", label: "Lenovo", icon: Tv },
+  { id: "sony", label: "Sony", icon: Gamepad2 },
+  { id: "jbl", label: "JBL", icon: Headphones },
 ];
 
 const whyChooseUs = [

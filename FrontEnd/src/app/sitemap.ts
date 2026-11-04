@@ -46,11 +46,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const categories = [
     'smartphones',
     'laptops',
+    'gaming',
+    'drones',
     'tablets',
     'smartwatches',
-    'gaming',
+    'audio',
+    'monitors',
     'accessories',
-    'speaker',
   ];
   const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
     url: `${baseUrl}/shop/listing?category=${cat}`,

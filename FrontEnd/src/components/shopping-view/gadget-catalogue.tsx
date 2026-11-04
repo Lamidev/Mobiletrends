@@ -6,6 +6,7 @@ import {
   Tablet,
   Watch,
   LayoutGrid,
+  Plane,
 } from "lucide-react";
 
 interface GadgetCatalogueProps {
@@ -54,8 +55,9 @@ function SwotAccessoriesIcon({ className }: { className?: string }) {
 
 const SMALL_CATEGORIES = [
   { id: "tablets", label: "Tablets", icon: Tablet },
-  { id: "smartwatches", label: "Smartwatches", icon: Watch },
-  { id: "speaker", label: "Audio", icon: SwotAudioIcon },
+  { id: "smartwatches", label: "Watches", icon: Watch },
+  { id: "drones", label: "Drones", icon: Plane },
+  { id: "audio", label: "Audio", icon: SwotAudioIcon },
   { id: "accessories", label: "Accessories", icon: SwotAccessoriesIcon },
   { id: "products", label: "All Products", icon: LayoutGrid },
 ];

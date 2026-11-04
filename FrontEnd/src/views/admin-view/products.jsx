@@ -111,6 +111,27 @@ function AdminProducts() {
     }
   }, [openCreateProductsDialog]);
 
+  const BRAND_NEW_ONLY_CATEGORIES = ['audio', 'monitors', 'accessories'];
+
+  useEffect(() => {
+    if (BRAND_NEW_ONLY_CATEGORIES.includes(formData.category) && formData.condition !== 'Brand New') {
+      setFormData((prev) => ({ ...prev, condition: 'Brand New' }));
+    }
+  }, [formData.category, formData.condition]);
+
+  const dynamicFormElements = useMemo(() => {
+    const isBrandNewOnly = BRAND_NEW_ONLY_CATEGORIES.includes(formData.category);
+    return addProductFormElements.map((control) => {
+      if (control.name === "condition" && isBrandNewOnly) {
+        return {
+          ...control,
+          options: [{ id: "Brand New", label: "Brand New (Brand-new only for this category)" }],
+        };
+      }
+      return control;
+    });
+  }, [formData.category]);
+
   const toggleSection = (sectionKey) => {
     setOpenSections((prev) => ({
       ...prev,
@@ -948,7 +969,7 @@ function AdminProducts() {
               formData={formData}
               setFormData={setFormData}
               buttonText={currentEditedId !== null ? "Update Product" : "Save Product"}
-              formControls={addProductFormElements}
+              formControls={dynamicFormElements}
               isBtnDisabled={!isFormValid() || imageLoadingState}
               onCancel={() => setOpenCreateProductsDialog(false)}
             >
