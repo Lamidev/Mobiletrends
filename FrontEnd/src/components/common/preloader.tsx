@@ -34,7 +34,7 @@ export function Preloader({ active = true, subtitle }: PreloaderProps) {
     <div
       aria-live="polite"
       aria-busy={active}
-      className={`fixed inset-0 z-[9999] bg-[#fafaf8] flex items-center justify-center transition-transform duration-700 ease-[cubic-bezier(0.77,0,0.175,1)] ${
+      className={`fixed inset-0 z-[9999] bg-[#fafaf8] flex items-center justify-center transition-transform duration-700 ease-out ${
         active
           ? "translate-y-0 pointer-events-auto"
           : "-translate-y-full pointer-events-none"

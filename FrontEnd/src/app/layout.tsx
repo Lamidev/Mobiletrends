@@ -48,6 +48,9 @@ export const metadata: Metadata = {
   verification: {
     google: 'xtnurZvbcqBfSIERHuL6GWxZ-ZZGFlR6CunG8PIpIsk',
   },
+  other: {
+    'apple-mobile-web-app-title': 'Mobiletrends',
+  },
   openGraph: {
     title: `${siteConfig.name} | Phones, Laptops & Gadgets in Nigeria`,
     description: siteConfig.description,
@@ -141,29 +144,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head>
-        <meta
-          name="google-site-verification"
-          content="xtnurZvbcqBfSIERHuL6GWxZ-ZZGFlR6CunG8PIpIsk"
-        />
-        <meta name="apple-mobile-web-app-title" content="Mobiletrends" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Manrope:wght@400;500;600;700;800&display=swap"
-        />
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className="font-body antialiased bg-[#fafaf8] text-[#20231e] min-h-screen"
+        suppressHydrationWarning
+      >
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
-      </head>
-      <body className="font-body antialiased bg-[#fafaf8] text-[#20231e] min-h-screen">
         <ReduxProvider>
           {children}
           <Toaster richColors position="top-right" />

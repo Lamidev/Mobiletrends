@@ -425,7 +425,7 @@ export default function BuyingProcessAndReviews() {
               onTouchEnd={handleTouchEnd}
             >
               <div
-                className="flex items-stretch transition-transform duration-500 ease-[cubic-bezier(0.2,0.9,0.3,1)] will-change-transform"
+                className="flex items-stretch transition-transform duration-500 ease-out will-change-transform"
                 style={{
                   gap: `${gapPx}px`,
                   transform: `translate3d(calc(-${currentIndex} * ((100% + ${gapPx}px) / ${cardsPerPage})), 0, 0)`,
