@@ -10,6 +10,7 @@ import {
   Users,
   Store,
   LogOut,
+  Truck,
 } from "lucide-react";
 import { logoutUser } from "@/store/auth-slice";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
@@ -46,6 +47,12 @@ const adminSidebarMenuItems = [
     label: "Customers",
     path: "/admin/customers",
     icon: <Users className="w-5 h-5 shrink-0" />,
+  },
+  {
+    id: "features",
+    label: "Delivery Rates",
+    path: "/admin/features",
+    icon: <Truck className="w-5 h-5 shrink-0" />,
   },
 ];
 

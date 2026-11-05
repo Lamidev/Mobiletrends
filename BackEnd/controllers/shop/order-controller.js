@@ -2,6 +2,7 @@ const { initializeTransaction, verifyTransaction } = require("../../helpers/pays
 const Order = require("../../models/order");
 const Cart = require("../../models/cart");
 const Product = require("../../models/products");
+const DeliverySettings = require("../../models/delivery-settings");
 const { sendReceiptEmail } = require("../../resend/emails");
 
 const createOrder = async (req, res) => {
@@ -89,7 +90,25 @@ const createOrder = async (req, res) => {
       });
     }
 
-    const verifiedDelivery = Math.max(0, Number(deliveryPrice) || 0);
+    let verifiedDelivery = Math.max(0, Number(deliveryPrice) || 0);
+    try {
+      const deliverySettings = await DeliverySettings.findOne();
+      if (deliverySettings && addressInfo?.state) {
+        const isLagos = String(addressInfo.state).toLowerCase().trim() === "lagos";
+        const standardRate = isLagos ? deliverySettings.lagosFee : deliverySettings.outsideLagosFee;
+        if (
+          deliverySettings.freeDeliveryThreshold > 0 &&
+          calculatedItemsTotal >= deliverySettings.freeDeliveryThreshold
+        ) {
+          verifiedDelivery = 0;
+        } else if (typeof standardRate === "number") {
+          verifiedDelivery = standardRate;
+        }
+      }
+    } catch (deliveryLookupErr) {
+      console.warn("Delivery settings lookup error, using submitted rate:", deliveryLookupErr);
+    }
+
     const calculatedTotalAmount = calculatedItemsTotal + verifiedDelivery;
 
     const callbackUrl = process.env.CLIENT_URL + "/shop/paystack-return";
