@@ -150,9 +150,20 @@ function AdminOrderDetailsView({ orderDetails, onClose }) {
           </div>
         </div>
 
-        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${currentStatusStyle}`}>
-          {currentStatusLabel}
-        </span>
+        <div className="flex items-center gap-2">
+          {orderDetails?.isGuest || orderDetails?.userId?.startsWith("guest_") ? (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+              GUEST
+            </span>
+          ) : (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+              MEMBER
+            </span>
+          )}
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${currentStatusStyle}`}>
+            {currentStatusLabel}
+          </span>
+        </div>
       </DialogHeader>
 
       <div className="space-y-6 pt-3">

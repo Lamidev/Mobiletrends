@@ -19,8 +19,7 @@ function CheckAuth({
 
   const pathname = location.pathname;
   const isAdminRoute = pathname.startsWith("/admin");
-  const isProtectedShopRoute =
-    pathname === "/shop/checkout" || pathname === "/shop/account";
+  const isProtectedShopRoute = pathname === "/shop/account";
   const isAuthPage =
     pathname === "/auth/login" ||
     pathname === "/auth/register" ||

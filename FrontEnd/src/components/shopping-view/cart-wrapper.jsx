@@ -27,12 +27,7 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
       : 0;
 
   const handleCheckout = () => {
-    if (!isAuthenticated) {
-      sessionStorage.setItem('redirectAfterLogin', '/shop/checkout');
-      navigate("/auth/login");
-    } else {
-      navigate("/shop/checkout");
-    }
+    navigate("/shop/checkout");
     setOpenCartSheet(false);
   };
 
@@ -99,7 +94,7 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
               className="w-full py-3 text-sm sm:text-base font-semibold bg-[#111344] hover:bg-[#0C1172] text-white rounded-[6px] shadow-sm transition-all"
               size="lg"
             >
-              {isAuthenticated ? "Proceed to Checkout" : "Login to Checkout"}
+              Proceed to Checkout
             </Button>
             <Button
               onClick={() => {

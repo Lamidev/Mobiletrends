@@ -489,8 +489,15 @@ function AdminOrdersView() {
 
                       {/* Customer */}
                       <TableCell className="py-4">
-                        <div className="font-bold text-xs text-gray-900">
-                          {ord?.addressInfo?.fullName || ord?.userName || "Customer"}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-xs text-gray-900">
+                            {ord?.addressInfo?.fullName || ord?.userName || "Customer"}
+                          </span>
+                          {ord?.isGuest || ord?.userId?.startsWith("guest_") ? (
+                            <span className="text-[9.5px] font-bold px-1.5 py-0.2 rounded bg-purple-50 text-purple-700 border border-purple-200">
+                              GUEST
+                            </span>
+                          ) : null}
                         </div>
                         {ord?.addressInfo?.phone && (
                           <div className="text-[11px] text-gray-500 font-medium mt-0.5">
@@ -580,6 +587,11 @@ function AdminOrdersView() {
                     <div className="flex items-center gap-1.5 text-gray-800 font-bold">
                       <User size={13} className="text-gray-400 shrink-0" />
                       <span className="truncate">{ord?.addressInfo?.fullName || ord?.userName || "Customer"}</span>
+                      {ord?.isGuest || ord?.userId?.startsWith("guest_") ? (
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+                          GUEST
+                        </span>
+                      ) : null}
                     </div>
 
                     {ord?.addressInfo?.phone && (

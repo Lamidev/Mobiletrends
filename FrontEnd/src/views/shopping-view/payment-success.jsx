@@ -1,12 +1,12 @@
 'use client';
 
-
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import Confetti from "react-confetti";
-import { CheckCircle, Package, ShoppingBag, Home } from "lucide-react";
+import { CheckCircle, Package, ShoppingBag, Home, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useWindowSize } from "react-use";
@@ -16,6 +16,7 @@ function PaymentSuccessPage() {
   const { toast } = useToast();
   const { width, height } = useWindowSize();
   const [countdown, setCountdown] = useState(10);
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   useEffect(() => {
     toast({
@@ -27,7 +28,7 @@ function PaymentSuccessPage() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          navigate("/shop/account");
+          navigate(isAuthenticated ? "/shop/account" : "/shop/listing");
           return 0;
         }
         return prev - 1;
@@ -35,7 +36,7 @@ function PaymentSuccessPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [navigate, toast]);
+  }, [navigate, toast, isAuthenticated]);
 
   return (
     <div className="font-body min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-slate-100 p-4">
@@ -49,7 +50,7 @@ function PaymentSuccessPage() {
       >
         <Card className="p-8 shadow-2xl border-0 bg-white/95 backdrop-blur-sm rounded-3xl overflow-hidden relative">
           {/* Decorative Background Element */}
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-peach-100 rounded-full blur-3xl opacity-50" />
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-100 rounded-full blur-3xl opacity-50" />
           <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-slate-200 rounded-full blur-3xl opacity-50" />
 
           <motion.div
@@ -67,7 +68,7 @@ function PaymentSuccessPage() {
                 initial={{ scale: 0, rotate: -45 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ delay: 0.3, type: "spring" }}
-                className="absolute -top-2 -right-2 w-10 h-10 bg-peach-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+                className="absolute -top-2 -right-2 w-10 h-10 bg-[#111344] rounded-full flex items-center justify-center shadow-lg border-2 border-white"
               >
                 <Package className="h-5 w-5 text-white" />
               </motion.div>
@@ -75,10 +76,10 @@ function PaymentSuccessPage() {
 
             {/* Success Message */}
             <CardHeader className="p-0 space-y-3">
-              <CardTitle className="text-4xl font-black text-gray-900 tracking-tight">
+              <CardTitle className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
                 Payment Received!
               </CardTitle>
-              <p className="text-gray-600 text-lg font-medium">
+              <p className="text-gray-600 text-base sm:text-lg font-medium">
                 Your order has been placed successfully.
               </p>
             </CardHeader>
@@ -88,14 +89,14 @@ function PaymentSuccessPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="bg-peach-50/80 rounded-2xl p-4 border border-peach-100 backdrop-blur-sm"
+              className="bg-blue-50/80 rounded-2xl p-4 border border-blue-100 backdrop-blur-sm"
             >
-              <div className="flex items-center justify-center space-x-6 text-sm font-semibold text-peach-700">
+              <div className="flex items-center justify-center space-x-6 text-sm font-semibold text-blue-900">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                   <span>Confirmed</span>
                 </div>
-                <div className="w-px h-4 bg-peach-200" />
+                <div className="w-px h-4 bg-blue-200" />
                 <div className="flex items-center space-x-2">
                   <ShoppingBag className="h-4 w-4" />
                   <span>Receipt Emailed</span>
@@ -103,36 +104,53 @@ function PaymentSuccessPage() {
               </div>
             </motion.div>
 
+            {!isAuthenticated && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 text-left">
+                <p className="font-semibold mb-0.5">Tip for Guests:</p>
+                A receipt has been sent to your email. If you create an account using that same email later, this order and its delivery tracking will automatically link to your profile!
+              </div>
+            )}
+
             {/* Action Buttons */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8, duration: 0.3 }}
-              className="space-y-4"
+              className="space-y-3"
             >
-              <Button
-                className="w-full bg-gradient-to-r bg-[#111344] hover:bg-[#0C1172] text-white shadow-md py-7 text-lg font-bold rounded-[6px] transition-all hover:scale-[1.02] active:scale-[0.98]"
-                onClick={() => navigate("/shop/account")}
-              >
-                <Package className="h-5 w-5 mr-2" />
-                Track My Order
-              </Button>
+              {isAuthenticated ? (
+                <Button
+                  className="w-full bg-[#111344] hover:bg-[#0C1172] text-white shadow-md py-6 text-base font-bold rounded-[6px] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  onClick={() => navigate("/shop/account")}
+                >
+                  <Package className="h-5 w-5 mr-2" />
+                  Track My Order
+                </Button>
+              ) : (
+                <Button
+                  className="w-full bg-[#111344] hover:bg-[#0C1172] text-white shadow-md py-6 text-base font-bold rounded-[6px] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  onClick={() => navigate("/auth/register")}
+                >
+                  <UserPlus className="h-5 w-5 mr-2" />
+                  Create Account to Save History
+                </Button>
+              )}
 
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 <Button
                   variant="outline"
-                  className="flex-1 py-6 border-2 hover:bg-gray-100 hover:text-[#111344] hover:border-gray-300 rounded-[6px] transition-all"
+                  className="flex-1 py-5 border hover:bg-gray-100 hover:text-[#111344] rounded-[6px] transition-all text-sm font-semibold"
                   onClick={() => navigate("/shop/listing")}
                 >
-                  <ShoppingBag className="h-4 w-4 mr-2 text-peach-500" />
-                  Continue
+                  <ShoppingBag className="h-4 w-4 mr-1.5 text-blue-600" />
+                  Continue Shopping
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex-1 py-6 border-2 hover:bg-gray-100 hover:text-[#111344] hover:border-gray-300 rounded-[6px] transition-all"
+                  className="flex-1 py-5 border hover:bg-gray-100 hover:text-[#111344] rounded-[6px] transition-all text-sm font-semibold"
                   onClick={() => navigate("/")}
                 >
-                  <Home className="h-4 w-4 mr-2 text-peach-500" />
+                  <Home className="h-4 w-4 mr-1.5 text-blue-600" />
                   Home
                 </Button>
               </div>
@@ -143,14 +161,14 @@ function PaymentSuccessPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.2, duration: 0.3 }}
-              className="pt-4"
+              className="pt-2"
             >
-              <div className="inline-flex items-center px-4 py-2 bg-gray-50 rounded-full text-xs font-bold text-gray-500 border border-gray-100">
+              <div className="inline-flex items-center px-4 py-1.5 bg-gray-50 rounded-full text-xs font-bold text-gray-500 border border-gray-100">
                 <span className="relative flex h-2 w-2 mr-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-peach-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-peach-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                 </span>
-                Redirecting to orders in {countdown}s
+                Redirecting in {countdown}s
               </div>
             </motion.div>
           </motion.div>

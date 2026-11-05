@@ -112,14 +112,24 @@ const createOrder = async (req, res) => {
       },
     };
 
+    const isGuestOrder = Boolean(
+      req.body.isGuest ||
+      (typeof userId === "string" && userId.startsWith("guest_")) ||
+      !userId
+    );
+
     const paymentResponse = await initializeTransaction(paystackData);
 
     if (paymentResponse && paymentResponse.status) {
       const newOrder = new Order({
         userId,
+        isGuest: isGuestOrder,
         cartId: cartId || `cart_${userId}_${Date.now()}`,
         cartItems: validatedCartItems,
-        addressInfo,
+        addressInfo: {
+          ...addressInfo,
+          email: addressInfo?.email || payerId,
+        },
         orderStatus: orderStatus || "pending",
         paymentMethod,
         paymentStatus: paymentStatus || "pending",
@@ -406,11 +416,53 @@ const findOrderByReference = async (req, res) => {
   }
 };
 
+const getGuestOrderDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.query;
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found!",
+      });
+    }
+
+    // Allow guest orders or orders with matching email
+    const isGuest = order.isGuest || (order.userId && order.userId.startsWith("guest_"));
+    const matchesEmail =
+      email &&
+      order.payerId &&
+      order.payerId.toLowerCase().trim() === email.toLowerCase().trim();
+
+    if (isGuest || matchesEmail) {
+      return res.status(200).json({
+        success: true,
+        data: order,
+      });
+    }
+
+    return res.status(403).json({
+      success: false,
+      message: "Please log in to your account to view this order.",
+    });
+  } catch (e) {
+    console.error("Get guest order error:", e);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while tracking the order",
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   capturePayment,
   getAllOrdersByUser,
   getOrderDetails,
+  getGuestOrderDetails,
   handlePaystackReturn,
   findOrderByReference,
 };

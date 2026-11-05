@@ -3,6 +3,7 @@ const {
   createOrder,
   getAllOrdersByUser,
   getOrderDetails,
+  getGuestOrderDetails,
   capturePayment,
   handlePaystackReturn,
   findOrderByReference,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post("/create", createOrder);
 router.post("/capture", capturePayment);
+router.get("/track/:id", getGuestOrderDetails);
 router.get("/list/:userId", authMiddleware, getAllOrdersByUser);
 router.get("/details/:id", authMiddleware, getOrderDetails);
 router.get("/paystack-return", handlePaystackReturn);

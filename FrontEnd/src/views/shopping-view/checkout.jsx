@@ -7,9 +7,50 @@ import { createNewOrder, resetApprovalURL } from "@/store/shop/order-slice";
 import Address from "@/components/shopping-view/address";
 import UserCartItemsContent from "@/components/shopping-view/cart-items-content";
 import { getDeliveryPrice } from "../../services/delivery-service";
-import { Truck, Package, CreditCard, CheckCircle, LogIn, AlertCircle } from "lucide-react";
+import { Truck, Package, CreditCard, CheckCircle, LogIn, AlertCircle, Mail, User, Phone, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchCartItems } from "@/store/shop/cart-slice";
+import { getOrCreateSessionId } from "@/components/utils/session";
+
+const NIGERIAN_STATES = [
+  "Lagos",
+  "Abuja (FCT)",
+  "Abia",
+  "Adamawa",
+  "Akwa Ibom",
+  "Anambra",
+  "Bauchi",
+  "Bayelsa",
+  "Benue",
+  "Borno",
+  "Cross River",
+  "Delta",
+  "Ebonyi",
+  "Edo",
+  "Ekiti",
+  "Enugu",
+  "Gombe",
+  "Imo",
+  "Jigawa",
+  "Kaduna",
+  "Kano",
+  "Katsina",
+  "Kebbi",
+  "Kogi",
+  "Kwara",
+  "Nasarawa",
+  "Niger",
+  "Ogun",
+  "Ondo",
+  "Osun",
+  "Oyo",
+  "Plateau",
+  "Rivers",
+  "Sokoto",
+  "Taraba",
+  "Yobe",
+  "Zamfara",
+];
 
 function ShoppingCheckout() {
   const { cartItems, isLoading } = useSelector((state) => state.shopCart);
@@ -22,20 +63,20 @@ function ShoppingCheckout() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Guest checkout state
+  const [guestFormData, setGuestFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    address: "",
+    state: "Lagos",
+    lga: "",
+    notes: "",
+  });
+
   useEffect(() => {
     dispatch(fetchCartItems());
   }, [dispatch]);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      sessionStorage.setItem('fromCheckout', 'true');
-      toast({
-        title: "Please login to complete your purchase",
-        description: "Your cart items will be saved and merged after login",
-      });
-      navigate("/auth/login");
-    }
-  }, [isAuthenticated, navigate, toast]);
 
   useEffect(() => {
     if (approvalURL && isPaymentStart) {
@@ -68,30 +109,6 @@ function ShoppingCheckout() {
             <div className="flex justify-center mt-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="container mx-auto px-4 py-16 max-w-7xl">
-        <div className="max-w-md mx-auto text-center">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-            <LogIn className="w-12 h-12 text-yellow-600 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-yellow-800 mb-2">
-              Authentication Required
-            </h2>
-            <p className="text-yellow-700 mb-4">
-              Please login to access the checkout page.
-            </p>
-            <Button
-              onClick={() => navigate("/auth/login")}
-              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
-            >
-              Login to Continue
-            </Button>
           </div>
         </div>
       </div>
@@ -132,22 +149,14 @@ function ShoppingCheckout() {
     0
   );
 
-  const deliveryPrice = currentSelectedAddress
-    ? getDeliveryPrice(currentSelectedAddress.state)
-    : 0;
+  const activeState = isAuthenticated
+    ? currentSelectedAddress?.state
+    : guestFormData.state;
 
+  const deliveryPrice = activeState ? getDeliveryPrice(activeState) : 0;
   const totalAmountWithDelivery = totalCartAmount + deliveryPrice;
 
   async function handleInitiatepaystackPayment() {
-    if (!isAuthenticated) {
-      toast({
-        title: "Please login to complete your purchase",
-        variant: "destructive",
-      });
-      navigate("/auth/login");
-      return;
-    }
-
     if (!cartItems || cartItems.length === 0) {
       toast({
         title: "Your cart is empty, Please add items to proceed.",
@@ -156,19 +165,96 @@ function ShoppingCheckout() {
       return;
     }
 
-    if (currentSelectedAddress === null) {
-      toast({
-        title: "Please select one address to proceed.",
-        variant: "destructive",
-      });
-      return;
+    let finalUserId;
+    let finalPayerId;
+    let finalAddressInfo;
+
+    if (isAuthenticated) {
+      if (currentSelectedAddress === null) {
+        toast({
+          title: "Please select an address to proceed.",
+          variant: "destructive",
+        });
+        return;
+      }
+      finalUserId = user?.id;
+      finalPayerId = user?.email;
+      finalAddressInfo = {
+        addressId: currentSelectedAddress?._id,
+        fullName: currentSelectedAddress?.fullName || user?.userName,
+        address: currentSelectedAddress?.address,
+        lga: currentSelectedAddress?.lga,
+        state: currentSelectedAddress?.state,
+        pincode: currentSelectedAddress?.pincode,
+        phone: currentSelectedAddress?.phone,
+        country: currentSelectedAddress?.country || "Nigeria",
+        notes: currentSelectedAddress?.notes,
+        email: user?.email,
+      };
+    } else {
+      // Guest validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!guestFormData.fullName.trim()) {
+        toast({
+          title: "Full Name is required",
+          description: "Please enter your full name for delivery.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!guestFormData.email.trim() || !emailRegex.test(guestFormData.email.trim())) {
+        toast({
+          title: "Valid email required",
+          description: "Please provide a valid email to receive your order receipt.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!guestFormData.phone.trim()) {
+        toast({
+          title: "Phone number required",
+          description: "Our dispatch rider needs your contact phone number.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!guestFormData.address.trim()) {
+        toast({
+          title: "Delivery address required",
+          description: "Please provide your street / house delivery address.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!guestFormData.lga.trim()) {
+        toast({
+          title: "City / LGA required",
+          description: "Please provide your city or local government area.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      finalUserId = getOrCreateSessionId();
+      finalPayerId = guestFormData.email.trim().toLowerCase();
+      finalAddressInfo = {
+        fullName: guestFormData.fullName.trim(),
+        email: finalPayerId,
+        phone: guestFormData.phone.trim(),
+        address: guestFormData.address.trim(),
+        state: guestFormData.state,
+        lga: guestFormData.lga.trim(),
+        notes: guestFormData.notes.trim(),
+        country: "Nigeria",
+      };
     }
 
-    const cartId = `cart_${user?.id}_${Date.now()}`;
+    const cartId = `cart_${finalUserId}_${Date.now()}`;
     console.log('Generated cartId:', cartId);
 
     const orderData = {
-      userId: user?.id,
+      userId: finalUserId,
+      isGuest: !isAuthenticated,
       cartId: cartId,
       cartItems: cartItems.map((singleCartItem) => ({
         productId: singleCartItem?.productId,
@@ -184,17 +270,7 @@ function ShoppingCheckout() {
         selectedColor: singleCartItem?.selectedColor || "",
         selectedCondition: singleCartItem?.selectedCondition || "",
       })),
-      addressInfo: {
-        addressId: currentSelectedAddress?._id,
-        fullName: currentSelectedAddress?.fullName,
-        address: currentSelectedAddress?.address,
-        lga: currentSelectedAddress?.lga,
-        state: currentSelectedAddress?.state,
-        pincode: currentSelectedAddress?.pincode,
-        phone: currentSelectedAddress?.phone,
-        country: currentSelectedAddress?.country || "Nigeria",
-        notes: currentSelectedAddress?.notes,
-      },
+      addressInfo: finalAddressInfo,
       orderStatus: "pending",
       paymentMethod: "paystack",
       paymentStatus: "pending",
@@ -203,7 +279,7 @@ function ShoppingCheckout() {
       orderDate: new Date(),
       orderUpdateDate: new Date(),
       paymentId: "",
-      payerId: user?.email,
+      payerId: finalPayerId,
     };
 
     console.log('Order data being sent to backend:', orderData);
@@ -218,8 +294,8 @@ function ShoppingCheckout() {
       } else {
         setIsPaymentStart(false);
         toast({
-          title: "Payment failed!",
-          description: "Please try again later.",
+          title: "Payment initialization failed",
+          description: data?.message || "Please try again later.",
           variant: "destructive",
         });
       }
@@ -227,12 +303,24 @@ function ShoppingCheckout() {
       console.error("Order creation error:", error);
       setIsPaymentStart(false);
       toast({
-        title: "Payment failed!",
-        description: "Please try again later.",
+        title: "Payment initialization failed",
+        description: error?.message || "Please check your network and try again.",
         variant: "destructive",
       });
     }
   }
+
+  const isFormValidForGuest =
+    !isAuthenticated &&
+    guestFormData.fullName.trim() &&
+    guestFormData.email.trim() &&
+    guestFormData.phone.trim() &&
+    guestFormData.address.trim() &&
+    guestFormData.lga.trim();
+
+  const isPayButtonDisabled = isAuthenticated
+    ? !currentSelectedAddress || isPaymentStart
+    : !isFormValidForGuest || isPaymentStart;
 
   return (
     <div className="font-body container mx-auto px-4 py-8 max-w-7xl">
@@ -267,16 +355,202 @@ function ShoppingCheckout() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Truck className="w-5 h-5" />
-              Delivery Address
-            </h2>
-            <Address
-              selectedId={currentSelectedAddress}
-              setCurrentSelectedAddress={setCurrentSelectedAddress}
-            />
-          </div>
+          {isAuthenticated ? (
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Truck className="w-5 h-5 text-[#111344]" />
+                Delivery Address
+              </h2>
+              <Address
+                selectedId={currentSelectedAddress}
+                setCurrentSelectedAddress={setCurrentSelectedAddress}
+              />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Guest banner */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-xl p-4 flex items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[#111344] text-white flex items-center justify-center shrink-0">
+                    <LogIn className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-bold text-gray-900">
+                      Checking out as a Guest
+                    </p>
+                    <p className="text-[11px] sm:text-xs text-gray-600">
+                      Already have an account? Log in to use your saved addresses.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/auth/login")}
+                  className="text-xs font-semibold bg-white border-gray-300 text-[#111344] hover:bg-gray-100 shrink-0"
+                >
+                  Log in
+                </Button>
+              </div>
+
+              {/* Guest shipping & contact form */}
+              <div className="bg-white rounded-lg shadow-sm border p-6 space-y-4">
+                <div className="border-b pb-3">
+                  <h2 className="text-lg font-bold text-[#0f172a] flex items-center gap-2">
+                    <Truck className="w-5 h-5 text-[#111344]" />
+                    Contact & Delivery Information
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Please provide your contact details for delivery updates and dispatch.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[#0f172a] mb-1">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={guestFormData.fullName}
+                        onChange={(e) =>
+                          setGuestFormData({ ...guestFormData, fullName: e.target.value })
+                        }
+                        placeholder="e.g. Chidi Obi"
+                        className="w-full h-11 pl-9 pr-3 rounded-[10px] border border-gray-300 text-sm focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#0f172a] mb-1">
+                        Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="email"
+                          value={guestFormData.email}
+                          onChange={(e) =>
+                            setGuestFormData({ ...guestFormData, email: e.target.value })
+                          }
+                          placeholder="chidi@gmail.com"
+                          className="w-full h-11 pl-9 pr-3 rounded-[10px] border border-gray-300 text-sm focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all"
+                          required
+                        />
+                      </div>
+                      <span className="text-[11px] text-gray-500 mt-0.5 block">
+                        Receipt and tracking link sent here
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#0f172a] mb-1">
+                        Phone Number <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="tel"
+                          value={guestFormData.phone}
+                          onChange={(e) =>
+                            setGuestFormData({ ...guestFormData, phone: e.target.value })
+                          }
+                          placeholder="08012345678"
+                          className="w-full h-11 pl-9 pr-3 rounded-[10px] border border-gray-300 text-sm focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all"
+                          required
+                        />
+                      </div>
+                      <span className="text-[11px] text-gray-500 mt-0.5 block">
+                        For dispatch rider calls
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[#0f172a] mb-1">
+                      Street / House Delivery Address <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin className="w-4 h-4 text-gray-400 absolute left-3 top-3.5" />
+                      <input
+                        type="text"
+                        value={guestFormData.address}
+                        onChange={(e) =>
+                          setGuestFormData({ ...guestFormData, address: e.target.value })
+                        }
+                        placeholder="e.g. 15 Admiralty Way, Lekki Phase 1"
+                        className="w-full h-11 pl-9 pr-3 rounded-[10px] border border-gray-300 text-sm focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#0f172a] mb-1">
+                        State <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={guestFormData.state}
+                        onChange={(e) =>
+                          setGuestFormData({ ...guestFormData, state: e.target.value })
+                        }
+                        className="w-full h-11 px-3 rounded-[10px] border border-gray-300 text-sm bg-white focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all"
+                      >
+                        {NIGERIAN_STATES.map((stateName) => (
+                          <option key={stateName} value={stateName}>
+                            {stateName}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="text-[11px] text-gray-500 mt-0.5 block">
+                        {guestFormData.state.toLowerCase() === "lagos"
+                          ? "Same day delivery (₦10,000)"
+                          : "1-2 days delivery (₦20,000)"}
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#0f172a] mb-1">
+                        City / LGA <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={guestFormData.lga}
+                        onChange={(e) =>
+                          setGuestFormData({ ...guestFormData, lga: e.target.value })
+                        }
+                        placeholder="e.g. Ikeja, Eti-Osa, Port Harcourt"
+                        className="w-full h-11 px-3.5 rounded-[10px] border border-gray-300 text-sm focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[#0f172a] mb-1">
+                      Delivery Notes / Instructions <span className="text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={guestFormData.notes}
+                      onChange={(e) =>
+                        setGuestFormData({ ...guestFormData, notes: e.target.value })
+                      }
+                      placeholder="e.g. Leave with security, call when outside"
+                      className="w-full h-11 px-3.5 rounded-[10px] border border-gray-300 text-sm focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -314,9 +588,9 @@ function ShoppingCheckout() {
                 <span className="text-gray-600 flex items-center gap-1">
                   <Truck className="w-4 h-4" />
                   Delivery Fee
-                  {currentSelectedAddress && (
+                  {activeState && (
                     <span className="text-xs text-gray-400 ml-1">
-                      ({currentSelectedAddress.state})
+                      ({activeState})
                     </span>
                   )}
                 </span>
@@ -336,9 +610,9 @@ function ShoppingCheckout() {
                 <div>
                   <p>Lagos: <strong>Same Day Delivery</strong></p>
                   <p>Outside Lagos: <strong>1-2 Business Days</strong></p>
-                  {currentSelectedAddress && (
+                  {activeState && (
                     <div className="text-xs mt-1">
-                      Delivery to {currentSelectedAddress.state}: ₦{deliveryPrice.toLocaleString("en-NG")}
+                      Delivery to {activeState}: ₦{deliveryPrice.toLocaleString("en-NG")}
                     </div>
                   )}
                 </div>
@@ -347,7 +621,7 @@ function ShoppingCheckout() {
 
             <Button
               onClick={handleInitiatepaystackPayment}
-              disabled={!currentSelectedAddress || isPaymentStart}
+              disabled={isPayButtonDisabled}
               className="w-full mt-6 py-3 text-base font-semibold bg-[#111344] hover:bg-[#0C1172] text-white rounded-[6px]"
               size="lg"
             >
@@ -356,9 +630,14 @@ function ShoppingCheckout() {
                 : `Pay ₦${totalAmountWithDelivery.toLocaleString("en-NG")} with Paystack`}
             </Button>
 
-            {!currentSelectedAddress && (
+            {isAuthenticated && !currentSelectedAddress && (
               <div className="text-center text-sm text-[#111344] mt-2">
                 Please select a delivery address to continue
+              </div>
+            )}
+            {!isAuthenticated && !isFormValidForGuest && (
+              <div className="text-center text-xs text-gray-500 mt-2">
+                Fill in your name, email, phone, street address, and LGA to proceed to payment
               </div>
             )}
           </div>

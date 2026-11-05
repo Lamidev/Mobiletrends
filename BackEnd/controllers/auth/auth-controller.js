@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const User = require("../../models/users");
+const Order = require("../../models/order");
 
 const {
   generateTokenAndSetCookie,
@@ -13,6 +14,41 @@ const {
   sendVerificationEmail,
   sendWelcomeEmail,
 } = require("../../resend/emails");
+
+/**
+ * Retroactively link past guest orders to newly registered / logged-in user
+ */
+const linkGuestOrdersToUser = async (userEmail, userId) => {
+  if (!userEmail || !userId) return;
+  try {
+    const cleanEmail = userEmail.toLowerCase().trim();
+    const result = await Order.updateMany(
+      {
+        $or: [
+          { payerId: { $regex: new RegExp(`^${cleanEmail}$`, "i") } },
+          { "addressInfo.email": { $regex: new RegExp(`^${cleanEmail}$`, "i") } },
+        ],
+        $or: [
+          { userId: { $regex: /^guest_/ } },
+          { isGuest: true },
+          { userId: null },
+          { userId: "" },
+        ],
+      },
+      {
+        $set: {
+          userId: userId.toString(),
+          isGuest: false,
+        },
+      }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`Retroactively linked ${result.modifiedCount} guest order(s) to user ${cleanEmail} (${userId})`);
+    }
+  } catch (err) {
+    console.error("Error linking guest orders to user:", err);
+  }
+};
 
 /**
  * Register a new user
@@ -111,6 +147,11 @@ const verifyEmail = async (req, res) => {
     user.verificationTokenExpiresAt = undefined;
     await user.save();
 
+    // Link any previous guest orders placed with this email
+    linkGuestOrdersToUser(user.email, user._id).catch((err) =>
+      console.error("Order linking error on verify:", err)
+    );
+
     await sendWelcomeEmail(user.email, user.userName);
 
     // Clear session so user logs in fresh after verification
@@ -148,6 +189,11 @@ const loginUser = async (req, res) => {
     const token = generateTokenAndSetCookie(res, user._id);
     user.lastLogin = new Date();
     await user.save();
+
+    // Link any previous guest orders placed with this email
+    linkGuestOrdersToUser(user.email, user._id).catch((err) =>
+      console.error("Order linking error on login:", err)
+    );
 
     const userData = user.toObject();
     userData.id = userData._id;
