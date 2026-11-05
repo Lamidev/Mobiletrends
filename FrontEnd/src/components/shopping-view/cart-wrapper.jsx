@@ -6,7 +6,7 @@ import { SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import UserCartItemsContent from "./cart-items-content";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
-import { ShoppingBag, ArrowRight, ShoppingCart, Truck, ShieldCheck } from "lucide-react";
+import { ShoppingBag, ArrowRight, ShoppingCart, ShieldCheck } from "lucide-react";
 import { useSelector } from "react-redux";
 
 function UserCartWrapper({ cartItems, setOpenCartSheet }) {
@@ -87,24 +87,10 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
       </ScrollArea>
 
       {cartItems && cartItems.length > 0 && (
-        <div className="border-t border-gray-100 pt-4 space-y-4 bg-white">
-          <div className="space-y-2.5">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Subtotal</span>
-              <span className="font-semibold text-gray-900">₦{totalCartAmount.toLocaleString("en-NG")}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500 flex items-center gap-1.5">
-                <Truck className="h-3.5 w-3.5 text-gray-400" />
-                Delivery
-              </span>
-              <span className="font-medium text-gray-500">Calculated at checkout</span>
-            </div>
-            <Separator />
-            <div className="flex justify-between text-base sm:text-lg font-bold">
-              <span className="text-[#111344]">Total</span>
-              <span className="text-[#DF5E00]">₦{totalCartAmount.toLocaleString("en-NG")}</span>
-            </div>
+        <div className="border-t border-gray-100 pt-3 sm:pt-4 space-y-3 sm:space-y-4 bg-white">
+          <div className="flex items-center justify-between text-base sm:text-lg font-bold">
+            <span className="text-[#111344]">Total</span>
+            <span className="text-[#DF5E00]">₦{totalCartAmount.toLocaleString("en-NG")}</span>
           </div>
 
           <div className="space-y-2">

@@ -174,26 +174,24 @@ export default function GadgetCatalogue({
           </button>
         </div>
 
-        {/* 5 Compact Sub-Category Pills: Tablets, Smartwatches, Audio, Accessories, All Products */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 mt-3 sm:mt-4 gap-2 sm:gap-3">
-          {SMALL_CATEGORIES.map(({ id, label, icon: Icon }, index) => (
+        {/* 6 Sub-Category Pills: Tablets, Watches, Drones, Audio, Accessories, All Products (Strict 2-per-row on mobile, 3-per-row on tablet, 6-per-row on desktop) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 mt-3 sm:mt-4 gap-2 sm:gap-3">
+          {SMALL_CATEGORIES.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               type="button"
               onClick={() => handleSelect(id)}
-              className={`${
-                index === SMALL_CATEGORIES.length - 1
-                  ? "col-span-2 sm:col-span-1"
-                  : "col-span-1"
-              } bg-white border border-[#daddd4] rounded-[4px] py-[13px] sm:py-[18px] px-[10px] sm:px-[14px] flex items-center gap-2 sm:gap-2.5 text-[10px] sm:text-[11px] font-medium text-[#20231e] cursor-pointer transition-all duration-200 hover:border-[#20231e] hover:bg-[#f3f4ef] hover:-translate-y-0.5`}
+              className="w-full bg-white border border-[#daddd4] rounded-[4px] py-[13px] sm:py-[18px] px-[10px] sm:px-[14px] flex items-center justify-between gap-1.5 sm:gap-2.5 text-[11px] sm:text-[12px] font-medium text-[#20231e] cursor-pointer transition-all duration-200 hover:border-[#20231e] hover:bg-[#f3f4ef] hover:-translate-y-0.5"
             >
-              <Icon
-                className="w-[14px] h-[14px] text-[#62665d] shrink-0"
-                strokeWidth={1.75}
-              />
-              <span>{label}</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <Icon
+                  className="w-[14px] h-[14px] text-[#62665d] shrink-0"
+                  strokeWidth={1.75}
+                />
+                <span className="truncate">{label}</span>
+              </div>
               <ArrowUpRight
-                className="w-[12px] h-[12px] text-[#62665d] ml-auto shrink-0"
+                className="w-[12px] h-[12px] text-[#62665d] shrink-0"
                 strokeWidth={1.75}
               />
             </button>
