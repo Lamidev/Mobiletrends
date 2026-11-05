@@ -27,8 +27,8 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
       : 0;
 
   const handleCheckout = () => {
-    navigate("/shop/checkout");
     setOpenCartSheet(false);
+    navigate("/shop/checkout");
   };
 
   return (

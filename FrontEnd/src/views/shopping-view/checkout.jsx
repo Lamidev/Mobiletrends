@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "@/components/ui/use-toast";
 import { createNewOrder, resetApprovalURL } from "@/store/shop/order-slice";
-import Address from "@/components/shopping-view/address";
+import { fetchAllAddresses } from "@/store/shop/address-slice";
 import {
   fetchDeliverySettings,
   getDeliveryPrice,
@@ -13,21 +13,14 @@ import {
 } from "../../services/delivery-service";
 import {
   Truck,
-  Package,
   CreditCard,
-  CheckCircle,
-  LogIn,
   AlertCircle,
-  Mail,
-  User,
-  Phone,
-  MapPin,
   ArrowRight,
   ArrowLeft,
   ShieldCheck,
   Lock,
   ChevronRight,
-  Building,
+  Plus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchCartItems } from "@/store/shop/cart-slice";
@@ -78,16 +71,33 @@ function ShoppingCheckout() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { cartItems, isLoading } = useSelector((state) => state.shopCart);
+  const { cartItems } = useSelector((state) => state.shopCart);
   const { user, isAuthenticated } = useSelector((state) => state.auth);
   const { approvalURL } = useSelector((state) => state.shopOrder);
+  const { addressList = [] } = useSelector(
+    (state) => state.shopAddress || state.address || {}
+  );
 
   // Stepper: 'address' (Step 1) -> 'payment' (Step 2)
   const [currentStep, setCurrentStep] = useState("address");
   const [isPaymentStart, setIsPaymentStart] = useState(false);
 
-  // Authenticated user selected address
+  // Mode for authenticated users: toggle between selected address card and edit form
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+
+  // Selected address for logged-in user
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
+
+  // Unified delivery address form (exact match with User Profile form in account.jsx)
+  const [addressForm, setAddressForm] = useState({
+    fullName: user?.userName || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    address: "",
+    state: "Lagos",
+    lga: "",
+    notes: "",
+  });
 
   // Dynamic delivery settings from DB
   const [deliverySettings, setDeliverySettings] = useState({
@@ -98,26 +108,47 @@ function ShoppingCheckout() {
     estimatedDaysOutside: "1-2 Business Days",
   });
 
-  // Guest checkout form data
-  const [guestFormData, setGuestFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    address: "",
-    state: "Lagos",
-    lga: "",
-    notes: "",
-  });
+  const currentUserId = user?.id || user?.Id || user?._id;
 
-  // Load cart items & dynamic delivery settings on mount
+  // Load cart items, addresses & delivery settings on mount
   useEffect(() => {
     dispatch(fetchCartItems());
     fetchDeliverySettings().then((settings) => {
       if (settings) setDeliverySettings(settings);
     });
-  }, [dispatch]);
+    if (currentUserId) {
+      dispatch(fetchAllAddresses(currentUserId));
+    }
+  }, [dispatch, currentUserId]);
 
-  // Handle Paystack approval URL redirect
+  // Sync user profile data to address form when auth loads
+  useEffect(() => {
+    if (user) {
+      setAddressForm((prev) => ({
+        ...prev,
+        fullName: prev.fullName || user?.userName || "",
+        email: prev.email || user?.email || "",
+        phone: prev.phone || user?.phone || "",
+      }));
+    }
+  }, [user]);
+
+  // Auto-select primary saved address for authenticated member
+  useEffect(() => {
+    if (addressList && addressList.length > 0 && !currentSelectedAddress) {
+      const primary = addressList[0];
+      setCurrentSelectedAddress(primary);
+      setAddressForm((prev) => ({
+        ...prev,
+        address: primary.address || prev.address,
+        lga: primary.lga || prev.lga,
+        state: primary.state || prev.state,
+        phone: primary.phone || prev.phone,
+      }));
+    }
+  }, [addressList, currentSelectedAddress]);
+
+  // Handle Paystack approval redirect
   useEffect(() => {
     if (approvalURL && isPaymentStart) {
       dispatch(resetApprovalURL());
@@ -137,10 +168,11 @@ function ShoppingCheckout() {
         )
       : 0;
 
-  // Active state for delivery rate
-  const activeState = isAuthenticated
-    ? currentSelectedAddress?.state || "Lagos"
-    : guestFormData.state || "Lagos";
+  // Active state for shipping rates
+  const activeState =
+    isAuthenticated && currentSelectedAddress && !isEditingAddress
+      ? currentSelectedAddress.state
+      : addressForm.state || "Lagos";
 
   const deliveryPrice = getDeliveryPrice(
     activeState,
@@ -153,92 +185,109 @@ function ShoppingCheckout() {
   );
   const totalAmountWithDelivery = totalCartAmount + deliveryPrice;
 
-  // Active confirmed address object (for Step 2 summary card)
-  const confirmedAddress = isAuthenticated
-    ? {
-        fullName: currentSelectedAddress?.fullName || user?.userName || "Member",
-        address: currentSelectedAddress?.address || "",
-        lga: currentSelectedAddress?.lga || "",
-        state: currentSelectedAddress?.state || "Lagos",
-        phone: currentSelectedAddress?.phone || "",
-        email: user?.email || "",
-        notes: currentSelectedAddress?.notes || "",
-      }
-    : {
-        fullName: guestFormData.fullName,
-        address: guestFormData.address,
-        lga: guestFormData.lga,
-        state: guestFormData.state,
-        phone: guestFormData.phone,
-        email: guestFormData.email,
-        notes: guestFormData.notes,
-      };
+  // Active confirmed address object (used in Step 2 review card)
+  const confirmedAddress =
+    isAuthenticated && currentSelectedAddress && !isEditingAddress
+      ? {
+          fullName:
+            currentSelectedAddress?.fullName || user?.userName || addressForm.fullName || "Member",
+          address: currentSelectedAddress?.address || addressForm.address,
+          lga: currentSelectedAddress?.lga || addressForm.lga,
+          state: currentSelectedAddress?.state || addressForm.state,
+          phone: currentSelectedAddress?.phone || addressForm.phone || user?.phone || "",
+          email: user?.email || addressForm.email || "",
+          notes: currentSelectedAddress?.notes || addressForm.notes || "",
+        }
+      : {
+          fullName: addressForm.fullName,
+          address: addressForm.address,
+          lga: addressForm.lga,
+          state: addressForm.state,
+          phone: addressForm.phone,
+          email: addressForm.email,
+          notes: addressForm.notes,
+        };
 
-  // Step 1 validation: Proceed to Step 2
+  // Step 1 validation: Continue to Step 2
   const handleProceedToPayment = () => {
+    // If authenticated and has a selected address and not currently editing, proceed directly
+    if (isAuthenticated && currentSelectedAddress && !isEditingAddress) {
+      setCurrentStep("payment");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    // Validate form fields matching Profile requirements
+    if (!addressForm.address.trim()) {
+      toast({
+        title: "House / Street address required",
+        description: "Please enter your delivery street address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!addressForm.lga.trim()) {
+      toast({
+        title: "City / LGA required",
+        description: "Please enter your City or Local Government Area.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!addressForm.state.trim()) {
+      toast({
+        title: "State required",
+        description: "Please select your delivery state.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!addressForm.fullName.trim()) {
+      toast({
+        title: "Recipient name required",
+        description: "Please enter the recipient full name.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!addressForm.phone.trim()) {
+      toast({
+        title: "Delivery phone required",
+        description: "Our dispatch rider needs your contact phone number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!addressForm.email.trim() || !emailRegex.test(addressForm.email.trim())) {
+      toast({
+        title: "Valid email required",
+        description: "Please enter a valid email to receive your order receipt.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // If member edited address manually, sync to currentSelectedAddress
     if (isAuthenticated) {
-      if (!currentSelectedAddress) {
-        toast({
-          title: "Select delivery address",
-          description: "Please select or add a delivery address to proceed.",
-          variant: "destructive",
-        });
-        return;
-      }
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!guestFormData.fullName.trim()) {
-        toast({
-          title: "Full Name is required",
-          description: "Please enter your full name for delivery.",
-          variant: "destructive",
-        });
-        return;
-      }
-      if (!guestFormData.email.trim() || !emailRegex.test(guestFormData.email.trim())) {
-        toast({
-          title: "Valid email required",
-          description: "Please provide a valid email to receive your order receipt.",
-          variant: "destructive",
-        });
-        return;
-      }
-      if (!guestFormData.phone.trim()) {
-        toast({
-          title: "Phone number required",
-          description: "Our dispatch rider needs your contact phone number.",
-          variant: "destructive",
-        });
-        return;
-      }
-      if (!guestFormData.address.trim()) {
-        toast({
-          title: "Delivery address required",
-          description: "Please provide your street or house delivery address.",
-          variant: "destructive",
-        });
-        return;
-      }
-      if (!guestFormData.lga.trim()) {
-        toast({
-          title: "City / LGA required",
-          description: "Please provide your city or local government area.",
-          variant: "destructive",
-        });
-        return;
-      }
+      setCurrentSelectedAddress({
+        _id: currentSelectedAddress?._id,
+        ...addressForm,
+      });
+      setIsEditingAddress(false);
     }
 
     setCurrentStep("payment");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Step 2: Final Payment Initiation via Paystack
+  // Step 2: Final Payment via Paystack
   const handleInitiatePaystackPayment = async () => {
     if (!cartItems || cartItems.length === 0) {
       toast({
         title: "Your cart is empty",
-        description: "Please add items to your cart before checking out.",
+        description: "Please add items to your cart before proceeding.",
         variant: "destructive",
       });
       return;
@@ -249,40 +298,30 @@ function ShoppingCheckout() {
     let finalAddressInfo;
 
     if (isAuthenticated) {
-      if (!currentSelectedAddress) {
-        toast({
-          title: "Missing address",
-          description: "Please select an address to proceed.",
-          variant: "destructive",
-        });
-        setCurrentStep("address");
-        return;
-      }
       finalUserId = user?.id;
-      finalPayerId = user?.email;
+      finalPayerId = user?.email || addressForm.email;
       finalAddressInfo = {
         addressId: currentSelectedAddress?._id,
-        fullName: currentSelectedAddress?.fullName || user?.userName,
-        address: currentSelectedAddress?.address,
-        lga: currentSelectedAddress?.lga,
-        state: currentSelectedAddress?.state,
-        pincode: currentSelectedAddress?.pincode,
-        phone: currentSelectedAddress?.phone,
-        country: currentSelectedAddress?.country || "Nigeria",
-        notes: currentSelectedAddress?.notes,
-        email: user?.email,
+        fullName: confirmedAddress.fullName,
+        address: confirmedAddress.address,
+        lga: confirmedAddress.lga,
+        state: confirmedAddress.state,
+        phone: confirmedAddress.phone,
+        country: "Nigeria",
+        notes: confirmedAddress.notes,
+        email: finalPayerId,
       };
     } else {
       finalUserId = getOrCreateSessionId();
-      finalPayerId = guestFormData.email.trim().toLowerCase();
+      finalPayerId = addressForm.email.trim().toLowerCase();
       finalAddressInfo = {
-        fullName: guestFormData.fullName.trim(),
+        fullName: addressForm.fullName.trim(),
         email: finalPayerId,
-        phone: guestFormData.phone.trim(),
-        address: guestFormData.address.trim(),
-        state: guestFormData.state,
-        lga: guestFormData.lga.trim(),
-        notes: guestFormData.notes.trim(),
+        phone: addressForm.phone.trim(),
+        address: addressForm.address.trim(),
+        state: addressForm.state,
+        lga: addressForm.lga.trim(),
+        notes: addressForm.notes.trim(),
         country: "Nigeria",
       };
     }
@@ -320,9 +359,7 @@ function ShoppingCheckout() {
       setIsPaymentStart(true);
       const data = await dispatch(createNewOrder(orderData)).unwrap();
 
-      if (data?.success) {
-        // Redirection handled by approvalURL useEffect
-      } else {
+      if (!data?.success) {
         setIsPaymentStart(false);
         toast({
           title: "Payment initialization failed",
@@ -341,18 +378,7 @@ function ShoppingCheckout() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="font-manrope min-h-[60vh] flex flex-col items-center justify-center px-4">
-        <div className="w-12 h-12 rounded-full bg-[#111344]/5 flex items-center justify-center text-[#111344] mb-3 animate-pulse">
-          <Package className="w-6 h-6" />
-        </div>
-        <h2 className="text-base font-bold text-gray-900">Loading Checkout...</h2>
-        <p className="text-xs text-gray-500 mt-1">Preparing your order summary</p>
-      </div>
-    );
-  }
-
+  // If cart is completely empty, show empty state cleanly
   if (!cartItems || cartItems.length === 0) {
     return (
       <div className="font-manrope min-h-[60vh] flex flex-col items-center justify-center px-4 text-center max-w-md mx-auto">
@@ -381,7 +407,7 @@ function ShoppingCheckout() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200">
             <div>
               <h1 className="text-2xl sm:text-3xl font-black text-[#111344] tracking-tight">
-                Secure Checkout
+                Checkout
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
                 {currentStep === "address"
@@ -390,7 +416,7 @@ function ShoppingCheckout() {
               </p>
             </div>
 
-            {/* Modern 2-Step Pill Bar */}
+            {/* Clean 2-Step Pill Bar */}
             <div className="inline-flex items-center p-1 bg-white border border-gray-200 rounded-full shadow-2xs self-start sm:self-auto">
               <button
                 type="button"
@@ -440,251 +466,248 @@ function ShoppingCheckout() {
         </div>
 
         {/* ========================================================================= */}
-        {/* STEP 1: DELIVERY ADDRESS & CONTACT INFORMATION                             */}
+        {/* STEP 1: DELIVERY ADDRESS & CONTACT (IN ONE SINGLE CARD FRAME)             */}
         {/* ========================================================================= */}
         {currentStep === "address" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
-            {/* Left 2 Columns: Address Input / Selection */}
-            <div className="lg:col-span-2 space-y-4">
-              {isAuthenticated ? (
-                /* Authenticated User: Saved Address Selector */
-                <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-4">
-                  <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
-                    <div>
-                      <h2 className="text-base sm:text-lg font-bold text-[#0f172a] flex items-center gap-2">
-                        <Truck className="w-5 h-5 text-[#111344]" />
-                        Select Delivery Address
-                      </h2>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Choose where you want your order delivered.
-                      </p>
-                    </div>
-                  </div>
+            {/* Left 2 Columns: Single Card Frame matching User Profile (account.jsx) */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
+                {/* Header Row */}
+                <div className="flex items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                  <h2 className="text-[18px] sm:text-[20px] font-bold text-[#0f172a]">
+                    Delivery Address
+                  </h2>
 
-                  <Address
-                    selectedId={currentSelectedAddress}
-                    setCurrentSelectedAddress={setCurrentSelectedAddress}
-                  />
-                </div>
-              ) : (
-                /* Guest User: Direct Contact & Shipping Form */
-                <div className="space-y-4">
-                  {/* Subtle Log-in Banner */}
-                  <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/60 border border-blue-200/70 rounded-[14px] p-4 flex items-center justify-between gap-3 shadow-2xs">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#111344] text-white flex items-center justify-center shrink-0">
-                        <LogIn className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className="text-xs sm:text-sm font-bold text-gray-900">
-                          Checking out as a Guest
-                        </p>
-                        <p className="text-[11px] sm:text-xs text-gray-600">
-                          Already have an account? Log in to use your saved addresses.
-                        </p>
-                      </div>
-                    </div>
-                    <Button
+                  {/* Header Actions */}
+                  {isAuthenticated && addressList && addressList.length > 0 && !isEditingAddress ? (
+                    <button
                       type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate("/auth/login")}
-                      className="text-xs font-semibold bg-white border-gray-300 text-[#111344] hover:bg-gray-100 rounded-[8px] shrink-0"
+                      onClick={() => setIsEditingAddress(true)}
+                      className="text-[#0f172a] hover:text-[#111344] font-bold text-[13.5px] flex items-center gap-1 cursor-pointer transition-colors"
                     >
-                      Log in
-                    </Button>
-                  </div>
+                      <Plus className="w-4 h-4" />
+                      <span>Update address</span>
+                    </button>
+                  ) : !isAuthenticated ? (
+                    <button
+                      type="button"
+                      onClick={() => navigate("/auth/login")}
+                      className="text-[#0f172a] hover:text-[#111344] font-bold text-[13px] hover:underline cursor-pointer transition-colors"
+                    >
+                      Have an account? Log in
+                    </button>
+                  ) : isEditingAddress ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingAddress(false)}
+                      className="text-[#64748b] hover:text-[#0f172a] font-bold text-[13px] cursor-pointer transition-colors"
+                    >
+                      Cancel edit
+                    </button>
+                  ) : null}
+                </div>
 
-                  {/* Guest Address Form */}
-                  <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-5">
-                    <div className="border-b border-gray-100 pb-3">
-                      <h2 className="text-base sm:text-lg font-bold text-[#0f172a] flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-[#111344]" />
-                        Delivery Details
-                      </h2>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Please provide your contact information for dispatch and tracking updates.
+                {/* Body Content */}
+                {isAuthenticated && currentSelectedAddress && !isEditingAddress ? (
+                  /* Saved Address Display (Zero nested card boxes, clean and minimal) */
+                  <div className="space-y-3 pt-1">
+                    <span className="block text-[12px] font-medium text-[#94a3b8]">
+                      Primary Shipping Destination
+                    </span>
+
+                    <div className="space-y-1">
+                      <p className="font-bold text-[15px] sm:text-[16px] text-[#0f172a] leading-snug">
+                        {currentSelectedAddress.address}
                       </p>
+                      <p className="text-[14px] text-[#64748b]">
+                        {currentSelectedAddress.lga}, {currentSelectedAddress.state}, Nigeria
+                      </p>
+                      {currentSelectedAddress.phone && (
+                        <p className="text-[12px] text-[#94a3b8] pt-0.5">
+                          Contact:{" "}
+                          <span className="font-semibold text-[#0f172a]">
+                            {currentSelectedAddress.phone}
+                          </span>
+                        </p>
+                      )}
                     </div>
 
-                    <div className="space-y-4">
-                      {/* Full Name */}
+                    {/* Quick switch between multiple saved addresses */}
+                    {addressList.length > 1 && (
+                      <div className="pt-3 border-t border-gray-100 flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] text-[#94a3b8] font-semibold">
+                          Switch Destination:
+                        </span>
+                        {addressList.map((addr, idx) => {
+                          const isActive = currentSelectedAddress?._id === addr._id;
+                          return (
+                            <button
+                              key={addr._id || idx}
+                              type="button"
+                              onClick={() => {
+                                setCurrentSelectedAddress(addr);
+                                setAddressForm((prev) => ({
+                                  ...prev,
+                                  address: addr.address || prev.address,
+                                  lga: addr.lga || prev.lga,
+                                  state: addr.state || prev.state,
+                                  phone: addr.phone || prev.phone,
+                                }));
+                              }}
+                              className={`px-3 py-1 rounded-[6px] text-[12px] font-semibold border transition-all cursor-pointer ${
+                                isActive
+                                  ? "bg-[#111344] text-white border-[#111344]"
+                                  : "bg-white text-[#64748b] border-[#e5e7eb] hover:border-[#111344] hover:text-[#111344]"
+                              }`}
+                            >
+                              {addr.lga || `Address ${idx + 1}`}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Address Input Form (Exact match with user profile modal dialog) */
+                  <div className="space-y-4 pt-1">
+                    {/* House / Street Address */}
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                        House / Street Address
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={addressForm.address}
+                        onChange={(e) =>
+                          setAddressForm({ ...addressForm, address: e.target.value })
+                        }
+                        placeholder="e.g. 2, Bolarinwa street, Ipaja"
+                        className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                      />
+                    </div>
+
+                    {/* City / LGA & State (2 columns) */}
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <label className="block text-xs font-semibold text-gray-800 mb-1.5">
-                          Full Name <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                          <input
-                            type="text"
-                            value={guestFormData.fullName}
-                            onChange={(e) =>
-                              setGuestFormData({
-                                ...guestFormData,
-                                fullName: e.target.value,
-                              })
-                            }
-                            placeholder="e.g. Chidi Obi"
-                            className="w-full h-11 pl-10 pr-3 rounded-[10px] border border-gray-300 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all bg-white"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      {/* Email & Phone */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-800 mb-1.5">
-                            Email Address <span className="text-red-500">*</span>
-                          </label>
-                          <div className="relative">
-                            <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                            <input
-                              type="email"
-                              value={guestFormData.email}
-                              onChange={(e) =>
-                                setGuestFormData({
-                                  ...guestFormData,
-                                  email: e.target.value,
-                                })
-                              }
-                              placeholder="chidi@gmail.com"
-                              className="w-full h-11 pl-10 pr-3 rounded-[10px] border border-gray-300 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all bg-white"
-                              required
-                            />
-                          </div>
-                          <span className="text-[11px] text-gray-500 mt-1 block">
-                            Receipt and delivery tracking link sent here
-                          </span>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-800 mb-1.5">
-                            Phone Number <span className="text-red-500">*</span>
-                          </label>
-                          <div className="relative">
-                            <Phone className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                            <input
-                              type="tel"
-                              value={guestFormData.phone}
-                              onChange={(e) =>
-                                setGuestFormData({
-                                  ...guestFormData,
-                                  phone: e.target.value,
-                                })
-                              }
-                              placeholder="08012345678"
-                              className="w-full h-11 pl-10 pr-3 rounded-[10px] border border-gray-300 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all bg-white"
-                              required
-                            />
-                          </div>
-                          <span className="text-[11px] text-gray-500 mt-1 block">
-                            For dispatch rider contact
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Street Address */}
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-800 mb-1.5">
-                          Delivery Street Address <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <MapPin className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
-                          <input
-                            type="text"
-                            value={guestFormData.address}
-                            onChange={(e) =>
-                              setGuestFormData({
-                                ...guestFormData,
-                                address: e.target.value,
-                              })
-                            }
-                            placeholder="e.g. 15 Admiralty Way, Lekki Phase 1"
-                            className="w-full h-11 pl-10 pr-3 rounded-[10px] border border-gray-300 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all bg-white"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      {/* State & City/LGA */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-800 mb-1.5">
-                            State <span className="text-red-500">*</span>
-                          </label>
-                          <select
-                            value={guestFormData.state}
-                            onChange={(e) =>
-                              setGuestFormData({
-                                ...guestFormData,
-                                state: e.target.value,
-                              })
-                            }
-                            className="w-full h-11 px-3.5 rounded-[10px] border border-gray-300 text-sm font-medium text-gray-900 bg-white focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all"
-                          >
-                            {NIGERIAN_STATES.map((stateName) => (
-                              <option key={stateName} value={stateName}>
-                                {stateName}
-                              </option>
-                            ))}
-                          </select>
-                          <span className="text-[11px] text-gray-500 mt-1 block font-medium">
-                            {estimatedDeliveryTime} · ₦{deliveryPrice.toLocaleString("en-NG")}
-                          </span>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-800 mb-1.5">
-                            City / LGA <span className="text-red-500">*</span>
-                          </label>
-                          <div className="relative">
-                            <Building className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                            <input
-                              type="text"
-                              value={guestFormData.lga}
-                              onChange={(e) =>
-                                setGuestFormData({
-                                  ...guestFormData,
-                                  lga: e.target.value,
-                                })
-                              }
-                              placeholder="e.g. Ikeja, Eti-Osa, Port Harcourt"
-                              className="w-full h-11 pl-10 pr-3 rounded-[10px] border border-gray-300 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all bg-white"
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Delivery Notes */}
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-800 mb-1.5">
-                          Delivery Notes / Instructions{" "}
-                          <span className="text-gray-400 font-normal">(Optional)</span>
+                        <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                          City / LGA
                         </label>
                         <input
                           type="text"
-                          value={guestFormData.notes}
+                          required
+                          value={addressForm.lga}
                           onChange={(e) =>
-                            setGuestFormData({
-                              ...guestFormData,
-                              notes: e.target.value,
+                            setAddressForm({ ...addressForm, lga: e.target.value })
+                          }
+                          placeholder="e.g. Alimosho / Ipaja"
+                          className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                          State
+                        </label>
+                        <select
+                          value={addressForm.state}
+                          onChange={(e) =>
+                            setAddressForm({ ...addressForm, state: e.target.value })
+                          }
+                          className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                        >
+                          {NIGERIAN_STATES.map((stateName) => (
+                            <option key={stateName} value={stateName}>
+                              {stateName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Recipient Full Name & Delivery Phone (2 columns) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div>
+                        <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                          Recipient Full Name
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={addressForm.fullName}
+                          onChange={(e) =>
+                            setAddressForm({
+                              ...addressForm,
+                              fullName: e.target.value,
                             })
                           }
-                          placeholder="e.g. Call before arrival, leave with security gate"
-                          className="w-full h-11 px-3.5 rounded-[10px] border border-gray-300 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#111344] focus:ring-2 focus:ring-[#111344]/10 transition-all bg-white"
+                          placeholder="e.g. Chidi Obi"
+                          className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                          Delivery Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          value={addressForm.phone}
+                          onChange={(e) =>
+                            setAddressForm({
+                              ...addressForm,
+                              phone: e.target.value,
+                            })
+                          }
+                          placeholder="e.g. 08012345678"
+                          className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
                         />
                       </div>
                     </div>
+
+                    {/* Email Address */}
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                        Email Address (Receipt & Tracking)
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={addressForm.email}
+                        onChange={(e) =>
+                          setAddressForm({ ...addressForm, email: e.target.value })
+                        }
+                        placeholder="e.g. chidi@gmail.com"
+                        className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                      />
+                    </div>
+
+                    {/* Delivery Notes */}
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                        Delivery Notes / Instructions{" "}
+                        <span className="text-gray-400 font-normal">(Optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={addressForm.notes}
+                        onChange={(e) =>
+                          setAddressForm({ ...addressForm, notes: e.target.value })
+                        }
+                        placeholder="e.g. Call before arrival, leave with security gate"
+                        className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Right Column: Order Preview & Proceed CTA */}
             <div className="space-y-4">
-              <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-5 sm:p-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-4">
+              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
                 <h3 className="text-base font-bold text-[#111344]">
                   Order Overview
                 </h3>
@@ -756,25 +779,25 @@ function ShoppingCheckout() {
         )}
 
         {/* ========================================================================= */}
-        {/* STEP 2: REVIEW ORDER & COMPLETE PAYMENT                                   */}
+        {/* STEP 2: REVIEW & COMPLETE PAYMENT (IN ONE SINGLE CARD FRAME)              */}
         {/* ========================================================================= */}
         {currentStep === "payment" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
             {/* Left 2 Columns: Confirmed Shipping Card & Items Breakdown */}
             <div className="lg:col-span-2 space-y-5">
-              {/* Confirmed Shipping Destination Card (matching Homepage / Profile specification) */}
-              <div className="border border-[#e5e7eb] rounded-[16px] p-5 sm:p-6 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-3">
-                <div className="flex items-center justify-between gap-3">
+              {/* Confirmed Delivery Address Card (Single frame matching User Profile) */}
+              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3">
+                <div className="flex items-center justify-between gap-3 pb-3 border-b border-gray-100">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
-                    <span className="text-[11px] sm:text-[12px] font-bold text-[#64748b] uppercase tracking-wider">
-                      Shipping Destination
-                    </span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+                    <h2 className="text-[18px] sm:text-[20px] font-bold text-[#0f172a]">
+                      Delivery Address
+                    </h2>
                   </div>
                   <button
                     type="button"
                     onClick={() => setCurrentStep("address")}
-                    className="text-[#111344] hover:text-[#0C1172] font-bold text-[13px] cursor-pointer hover:underline transition-colors flex items-center gap-1"
+                    className="text-[#0f172a] hover:text-[#111344] font-bold text-[13.5px] cursor-pointer hover:underline transition-colors"
                   >
                     Update address
                   </button>
@@ -784,7 +807,7 @@ function ShoppingCheckout() {
                   <p className="font-bold text-[15px] sm:text-[16px] text-[#0f172a] leading-snug">
                     {confirmedAddress.address || "Street Address Not Provided"}
                   </p>
-                  <p className="text-[13.5px] sm:text-[14px] text-[#64748b]">
+                  <p className="text-[14px] text-[#64748b]">
                     {confirmedAddress.lga ? `${confirmedAddress.lga}, ` : ""}
                     {confirmedAddress.state}, Nigeria
                   </p>
@@ -803,7 +826,7 @@ function ShoppingCheckout() {
                     </span>
                     {confirmedAddress.email && (
                       <span>
-                        Receipt to:{" "}
+                        Receipt:{" "}
                         <span className="font-semibold text-[#0f172a]">
                           {confirmedAddress.email}
                         </span>
@@ -811,7 +834,7 @@ function ShoppingCheckout() {
                     )}
                   </div>
                   {confirmedAddress.notes && (
-                    <p className="text-[12px] text-amber-700 bg-amber-50/70 p-2 rounded-[8px] mt-2 border border-amber-200/50">
+                    <p className="text-[12px] text-[#64748b] pt-1">
                       Note: {confirmedAddress.notes}
                     </p>
                   )}
@@ -819,7 +842,7 @@ function ShoppingCheckout() {
               </div>
 
               {/* Order Items Breakdown */}
-              <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-5 sm:p-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-4">
+              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                   <h3 className="text-base font-bold text-[#111344]">
                     Items in Your Order ({cartItems.length})
@@ -890,7 +913,7 @@ function ShoppingCheckout() {
               </div>
 
               {/* Payment Method Card */}
-              <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-5 sm:p-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-3">
+              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CreditCard className="w-5 h-5 text-[#111344]" />
@@ -924,7 +947,7 @@ function ShoppingCheckout() {
 
             {/* Right Column: Final Order Summary & Pay CTA */}
             <div className="space-y-4">
-              <div className="bg-white rounded-[16px] border border-[#e5e7eb] p-5 sm:p-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-4">
+              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
                 <h3 className="text-base font-bold text-[#111344]">
                   Payment Summary
                 </h3>
