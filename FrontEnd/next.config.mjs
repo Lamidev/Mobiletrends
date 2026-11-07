@@ -32,6 +32,8 @@ const normalizedApiBaseUrl = rawApiUrl.replace(/\/+$/, '').endsWith('/api')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  compress: true,
+  poweredByHeader: false,
   env: {
     NEXT_PUBLIC_API_BASE_URL: normalizedApiBaseUrl,
   },

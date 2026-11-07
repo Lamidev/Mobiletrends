@@ -150,6 +150,24 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined') {
+                window.addEventListener('error', function(e) {
+                  var msg = (e && (e.message || (e.error && e.error.message))) || '';
+                  if (msg.indexOf('Loading chunk') !== -1 || msg.indexOf('ChunkLoadError') !== -1) {
+                    var retryKey = 'mt_chunk_retry_' + window.location.pathname;
+                    if (!sessionStorage.getItem(retryKey)) {
+                      sessionStorage.setItem(retryKey, '1');
+                      window.location.reload();
+                    }
+                  }
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body className="font-body antialiased bg-[#fafaf8] text-[#20231e] min-h-screen">
         <ReduxProvider>

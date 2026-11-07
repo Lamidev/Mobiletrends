@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 
 interface PreloaderProps {
   active?: boolean;
@@ -9,12 +8,7 @@ interface PreloaderProps {
 }
 
 /**
- * Reusable SWOT-style full-screen preloader curtain with smooth upward slide-out animation.
- * Can be used for:
- * 1. Initial site visit / hydration preloader
- * 2. Protected route & auth session verification gate (/admin/*, /shop/checkout, /shop/account)
- * 3. Paystack payment verification return screen (/shop/paystack-return)
- * 4. Role switch / sign-in / sign-out transitions
+ * Reusable full-screen preloader curtain with smooth upward slide-out animation.
  */
 export function Preloader({ active = true, subtitle }: PreloaderProps) {
   const [shouldRender, setShouldRender] = useState(active);
@@ -23,7 +17,7 @@ export function Preloader({ active = true, subtitle }: PreloaderProps) {
     if (active) {
       setShouldRender(true);
     } else {
-      const timer = setTimeout(() => setShouldRender(false), 750);
+      const timer = setTimeout(() => setShouldRender(false), 350);
       return () => clearTimeout(timer);
     }
   }, [active]);
@@ -34,7 +28,7 @@ export function Preloader({ active = true, subtitle }: PreloaderProps) {
     <div
       aria-live="polite"
       aria-busy={active}
-      className={`fixed inset-0 z-[9999] bg-[#fafaf8] flex items-center justify-center transition-transform duration-700 ease-out ${
+      className={`fixed inset-0 z-[9999] bg-[#fafaf8] flex items-center justify-center transition-transform duration-300 ease-out ${
         active
           ? "translate-y-0 pointer-events-auto"
           : "-translate-y-full pointer-events-none"
@@ -58,7 +52,7 @@ export function Preloader({ active = true, subtitle }: PreloaderProps) {
           </div>
         </div>
 
-        {/* 32px Circular Spinner matching SWOT preloader */}
+        {/* Circular Spinner */}
         <div
           className="w-8 h-8 rounded-full border-[3px] border-[#daddd4] border-t-[#111344] animate-spin"
           role="status"
@@ -77,26 +71,29 @@ export function Preloader({ active = true, subtitle }: PreloaderProps) {
 
 /**
  * First-visit / initial app load preloader controller.
- * Displays the SWOT-style preloader on initial load and smoothly slides upward once ready.
+ * Displays on the first visit only per session and smoothly dismisses without blocking navigation.
  */
 export function InitialVisitPreloader() {
-  const { isCheckingAuth } = useSelector((state: any) => state.auth);
-  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
-  const [maxTimeElapsed, setMaxTimeElapsed] = useState(false);
+  const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
-    const minTimer = setTimeout(() => setMinTimeElapsed(true), 550);
-    const maxTimer = setTimeout(() => setMaxTimeElapsed(true), 1400);
-    return () => {
-      clearTimeout(minTimer);
-      clearTimeout(maxTimer);
-    };
+    try {
+      const hasSeen = sessionStorage.getItem("mt_preloader_seen");
+      if (!hasSeen) {
+        setIsActive(true);
+        sessionStorage.setItem("mt_preloader_seen", "true");
+        // Fast, non-blocking 250ms dismiss
+        const timer = setTimeout(() => setIsActive(false), 250);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      setIsActive(false);
+    }
   }, []);
 
-  const isActive = !maxTimeElapsed && (!minTimeElapsed || isCheckingAuth);
+  if (!isActive) return null;
 
   return <Preloader active={isActive} />;
 }
 
 export default Preloader;
-
