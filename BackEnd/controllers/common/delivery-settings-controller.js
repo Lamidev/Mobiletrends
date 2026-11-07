@@ -6,12 +6,32 @@ const getDeliverySettings = async (req, res) => {
     let settings = await DeliverySettings.findOne();
     if (!settings) {
       settings = await DeliverySettings.create({
-        lagosFee: 10000,
-        outsideLagosFee: 20000,
+        localState: "Ondo",
+        localCity: "Akure",
+        localFee: 3000,
+        nationwideFee: 7000,
+        lagosFee: 3000,
+        outsideLagosFee: 7000,
         freeDeliveryThreshold: 0,
-        estimatedDaysLagos: "Same Day Delivery",
-        estimatedDaysOutside: "1-2 Business Days",
+        estimatedDaysLocal: "Same Day Delivery (Akure & Ondo)",
+        estimatedDaysNationwide: "1-2 Business Days (Nationwide)",
+        estimatedDaysLagos: "Same Day Delivery (Akure & Ondo)",
+        estimatedDaysOutside: "1-2 Business Days (Nationwide)",
       });
+    } else {
+      // Ensure localFee and nationwideFee exist on legacy documents
+      if (settings.localFee === undefined) {
+        settings.localFee = settings.lagosFee ?? 3000;
+      }
+      if (settings.nationwideFee === undefined) {
+        settings.nationwideFee = settings.outsideLagosFee ?? 7000;
+      }
+      if (!settings.estimatedDaysLocal) {
+        settings.estimatedDaysLocal = settings.estimatedDaysLagos || "Same Day Delivery (Akure & Ondo)";
+      }
+      if (!settings.estimatedDaysNationwide) {
+        settings.estimatedDaysNationwide = settings.estimatedDaysOutside || "1-2 Business Days (Nationwide)";
+      }
     }
 
     res.status(200).json({
@@ -24,10 +44,14 @@ const getDeliverySettings = async (req, res) => {
       success: false,
       message: "Failed to fetch delivery settings",
       data: {
-        lagosFee: 10000,
-        outsideLagosFee: 20000,
-        estimatedDaysLagos: "Same Day Delivery",
-        estimatedDaysOutside: "1-2 Business Days",
+        localState: "Ondo",
+        localCity: "Akure",
+        localFee: 3000,
+        nationwideFee: 7000,
+        lagosFee: 3000,
+        outsideLagosFee: 7000,
+        estimatedDaysLocal: "Same Day Delivery (Akure & Ondo)",
+        estimatedDaysNationwide: "1-2 Business Days (Nationwide)",
       },
     });
   }
@@ -37,11 +61,17 @@ const getDeliverySettings = async (req, res) => {
 const updateDeliverySettings = async (req, res) => {
   try {
     const {
+      localFee,
+      nationwideFee,
       lagosFee,
       outsideLagosFee,
       freeDeliveryThreshold,
+      estimatedDaysLocal,
+      estimatedDaysNationwide,
       estimatedDaysLagos,
       estimatedDaysOutside,
+      localState,
+      localCity,
     } = req.body;
 
     let settings = await DeliverySettings.findOne();
@@ -49,15 +79,43 @@ const updateDeliverySettings = async (req, res) => {
       settings = new DeliverySettings();
     }
 
-    if (lagosFee !== undefined) settings.lagosFee = Math.max(0, Number(lagosFee));
-    if (outsideLagosFee !== undefined)
-      settings.outsideLagosFee = Math.max(0, Number(outsideLagosFee));
-    if (freeDeliveryThreshold !== undefined)
+    const resolvedLocalFee =
+      localFee !== undefined ? Number(localFee) : lagosFee !== undefined ? Number(lagosFee) : undefined;
+    const resolvedNationwideFee =
+      nationwideFee !== undefined
+        ? Number(nationwideFee)
+        : outsideLagosFee !== undefined
+        ? Number(outsideLagosFee)
+        : undefined;
+
+    if (resolvedLocalFee !== undefined) {
+      settings.localFee = Math.max(0, resolvedLocalFee);
+      settings.lagosFee = settings.localFee; // sync legacy alias
+    }
+
+    if (resolvedNationwideFee !== undefined) {
+      settings.nationwideFee = Math.max(0, resolvedNationwideFee);
+      settings.outsideLagosFee = settings.nationwideFee; // sync legacy alias
+    }
+
+    if (freeDeliveryThreshold !== undefined) {
       settings.freeDeliveryThreshold = Math.max(0, Number(freeDeliveryThreshold));
-    if (estimatedDaysLagos !== undefined)
-      settings.estimatedDaysLagos = String(estimatedDaysLagos).trim();
-    if (estimatedDaysOutside !== undefined)
-      settings.estimatedDaysOutside = String(estimatedDaysOutside).trim();
+    }
+
+    const resolvedLocalTime = estimatedDaysLocal || estimatedDaysLagos;
+    if (resolvedLocalTime !== undefined) {
+      settings.estimatedDaysLocal = String(resolvedLocalTime).trim();
+      settings.estimatedDaysLagos = settings.estimatedDaysLocal;
+    }
+
+    const resolvedNationwideTime = estimatedDaysNationwide || estimatedDaysOutside;
+    if (resolvedNationwideTime !== undefined) {
+      settings.estimatedDaysNationwide = String(resolvedNationwideTime).trim();
+      settings.estimatedDaysOutside = settings.estimatedDaysNationwide;
+    }
+
+    if (localState !== undefined) settings.localState = String(localState).trim();
+    if (localCity !== undefined) settings.localCity = String(localCity).trim();
 
     await settings.save();
 
@@ -79,4 +137,3 @@ module.exports = {
   getDeliverySettings,
   updateDeliverySettings,
 };
-

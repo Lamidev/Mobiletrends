@@ -10,6 +10,7 @@ import {
   fetchDeliverySettings,
   getDeliveryPrice,
   getEstimatedDeliveryTime,
+  isLocalDelivery,
 } from "../../services/delivery-service";
 import {
   Truck,
@@ -21,12 +22,15 @@ import {
   Lock,
   ChevronRight,
   Plus,
+  MapPin,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchCartItems } from "@/store/shop/cart-slice";
 import { getOrCreateSessionId } from "@/components/utils/session";
 
+// Nigerian states list with Ondo (Mobiletrends HQ in Akure) first
 const NIGERIAN_STATES = [
+  "Ondo",
   "Lagos",
   "Abuja (FCT)",
   "Abia",
@@ -55,7 +59,6 @@ const NIGERIAN_STATES = [
   "Nasarawa",
   "Niger",
   "Ogun",
-  "Ondo",
   "Osun",
   "Oyo",
   "Plateau",
@@ -82,7 +85,7 @@ function ShoppingCheckout() {
   const [currentStep, setCurrentStep] = useState("address");
   const [isPaymentStart, setIsPaymentStart] = useState(false);
 
-  // Mode for authenticated users: toggle between selected address card and edit form
+  // Mode for authenticated members: toggle between saved address view and inline edit
   const [isEditingAddress, setIsEditingAddress] = useState(false);
 
   // Selected address for logged-in user
@@ -94,27 +97,37 @@ function ShoppingCheckout() {
     email: user?.email || "",
     phone: user?.phone || "",
     address: "",
-    state: "Lagos",
+    state: "Ondo",
     lga: "",
     notes: "",
   });
 
-  // Dynamic delivery settings from DB
+  // Dynamic delivery settings from DB (defaults for Akure, Ondo HQ)
   const [deliverySettings, setDeliverySettings] = useState({
-    lagosFee: 10000,
-    outsideLagosFee: 20000,
+    localFee: 3000,
+    nationwideFee: 7000,
     freeDeliveryThreshold: 0,
-    estimatedDaysLagos: "Same Day Delivery",
-    estimatedDaysOutside: "1-2 Business Days",
+    estimatedDaysLocal: "Same Day Delivery (Akure & Ondo)",
+    estimatedDaysNationwide: "1-2 Business Days (Nationwide)",
   });
 
   const currentUserId = user?.id || user?.Id || user?._id;
 
-  // Load cart items, addresses & delivery settings on mount
+  // Load cart items, addresses & live dynamic delivery settings on mount
   useEffect(() => {
     dispatch(fetchCartItems());
     fetchDeliverySettings().then((settings) => {
-      if (settings) setDeliverySettings(settings);
+      if (settings) {
+        setDeliverySettings({
+          localFee: Number(settings.localFee ?? settings.lagosFee ?? 3000),
+          nationwideFee: Number(settings.nationwideFee ?? settings.outsideLagosFee ?? 7000),
+          freeDeliveryThreshold: Number(settings.freeDeliveryThreshold ?? 0),
+          estimatedDaysLocal:
+            settings.estimatedDaysLocal || settings.estimatedDaysLagos || "Same Day Delivery (Akure & Ondo)",
+          estimatedDaysNationwide:
+            settings.estimatedDaysNationwide || settings.estimatedDaysOutside || "1-2 Business Days (Nationwide)",
+        });
+      }
     });
     if (currentUserId) {
       dispatch(fetchAllAddresses(currentUserId));
@@ -168,21 +181,31 @@ function ShoppingCheckout() {
         )
       : 0;
 
-  // Active state for shipping rates
+  // Active state & LGA for live dynamic delivery rate calculation
   const activeState =
     isAuthenticated && currentSelectedAddress && !isEditingAddress
       ? currentSelectedAddress.state
-      : addressForm.state || "Lagos";
+      : addressForm.state || "Ondo";
 
+  const activeLga =
+    isAuthenticated && currentSelectedAddress && !isEditingAddress
+      ? currentSelectedAddress.lga
+      : addressForm.lga || "";
+
+  // Dynamic delivery calculations
   const deliveryPrice = getDeliveryPrice(
     activeState,
     deliverySettings,
-    totalCartAmount
+    totalCartAmount,
+    activeLga
   );
+
   const estimatedDeliveryTime = getEstimatedDeliveryTime(
     activeState,
-    deliverySettings
+    deliverySettings,
+    activeLga
   );
+
   const totalAmountWithDelivery = totalCartAmount + deliveryPrice;
 
   // Active confirmed address object (used in Step 2 review card)
@@ -190,7 +213,7 @@ function ShoppingCheckout() {
     isAuthenticated && currentSelectedAddress && !isEditingAddress
       ? {
           fullName:
-            currentSelectedAddress?.fullName || user?.userName || addressForm.fullName || "Member",
+            currentSelectedAddress?.fullName || user?.userName || addressForm.fullName || "Customer",
           address: currentSelectedAddress?.address || addressForm.address,
           lga: currentSelectedAddress?.lga || addressForm.lga,
           state: currentSelectedAddress?.state || addressForm.state,
@@ -210,14 +233,12 @@ function ShoppingCheckout() {
 
   // Step 1 validation: Continue to Step 2
   const handleProceedToPayment = () => {
-    // If authenticated and has a selected address and not currently editing, proceed directly
     if (isAuthenticated && currentSelectedAddress && !isEditingAddress) {
       setCurrentStep("payment");
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
-    // Validate form fields matching Profile requirements
     if (!addressForm.address.trim()) {
       toast({
         title: "House / Street address required",
@@ -229,7 +250,7 @@ function ShoppingCheckout() {
     if (!addressForm.lga.trim()) {
       toast({
         title: "City / LGA required",
-        description: "Please enter your City or Local Government Area.",
+        description: "Please enter your City or LGA (e.g. Akure South, Ikeja).",
         variant: "destructive",
       });
       return;
@@ -269,7 +290,6 @@ function ShoppingCheckout() {
       return;
     }
 
-    // If member edited address manually, sync to currentSelectedAddress
     if (isAuthenticated) {
       setCurrentSelectedAddress({
         _id: currentSelectedAddress?._id,
@@ -378,7 +398,7 @@ function ShoppingCheckout() {
     }
   };
 
-  // If cart is completely empty, show empty state cleanly
+  // Empty cart view
   if (!cartItems || cartItems.length === 0) {
     return (
       <div className="font-manrope min-h-[60vh] flex flex-col items-center justify-center px-4 text-center max-w-md mx-auto">
@@ -400,28 +420,28 @@ function ShoppingCheckout() {
   }
 
   return (
-    <div className="font-manrope bg-[#f8fafc]/60 min-h-screen py-6 sm:py-10">
-      <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
-        {/* Page Title & Navigation Stepper */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200">
+    <div className="font-manrope bg-[#f8fafc]/50 min-h-screen py-5 sm:py-8 lg:py-10">
+      <div className="container mx-auto px-3.5 sm:px-6 max-w-6xl">
+        {/* Header Row & Clean 2-Step Pill Bar */}
+        <div className="mb-5 sm:mb-7">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-gray-100">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-[#111344] tracking-tight">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#111344] tracking-tight">
                 Checkout
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
                 {currentStep === "address"
-                  ? "Step 1 of 2: Enter delivery address & contact details"
-                  : "Step 2 of 2: Review order details and complete payment"}
+                  ? "Step 1 of 2: Shipping & delivery details"
+                  : "Step 2 of 2: Review and secure payment"}
               </p>
             </div>
 
-            {/* Clean 2-Step Pill Bar */}
-            <div className="inline-flex items-center p-1 bg-white border border-gray-200 rounded-full shadow-2xs self-start sm:self-auto">
+            {/* Step Pills */}
+            <div className="inline-flex items-center p-1 bg-white border border-gray-200/70 rounded-full shadow-2xs self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => setCurrentStep("address")}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   currentStep === "address"
                     ? "bg-[#111344] text-white shadow-xs"
                     : "text-gray-600 hover:text-gray-900"
@@ -444,7 +464,7 @@ function ShoppingCheckout() {
               <button
                 type="button"
                 onClick={handleProceedToPayment}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   currentStep === "payment"
                     ? "bg-[#111344] text-white shadow-xs"
                     : "text-gray-600 hover:text-gray-900"
@@ -466,16 +486,16 @@ function ShoppingCheckout() {
         </div>
 
         {/* ========================================================================= */}
-        {/* STEP 1: DELIVERY ADDRESS & CONTACT (IN ONE SINGLE CARD FRAME)             */}
+        {/* STEP 1: DELIVERY ADDRESS & CONTACT (REDUCED BORDER, UNCOMPRESSED PADDING) */}
         {/* ========================================================================= */}
         {currentStep === "address" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
-            {/* Left 2 Columns: Single Card Frame matching User Profile (account.jsx) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8 items-start">
+            {/* Left 2 Columns: Single Clean Card Frame */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] border border-gray-100 sm:border-gray-200/70 p-4 sm:p-6 lg:p-7 shadow-[0_1px_3px_rgba(0,0,0,0.02)] sm:shadow-[0_2px_8px_rgba(0,0,0,0.02)] space-y-4">
                 {/* Header Row */}
                 <div className="flex items-center justify-between gap-3 pb-3 border-b border-gray-100">
-                  <h2 className="text-[18px] sm:text-[20px] font-bold text-[#0f172a]">
+                  <h2 className="text-[17px] sm:text-[19px] font-bold text-[#0f172a]">
                     Delivery Address
                   </h2>
 
@@ -484,16 +504,16 @@ function ShoppingCheckout() {
                     <button
                       type="button"
                       onClick={() => setIsEditingAddress(true)}
-                      className="text-[#0f172a] hover:text-[#111344] font-bold text-[13.5px] flex items-center gap-1 cursor-pointer transition-colors"
+                      className="text-[#0f172a] hover:text-[#111344] font-bold text-[13px] sm:text-[13.5px] flex items-center gap-1 cursor-pointer transition-colors"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-3.5 h-3.5" />
                       <span>Update address</span>
                     </button>
                   ) : !isAuthenticated ? (
                     <button
                       type="button"
                       onClick={() => navigate("/auth/login")}
-                      className="text-[#0f172a] hover:text-[#111344] font-bold text-[13px] hover:underline cursor-pointer transition-colors"
+                      className="text-[#0f172a] hover:text-[#111344] font-bold text-[12.5px] sm:text-[13px] hover:underline cursor-pointer transition-colors"
                     >
                       Have an account? Log in
                     </button>
@@ -501,7 +521,7 @@ function ShoppingCheckout() {
                     <button
                       type="button"
                       onClick={() => setIsEditingAddress(false)}
-                      className="text-[#64748b] hover:text-[#0f172a] font-bold text-[13px] cursor-pointer transition-colors"
+                      className="text-[#64748b] hover:text-[#0f172a] font-bold text-[12.5px] sm:text-[13px] cursor-pointer transition-colors"
                     >
                       Cancel edit
                     </button>
@@ -510,9 +530,9 @@ function ShoppingCheckout() {
 
                 {/* Body Content */}
                 {isAuthenticated && currentSelectedAddress && !isEditingAddress ? (
-                  /* Saved Address Display (Zero nested card boxes, clean and minimal) */
+                  /* Saved Address Display */
                   <div className="space-y-3 pt-1">
-                    <span className="block text-[12px] font-medium text-[#94a3b8]">
+                    <span className="block text-[11.5px] sm:text-[12px] font-medium text-[#94a3b8]">
                       Primary Shipping Destination
                     </span>
 
@@ -520,11 +540,12 @@ function ShoppingCheckout() {
                       <p className="font-bold text-[15px] sm:text-[16px] text-[#0f172a] leading-snug">
                         {currentSelectedAddress.address}
                       </p>
-                      <p className="text-[14px] text-[#64748b]">
-                        {currentSelectedAddress.lga}, {currentSelectedAddress.state}, Nigeria
+                      <p className="text-[13.5px] sm:text-[14px] text-[#64748b]">
+                        {currentSelectedAddress.lga ? `${currentSelectedAddress.lga}, ` : ""}
+                        {currentSelectedAddress.state}, Nigeria
                       </p>
                       {currentSelectedAddress.phone && (
-                        <p className="text-[12px] text-[#94a3b8] pt-0.5">
+                        <p className="text-[12px] sm:text-[12.5px] text-[#94a3b8] pt-0.5">
                           Contact:{" "}
                           <span className="font-semibold text-[#0f172a]">
                             {currentSelectedAddress.phone}
@@ -569,11 +590,11 @@ function ShoppingCheckout() {
                     )}
                   </div>
                 ) : (
-                  /* Address Input Form (Exact match with user profile modal dialog) */
-                  <div className="space-y-4 pt-1">
+                  /* Address Input Form (Matches Profile modal dialog) */
+                  <div className="space-y-3.5 sm:space-y-4 pt-1">
                     {/* House / Street Address */}
                     <div>
-                      <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                      <label className="block text-[12px] sm:text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
                         House / Street Address
                       </label>
                       <input
@@ -583,15 +604,15 @@ function ShoppingCheckout() {
                         onChange={(e) =>
                           setAddressForm({ ...addressForm, address: e.target.value })
                         }
-                        placeholder="e.g. 2, Bolarinwa street, Ipaja"
-                        className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                        placeholder="e.g. 2, Oba Adesida Road, Akure"
+                        className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14px] sm:text-[14.5px] text-[#0f172a] transition-all bg-white"
                       />
                     </div>
 
-                    {/* City / LGA & State (2 columns) */}
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    {/* City / LGA & State (Responsive: stacks on tiny mobile, 2 cols on sm) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                        <label className="block text-[12px] sm:text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
                           City / LGA
                         </label>
                         <input
@@ -601,21 +622,28 @@ function ShoppingCheckout() {
                           onChange={(e) =>
                             setAddressForm({ ...addressForm, lga: e.target.value })
                           }
-                          placeholder="e.g. Alimosho / Ipaja"
-                          className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                          placeholder="e.g. Akure South / Ondo West"
+                          className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14px] sm:text-[14.5px] text-[#0f172a] transition-all bg-white"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
-                          State
-                        </label>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="block text-[12px] sm:text-[12.5px] font-semibold text-[#1e293b]">
+                            State
+                          </label>
+                          <span className="text-[11px] font-semibold text-emerald-700">
+                            {isLocalDelivery(addressForm.state, addressForm.lga)
+                              ? "Local (Akure & Ondo)"
+                              : "Nationwide"}
+                          </span>
+                        </div>
                         <select
                           value={addressForm.state}
                           onChange={(e) =>
                             setAddressForm({ ...addressForm, state: e.target.value })
                           }
-                          className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                          className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14px] sm:text-[14.5px] text-[#0f172a] transition-all bg-white"
                         >
                           {NIGERIAN_STATES.map((stateName) => (
                             <option key={stateName} value={stateName}>
@@ -626,10 +654,10 @@ function ShoppingCheckout() {
                       </div>
                     </div>
 
-                    {/* Recipient Full Name & Delivery Phone (2 columns) */}
+                    {/* Recipient Full Name & Delivery Phone Number */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                        <label className="block text-[12px] sm:text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
                           Recipient Full Name
                         </label>
                         <input
@@ -643,12 +671,12 @@ function ShoppingCheckout() {
                             })
                           }
                           placeholder="e.g. Chidi Obi"
-                          className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                          className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14px] sm:text-[14.5px] text-[#0f172a] transition-all bg-white"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                        <label className="block text-[12px] sm:text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
                           Delivery Phone Number
                         </label>
                         <input
@@ -662,15 +690,15 @@ function ShoppingCheckout() {
                             })
                           }
                           placeholder="e.g. 08012345678"
-                          className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                          className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14px] sm:text-[14.5px] text-[#0f172a] transition-all bg-white"
                         />
                       </div>
                     </div>
 
                     {/* Email Address */}
                     <div>
-                      <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
-                        Email Address (Receipt & Tracking)
+                      <label className="block text-[12px] sm:text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                        Email Address (for Receipt & Tracking)
                       </label>
                       <input
                         type="email"
@@ -680,13 +708,13 @@ function ShoppingCheckout() {
                           setAddressForm({ ...addressForm, email: e.target.value })
                         }
                         placeholder="e.g. chidi@gmail.com"
-                        className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                        className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14px] sm:text-[14.5px] text-[#0f172a] transition-all bg-white"
                       />
                     </div>
 
                     {/* Delivery Notes */}
                     <div>
-                      <label className="block text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
+                      <label className="block text-[12px] sm:text-[12.5px] font-semibold text-[#1e293b] mb-1.5">
                         Delivery Notes / Instructions{" "}
                         <span className="text-gray-400 font-normal">(Optional)</span>
                       </label>
@@ -697,7 +725,7 @@ function ShoppingCheckout() {
                           setAddressForm({ ...addressForm, notes: e.target.value })
                         }
                         placeholder="e.g. Call before arrival, leave with security gate"
-                        className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14.5px] text-[#0f172a] transition-all bg-white"
+                        className="w-full h-11 px-3.5 rounded-[12px] border border-gray-200 focus:border-[#3b82f6] focus:ring-4 focus:ring-[#3b82f6]/10 outline-none text-[14px] sm:text-[14.5px] text-[#0f172a] transition-all bg-white"
                       />
                     </div>
                   </div>
@@ -707,7 +735,7 @@ function ShoppingCheckout() {
 
             {/* Right Column: Order Preview & Proceed CTA */}
             <div className="space-y-4">
-              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] border border-gray-100 sm:border-gray-200/70 p-4 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] sm:shadow-[0_2px_8px_rgba(0,0,0,0.02)] space-y-4">
                 <h3 className="text-base font-bold text-[#111344]">
                   Order Overview
                 </h3>
@@ -747,10 +775,16 @@ function ShoppingCheckout() {
                     </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
-                    <span>Estimated Shipping ({activeState})</span>
+                    <span className="flex items-center gap-1">
+                      <Truck className="w-3.5 h-3.5 text-gray-500" />
+                      Shipping ({activeState})
+                    </span>
                     <span className="font-bold text-gray-900">
                       ₦{deliveryPrice.toLocaleString("en-NG")}
                     </span>
+                  </div>
+                  <div className="text-[11px] text-gray-500">
+                    Estimated: <span className="font-semibold text-gray-800">{estimatedDeliveryTime}</span>
                   </div>
                   <div className="pt-2 border-t border-gray-100 flex justify-between text-sm font-bold">
                     <span className="text-[#111344]">Estimated Total</span>
@@ -762,7 +796,7 @@ function ShoppingCheckout() {
 
                 <Button
                   onClick={handleProceedToPayment}
-                  className="w-full h-12 bg-[#111344] hover:bg-[#0C1172] text-white rounded-[8px] font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition-all mt-2"
+                  className="w-full h-11 sm:h-12 bg-[#111344] hover:bg-[#0C1172] text-white rounded-[8px] font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition-all mt-2"
                 >
                   <span>Continue to Payment</span>
                   <ArrowRight className="w-4 h-4" />
@@ -779,25 +813,25 @@ function ShoppingCheckout() {
         )}
 
         {/* ========================================================================= */}
-        {/* STEP 2: REVIEW & COMPLETE PAYMENT (IN ONE SINGLE CARD FRAME)              */}
+        {/* STEP 2: REVIEW & COMPLETE PAYMENT (REDUCED BORDERS & CLEAN UNCOMPRESSED) */}
         {/* ========================================================================= */}
         {currentStep === "payment" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8 items-start">
             {/* Left 2 Columns: Confirmed Shipping Card & Items Breakdown */}
-            <div className="lg:col-span-2 space-y-5">
-              {/* Confirmed Delivery Address Card (Single frame matching User Profile) */}
-              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3">
+            <div className="lg:col-span-2 space-y-4 sm:space-y-5">
+              {/* Confirmed Delivery Address Card */}
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] border border-gray-100 sm:border-gray-200/70 p-4 sm:p-6 lg:p-7 shadow-[0_1px_3px_rgba(0,0,0,0.02)] sm:shadow-[0_2px_8px_rgba(0,0,0,0.02)] space-y-3">
                 <div className="flex items-center justify-between gap-3 pb-3 border-b border-gray-100">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
-                    <h2 className="text-[18px] sm:text-[20px] font-bold text-[#0f172a]">
+                    <h2 className="text-[17px] sm:text-[19px] font-bold text-[#0f172a]">
                       Delivery Address
                     </h2>
                   </div>
                   <button
                     type="button"
                     onClick={() => setCurrentStep("address")}
-                    className="text-[#0f172a] hover:text-[#111344] font-bold text-[13.5px] cursor-pointer hover:underline transition-colors"
+                    className="text-[#0f172a] hover:text-[#111344] font-bold text-[13px] sm:text-[13.5px] cursor-pointer hover:underline transition-colors"
                   >
                     Update address
                   </button>
@@ -807,7 +841,7 @@ function ShoppingCheckout() {
                   <p className="font-bold text-[15px] sm:text-[16px] text-[#0f172a] leading-snug">
                     {confirmedAddress.address || "Street Address Not Provided"}
                   </p>
-                  <p className="text-[14px] text-[#64748b]">
+                  <p className="text-[13.5px] sm:text-[14px] text-[#64748b]">
                     {confirmedAddress.lga ? `${confirmedAddress.lga}, ` : ""}
                     {confirmedAddress.state}, Nigeria
                   </p>
@@ -842,7 +876,7 @@ function ShoppingCheckout() {
               </div>
 
               {/* Order Items Breakdown */}
-              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] border border-gray-100 sm:border-gray-200/70 p-4 sm:p-6 lg:p-7 shadow-[0_1px_3px_rgba(0,0,0,0.02)] sm:shadow-[0_2px_8px_rgba(0,0,0,0.02)] space-y-4">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                   <h3 className="text-base font-bold text-[#111344]">
                     Items in Your Order ({cartItems.length})
@@ -866,7 +900,7 @@ function ShoppingCheckout() {
                         <img
                           src={item.image}
                           alt={item.title}
-                          className="w-14 h-14 rounded-[10px] object-cover bg-gray-50 border border-gray-100 shrink-0"
+                          className="w-13 h-13 sm:w-14 sm:h-14 rounded-[10px] object-cover bg-gray-50 border border-gray-100 shrink-0"
                         />
                         <div className="min-w-0">
                           <p className="text-sm font-bold text-gray-900 truncate">
@@ -913,7 +947,7 @@ function ShoppingCheckout() {
               </div>
 
               {/* Payment Method Card */}
-              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-7 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3">
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] border border-gray-100 sm:border-gray-200/70 p-4 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] sm:shadow-[0_2px_8px_rgba(0,0,0,0.02)] space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CreditCard className="w-5 h-5 text-[#111344]" />
@@ -926,7 +960,7 @@ function ShoppingCheckout() {
                   </span>
                 </div>
 
-                <div className="p-4 rounded-[12px] border-2 border-[#111344] bg-[#111344]/5 flex items-center justify-between">
+                <div className="p-3.5 sm:p-4 rounded-[12px] border-2 border-[#111344] bg-[#111344]/5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-[#111344] text-white flex items-center justify-center font-bold text-xs">
                       ₦
@@ -947,7 +981,7 @@ function ShoppingCheckout() {
 
             {/* Right Column: Final Order Summary & Pay CTA */}
             <div className="space-y-4">
-              <div className="bg-white rounded-[22px] border border-gray-200/80 p-5 sm:p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4">
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] border border-gray-100 sm:border-gray-200/70 p-4 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] sm:shadow-[0_2px_8px_rgba(0,0,0,0.02)] space-y-4">
                 <h3 className="text-base font-bold text-[#111344]">
                   Payment Summary
                 </h3>
@@ -991,7 +1025,7 @@ function ShoppingCheckout() {
                 <Button
                   onClick={handleInitiatePaystackPayment}
                   disabled={isPaymentStart}
-                  className="w-full h-13 py-3.5 text-sm sm:text-base font-bold bg-[#111344] hover:bg-[#0C1172] text-white rounded-[8px] shadow-md transition-all flex items-center justify-center gap-2"
+                  className="w-full h-12 sm:h-13 py-3 text-sm sm:text-base font-bold bg-[#111344] hover:bg-[#0C1172] text-white rounded-[8px] shadow-md transition-all flex items-center justify-center gap-2"
                 >
                   {isPaymentStart ? (
                     <span>Connecting to Paystack...</span>
@@ -1008,7 +1042,7 @@ function ShoppingCheckout() {
                 <button
                   type="button"
                   onClick={() => setCurrentStep("address")}
-                  className="w-full text-center text-xs font-semibold text-gray-500 hover:text-[#111344] transition-colors py-1 flex items-center justify-center gap-1"
+                  className="w-full text-center text-xs font-semibold text-gray-500 hover:text-[#111344] transition-colors py-1 flex items-center justify-center gap-1 cursor-pointer"
                 >
                   <ArrowLeft className="w-3 h-3" />
                   <span>Back to Delivery Details</span>
@@ -1016,13 +1050,13 @@ function ShoppingCheckout() {
               </div>
 
               {/* Trust & Guarantee Box */}
-              <div className="p-4 rounded-[14px] bg-white border border-gray-200/80 space-y-2 text-[11px] text-gray-500">
+              <div className="p-3.5 sm:p-4 rounded-[14px] bg-white border border-gray-100 sm:border-gray-200/70 space-y-2 text-[11px] text-gray-500">
                 <div className="flex items-center gap-2 text-gray-800 font-bold">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
                   <span>Mobiletrends Buyer Protection</span>
                 </div>
                 <p>
-                  Orders are dispatched within 24 hours. Full transit insurance coverage applies until delivery.
+                  Orders dispatched from Akure within 24 hours. Full transit insurance coverage applies nationwide.
                 </p>
               </div>
             </div>

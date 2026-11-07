@@ -94,8 +94,22 @@ const createOrder = async (req, res) => {
     try {
       const deliverySettings = await DeliverySettings.findOne();
       if (deliverySettings && addressInfo?.state) {
-        const isLagos = String(addressInfo.state).toLowerCase().trim() === "lagos";
-        const standardRate = isLagos ? deliverySettings.lagosFee : deliverySettings.outsideLagosFee;
+        const normState = String(addressInfo.state).toLowerCase().trim();
+        const normLga = String(addressInfo.lga || "").toLowerCase().trim();
+        const isLocal =
+          normState === "ondo" ||
+          normState.includes("ondo") ||
+          normLga.includes("akure") ||
+          normState.includes("akure");
+
+        const localRate = Number(
+          deliverySettings.localFee ?? deliverySettings.lagosFee ?? 3000
+        );
+        const nationwideRate = Number(
+          deliverySettings.nationwideFee ?? deliverySettings.outsideLagosFee ?? 7000
+        );
+        const standardRate = isLocal ? localRate : nationwideRate;
+
         if (
           deliverySettings.freeDeliveryThreshold > 0 &&
           calculatedItemsTotal >= deliverySettings.freeDeliveryThreshold
