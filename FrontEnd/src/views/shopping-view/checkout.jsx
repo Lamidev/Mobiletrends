@@ -746,21 +746,19 @@ function ShoppingCheckout() {
                       key={item._id || item.productId}
                       className="py-2.5 flex items-center gap-3"
                     >
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-11 h-11 rounded-[8px] object-cover bg-gray-50 border border-gray-100 shrink-0"
-                      />
+                      <div className="w-12 h-12 rounded-[10px] bg-white border border-gray-100 p-1 flex items-center justify-center shrink-0 overflow-hidden">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-gray-900 truncate">
+                        <p className="text-xs sm:text-sm font-bold text-gray-900 truncate">
                           {item.title}
                         </p>
                         <p className="text-[11px] text-gray-500">
-                          Qty: {item.quantity} · ₦
-                          {(item.salePrice > 0
-                            ? item.salePrice
-                            : item.price
-                          ).toLocaleString("en-NG")}
+                          Qty: <span className="font-semibold text-gray-800">{item.quantity}</span> · <span className="font-bold text-[#111344]">₦{((item.salePrice > 0 ? item.salePrice : item.price) * item.quantity).toLocaleString("en-NG")}</span>
                         </p>
                       </div>
                     </div>
@@ -894,52 +892,69 @@ function ShoppingCheckout() {
                   {cartItems.map((item) => (
                     <div
                       key={item._id || item.productId}
-                      className="py-3 flex items-center justify-between gap-3"
+                      className="py-3.5 flex items-start gap-3 sm:gap-4"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
+                      {/* Strictly constrained thumbnail */}
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[12px] bg-white border border-gray-100 p-1.5 flex items-center justify-center shrink-0 overflow-hidden">
                         <img
                           src={item.image}
                           alt={item.title}
-                          className="w-13 h-13 sm:w-14 sm:h-14 rounded-[10px] object-cover bg-gray-50 border border-gray-100 shrink-0"
+                          className="w-full h-full object-contain"
                         />
-                        <div className="min-w-0">
-                          <p className="text-sm font-bold text-gray-900 truncate">
+                      </div>
+
+                      {/* Product Details & Price */}
+                      <div className="flex-1 min-w-0 space-y-1.5">
+                        {/* Title & Item Total Price */}
+                        <div className="flex items-start justify-between gap-2.5">
+                          <p className="text-[13px] sm:text-sm font-bold text-gray-900 leading-snug break-words">
                             {item.title}
                           </p>
-                          <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-gray-500 mt-0.5">
+                          <span className="text-sm sm:text-base font-extrabold text-[#111344] whitespace-nowrap shrink-0 text-right">
+                            ₦{(
+                              (item.salePrice > 0 ? item.salePrice : item.price) *
+                              item.quantity
+                            ).toLocaleString("en-NG")}
+                          </span>
+                        </div>
+
+                        {/* Selected Variants Badges */}
+                        {(item.selectedStorage || item.selectedRam || item.selectedColor || item.selectedCondition) && (
+                          <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 text-[11px]">
                             {item.selectedStorage && (
-                              <span className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700 font-medium">
+                              <span className="bg-orange-50 text-[#DF5E00] border border-orange-200/60 font-semibold px-2 py-0.5 rounded-[6px]">
                                 {item.selectedStorage}
                               </span>
                             )}
                             {item.selectedRam && (
-                              <span className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700 font-medium">
+                              <span className="bg-blue-50 text-[#0C1172] border border-blue-200/60 font-semibold px-2 py-0.5 rounded-[6px]">
                                 {item.selectedRam} RAM
                               </span>
                             )}
                             {item.selectedColor && (
-                              <span className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700 font-medium">
+                              <span className="bg-gray-100 text-gray-700 border border-gray-200/60 px-2 py-0.5 rounded-[6px] font-medium">
                                 {item.selectedColor}
                               </span>
                             )}
                             {item.selectedCondition && (
-                              <span className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700 font-medium capitalize">
+                              <span className="bg-emerald-50 text-emerald-800 border border-emerald-200/60 px-2 py-0.5 rounded-[6px] font-medium capitalize">
                                 {item.selectedCondition}
                               </span>
                             )}
-                            <span>· Qty: {item.quantity}</span>
                           </div>
-                        </div>
-                      </div>
+                        )}
 
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-bold text-[#111344]">
-                          ₦
-                          {(
-                            (item.salePrice > 0 ? item.salePrice : item.price) *
-                            item.quantity
-                          ).toLocaleString("en-NG")}
-                        </p>
+                        {/* Quantity and Unit Price */}
+                        <div className="flex items-center justify-between text-xs text-gray-500 pt-0.5">
+                          <span className="font-medium">
+                            Qty: <strong className="text-gray-900 font-bold">{item.quantity}</strong>
+                            {item.quantity > 1 && (
+                              <span className="text-gray-400 text-[11px] ml-1.5">
+                                (@ ₦{(item.salePrice > 0 ? item.salePrice : item.price).toLocaleString("en-NG")} each)
+                              </span>
+                            )}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -1025,7 +1040,7 @@ function ShoppingCheckout() {
                 <Button
                   onClick={handleInitiatePaystackPayment}
                   disabled={isPaymentStart}
-                  className="w-full h-12 sm:h-13 py-3 text-sm sm:text-base font-bold bg-[#111344] hover:bg-[#0C1172] text-white rounded-[8px] shadow-md transition-all flex items-center justify-center gap-2"
+                  className="w-full h-12 py-3 text-sm sm:text-base font-bold bg-[#111344] hover:bg-[#0C1172] text-white rounded-[8px] shadow-md transition-all flex items-center justify-center gap-2"
                 >
                   {isPaymentStart ? (
                     <span>Connecting to Paystack...</span>
